@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.20 2005/02/21 07:42:50 psavola Exp $
+ *   $Id: radvd.c,v 1.21 2005/03/22 10:29:13 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -551,7 +551,7 @@ readin_config(char *fname)
 
 	if (yyparse() != 0)
 	{
-		flog(LOG_ERR, "syntax error in config file: %s", fname);
+		flog(LOG_ERR, "error parsing or activating the config file: %s", fname);
 		return (-1);
 	}
 	
