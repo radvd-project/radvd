@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.4 2002/01/08 09:00:50 psavola Exp $
+# $Id: radvd.spec,v 1.5 2002/01/15 16:50:51 lutchann Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -8,7 +8,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 0.7.0
+Version: 0.7.1
 Release: 1
 License: BSD-style
 Group: System Environment/Daemons
@@ -82,6 +82,9 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Wed Jan 14 2002 Pekka Savola <pekkas@netcore.fi>
+- 0.7.1.
+
 * Tue Jan  8 2002 Pekka Savola <pekkas@netcore.fi>
 - Change 'reload' to signal HUP to radvd instead or restarting.
 
