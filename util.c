@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: util.c,v 1.4 2005/02/15 07:44:06 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -22,9 +22,9 @@ mdelay(int msecs)
 {
 	struct timeval tv;
                 
-	tv.tv_sec = (int) msecs / 1000;
-	tv.tv_usec = (msecs % 1000) * 1000;
-                                
+	tv.tv_sec = (time_t)(msecs / 1000.0);
+	tv.tv_usec = (suseconds_t)((msecs - tv.tv_sec * 1000.0) * 1000.0);
+
 	select(0,(fd_set *)NULL,(fd_set *)NULL,(fd_set *)NULL, &tv);
 }
 

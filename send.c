@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.14 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: send.c,v 1.15 2005/02/15 07:44:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -48,7 +48,8 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		dest = (struct in6_addr *)all_hosts_addr;
 		gettimeofday(&tv, NULL);
 
-		iface->last_multicast = tv.tv_sec;
+		iface->last_multicast_sec = tv.tv_sec;
+		iface->last_multicast_usec = tv.tv_usec;
 	}
 	
 	memset((void *)&addr, 0, sizeof(addr));
