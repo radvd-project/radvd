@@ -135,10 +135,10 @@ static const short yyrhs[] = {    30,
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-    82,    83,    86,   122,   129,   135,   136,   139,   140,   143,
-   156,   160,   164,   168,   172,   176,   180,   184,   188,   192,
-   198,   202,   209,   239,   240,   242,   243,   246,   253,   260,
-   267,   276,   280
+    82,    83,    86,   124,   131,   137,   138,   141,   142,   145,
+   158,   162,   166,   170,   174,   178,   182,   186,   190,   194,
+   200,   204,   211,   241,   242,   244,   245,   248,   255,   262,
+   269,   278,   282
 };
 #endif
 
@@ -754,6 +754,8 @@ case 3:
 				ABORT;
 			if (setup_linklocal_addr(sock, iface) < 0)
 				ABORT;
+			if (setup_allrouters_membership(sock, iface) < 0)
+				ABORT;
 
 			iface->next = IfaceList;
 			IfaceList = iface;
@@ -764,20 +766,20 @@ case 3:
 		;
     break;}
 case 4:
-#line 123 "gram.y"
+#line 125 "gram.y"
 {
 			/* check vality */
 			yyval.str = yyvsp[0].str;
 		;
     break;}
 case 5:
-#line 130 "gram.y"
+#line 132 "gram.y"
 {
 			iface->AdvPrefixList = yyvsp[0].pinfo;
 		;
     break;}
 case 10:
-#line 144 "gram.y"
+#line 146 "gram.y"
 {
 			iface = malloc(sizeof(struct Interface));
 
@@ -791,80 +793,80 @@ case 10:
 		;
     break;}
 case 11:
-#line 157 "gram.y"
+#line 159 "gram.y"
 {
 			iface->MinRtrAdvInterval = yyvsp[-1].num;
 		;
     break;}
 case 12:
-#line 161 "gram.y"
+#line 163 "gram.y"
 {
 			iface->MaxRtrAdvInterval = yyvsp[-1].num;
 		;
     break;}
 case 13:
-#line 165 "gram.y"
+#line 167 "gram.y"
 {
 			iface->AdvManagedFlag = yyvsp[-1].bool;
 		;
     break;}
 case 14:
-#line 169 "gram.y"
+#line 171 "gram.y"
 {
 			iface->AdvOtherConfigFlag = yyvsp[-1].bool;
 		;
     break;}
 case 15:
-#line 173 "gram.y"
+#line 175 "gram.y"
 {
 			iface->AdvLinkMTU = yyvsp[-1].num;
 		;
     break;}
 case 16:
-#line 177 "gram.y"
+#line 179 "gram.y"
 {
 			iface->AdvReachableTime = yyvsp[-1].num;
 		;
     break;}
 case 17:
-#line 181 "gram.y"
+#line 183 "gram.y"
 {
 			iface->AdvRetransTimer = yyvsp[-1].num;
 		;
     break;}
 case 18:
-#line 185 "gram.y"
+#line 187 "gram.y"
 {
 			iface->AdvDefaultLifetime = yyvsp[-1].num;
 		;
     break;}
 case 19:
-#line 189 "gram.y"
+#line 191 "gram.y"
 {
 			iface->AdvCurHopLimit = yyvsp[-1].num;
 		;
     break;}
 case 20:
-#line 193 "gram.y"
+#line 195 "gram.y"
 {
 			iface->AdvSourceLLAddress = yyvsp[-1].bool;
 		;
     break;}
 case 21:
-#line 199 "gram.y"
+#line 201 "gram.y"
 {
 			yyval.pinfo = yyvsp[0].pinfo;
 		;
     break;}
 case 22:
-#line 203 "gram.y"
+#line 205 "gram.y"
 {
 			yyvsp[0].pinfo->next = yyvsp[-1].pinfo;
 			yyval.pinfo = yyvsp[0].pinfo;
 		;
     break;}
 case 23:
-#line 210 "gram.y"
+#line 212 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -894,7 +896,7 @@ case 23:
 		;
     break;}
 case 28:
-#line 247 "gram.y"
+#line 249 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -903,7 +905,7 @@ case 28:
 		;
     break;}
 case 29:
-#line 254 "gram.y"
+#line 256 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -912,7 +914,7 @@ case 29:
 		;
     break;}
 case 30:
-#line 261 "gram.y"
+#line 263 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -921,7 +923,7 @@ case 30:
 		;
     break;}
 case 31:
-#line 268 "gram.y"
+#line 270 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -930,13 +932,13 @@ case 31:
 		;
     break;}
 case 32:
-#line 277 "gram.y"
+#line 279 "gram.y"
 {
                                 yyval.num = yyvsp[0].num; 
                         ;
     break;}
 case 33:
-#line 281 "gram.y"
+#line 283 "gram.y"
 {
                                 yyval.num = (uint32_t)~0;
                         ;
@@ -1139,7 +1141,7 @@ yyerrhandle:
   yystate = yyn;
   goto yynewstate;
 }
-#line 286 "gram.y"
+#line 288 "gram.y"
 
 
 static

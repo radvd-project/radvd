@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.2 1997/10/16 22:18:57 lf Exp $
+ *   $Id: gram.y,v 1.3 1998/03/03 14:54:22 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -109,6 +109,8 @@ ifacedef	: T_INTERFACE name '{' ifaceparams  '}' ';'
 			if (check_iface(iface) < 0)
 				ABORT;
 			if (setup_linklocal_addr(sock, iface) < 0)
+				ABORT;
+			if (setup_allrouters_membership(sock, iface) < 0)
 				ABORT;
 
 			iface->next = IfaceList;

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.4 1997/10/19 18:39:14 lf Exp $
+ *   $Id: radvd.h,v 1.5 1998/03/03 14:54:23 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -114,9 +114,10 @@ void set_debuglevel(int);
 int get_debuglevel(void);
 
 /* device.c */
-int setup_deviceinfo(int sock, struct Interface *);
-int check_device(int sock, struct Interface *);
-int setup_linklocal_addr(int sock, struct Interface *);
+int setup_deviceinfo(int, struct Interface *);
+int check_device(int, struct Interface *);
+int setup_linklocal_addr(int, struct Interface *);
+int setup_allrouters_membership(int, struct Interface *);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.6 1997/10/23 20:52:03 lf Exp $
+ *   $Id: device-bsd44.c,v 1.7 1998/03/03 14:54:22 lf Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -210,4 +210,9 @@ ret:
 	log(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 	free(ifconf.ifc_buf);
 	return -1;
+}
+
+int setup_allrouters_membership(int sock, struct Interface *iface)
+{
+	return (0);
 }
