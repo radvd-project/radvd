@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.3 2001/12/28 13:01:54 psavola Exp $
+# $Id: radvd.spec,v 1.4 2002/01/08 09:00:50 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -82,6 +82,9 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Tue Jan  8 2002 Pekka Savola <pekkas@netcore.fi>
+- Change 'reload' to signal HUP to radvd instead or restarting.
+
 * Fri Dec 28 2001 Pekka Savola <pekkas@netcore.fi>
 - License unfortunately is BSD *with* advertising clause, so to be pedantic,
   change License: to 'BSD-style'.
