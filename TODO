@@ -1,4 +1,4 @@
-$Id: TODO,v 1.6 2000/12/23 22:47:16 lf Exp $
+$Id: TODO,v 1.7 2000/12/23 22:58:20 lf Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -34,3 +34,8 @@ TODOs by Marko:
   and English is correct - my written English is far from perfect
 * finish radvdump --file-output interface identifier code
   (hard-coded eth0->actual receiving interface - for both BSD/Linux)
+
+
+There's a problem with the signal handling and the recv function. We
+probably need to add a select in front of the recv call to exit recv_rs_ra
+in time.
