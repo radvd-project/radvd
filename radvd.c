@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.9 2001/12/28 07:25:11 psavola Exp $
+ *   $Id: radvd.c,v 1.10 2001/12/28 07:29:27 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,7 +34,7 @@ struct option prog_opt[] = {
 	{"logmethod", 1, 0, 'm'},
 	{"facility", 1, 0, 'f'},
 	{"username", 1, 0, 'u'},
-	{"chrootdir",1, 0, 't'},
+	{"chrootdir", 1, 0, 't'},
 	{"version", 0, 0, 'v'},
 	{"help", 0, 0, 'h'},
 	{NULL, 0, 0, 0}
@@ -157,7 +157,7 @@ main(int argc, char *argv[])
 
 	if (chrootdir) {
 		if (!username) {
-			fprintf(stderr, "Chroot as root is not safe, exiting.\n");
+			fprintf(stderr, "Chroot as root is not safe, exiting\n");
 			exit(1);
 		}
 		
