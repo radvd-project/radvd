@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.7 2004/08/20 06:47:00 psavola Exp $
+.\"   $Id: radvd.8.man,v 1.8 2004/08/20 07:04:07 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -22,7 +22,7 @@ radvd \- router advertisement daemon for IPv6
 .BI "[ \-d " debuglevel " ]"
 .BI "[ \-C " configfile " ]"
 .BI "[ \-p " pidfile " ]"
-.BI "[ \-m " method " ]"
+.BI "[ \-m " logmethod " ]"
 .BI "[ \-l " logfile " ]"
 .BI "[ \-f " facility " ]"
 .BI "[ \-t " chrootdir " ]"
@@ -81,7 +81,7 @@ Specifies an alternate pidfile. Normally the compiled in default
 .I @PATH_RADVD_PID@
 is used.
 .TP
-.BR "\-m " method, " \-\-method " method
+.BR "\-m " method, " \-\-logmethod " method
 Specifies the logging method to use. Possibly values are:
 .RS
 .TP
