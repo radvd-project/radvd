@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.3 1997/10/14 21:52:46 lf Exp $
+ *   $Id: device-bsd44.c,v 1.4 1997/10/15 21:43:38 lf Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -55,7 +55,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 			break;
 	}
 
-	p = (uint8_t *)ifconf.ifc_buf;
+	p = (u_int8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
 	nlen = strlen(iface->Name);
 
@@ -172,7 +172,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 			break;
   	}
 
-	p = (uint8_t *)ifconf.ifc_buf;
+	p = (u_int8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
 	nlen = strlen(iface->Name);
 
