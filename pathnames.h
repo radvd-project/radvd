@@ -1,5 +1,5 @@
 /*
- *   $Id: pathnames.h,v 1.4 2001/12/28 07:25:11 psavola Exp $
+ *   $Id: pathnames.h,v 1.5 2004/08/20 07:22:09 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,6 +34,7 @@
 
 #ifdef __linux__
 #define SYSCTL_IP6_FORWARDING CTL_NET, NET_IPV6, NET_IPV6_CONF, NET_PROTO_CONF_ALL, NET_IPV6_FORWARDING
+#define PROC_SYS_IP6_FORWARDING "/proc/sys/net/ipv6/conf/all/forwarding"
 #else /* BSD */
 #define SYSCTL_IP6_FORWARDING CTL_NET, PF_INET6, IPPROTO_IPV6, IPV6CTL_FORWARDING
 #endif

@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.27 2004/08/20 07:17:53 psavola Exp $
+$Id: CHANGES,v 1.28 2004/08/20 07:22:09 psavola Exp $
 
 08/20/2004	Minor documentation cleanups.
 
@@ -7,6 +7,9 @@ $Id: CHANGES,v 1.27 2004/08/20 07:17:53 psavola Exp $
                 but will later become available (e.g., Bluetooth) --
                 and then you wish to send HUP to radvd to activate the
                 configs.
+
+01/19/2004      Fix warnings on Linux kernel 2.6, make checking the IPv6
+                forwarding a bit more intelligent.
 
 11/21/2003	Add support for Router Preferences and More Specific
 		Routes from Markku Savela <msa@burp.tkv.asdf.org>.
