@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.8 2005/03/29 12:59:41 psavola Exp $
+ *   $Id: interface.c,v 1.9 2005/03/29 13:40:55 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -126,40 +126,27 @@ check_iface(struct Interface *iface)
 		res = -1;
 	}
 
-	if (iface->if_maxmtu != -1)
+	if ((iface->AdvLinkMTU != 0) &&
+	   ((iface->AdvLinkMTU < MIN_AdvLinkMTU) || 
+	   (iface->if_maxmtu != -1 && (iface->AdvLinkMTU > iface->if_maxmtu))))
 	{
-		if ((iface->AdvLinkMTU != 0) &&
-		   ((iface->AdvLinkMTU < MIN_AdvLinkMTU) || 
-		   (iface->AdvLinkMTU > iface->if_maxmtu)))
-		{
-			flog(LOG_ERR,  "AdvLinkMTU must be zero or between %d and %d for %s",
-			MIN_AdvLinkMTU, iface->if_maxmtu, iface->Name);
-			res = -1;
-		}
-	}
-	else
-	{
-		if ((iface->AdvLinkMTU != 0) 
-			&& (iface->AdvLinkMTU < MIN_AdvLinkMTU))
-		{
-			flog(LOG_ERR,  "AdvLinkMTU must be zero or greater than %d for %s",
-			MIN_AdvLinkMTU, iface->Name);
-			res = -1;
-		}
+		flog(LOG_ERR,  "AdvLinkMTU for %s (%u) must be zero or between %d and %d",
+		iface->Name, iface->AdvLinkMTU, MIN_AdvLinkMTU, iface->if_maxmtu);
+		res = -1;
 	}
 
 	if (iface->AdvReachableTime >  MAX_AdvReachableTime)
 	{
 		flog(LOG_ERR, 
-			"AdvReachableTime must be less than %d for %s",
-			MAX_AdvReachableTime, iface->Name);
+			"AdvReachableTime for %s (%d) must not be greater than %d",
+			iface->Name, iface->AdvReachableTime, MAX_AdvReachableTime);
 		res = -1;
 	}
 
 	if (iface->AdvCurHopLimit > MAX_AdvCurHopLimit)
 	{
-		flog(LOG_ERR, "AdvCurHopLimit must not be greater than %d for %s",
-			MAX_AdvCurHopLimit, iface->Name);
+		flog(LOG_ERR, "AdvCurHopLimit for %s (%u) must not be greater than %u",
+			iface->Name, iface->AdvCurHopLimit, MAX_AdvCurHopLimit);
 		res = -1;
 	}
 	
@@ -179,8 +166,8 @@ check_iface(struct Interface *iface)
 	    (iface->AdvDefaultLifetime < MIN_AdvDefaultLifetime(iface))))
 	{
 		flog(LOG_ERR, 
-			"AdvDefaultLifetime for %s must be zero or between %.0f and %.0f",
-			iface->Name, MIN_AdvDefaultLifetime(iface),
+			"AdvDefaultLifetime for %s (.0f) must be zero or between %.0f and %.0f",
+			iface->Name, iface->AdvDefaultLifetime, MIN_AdvDefaultLifetime(iface),
 			MAX_AdvDefaultLifetime);
 		res = -1;
 	}
@@ -192,22 +179,19 @@ check_iface(struct Interface *iface)
 			(iface->HomeAgentLifetime < MIN_HomeAgentLifetime))
 		{
 			flog(LOG_ERR, 
-				"HomeAgentLifetime must be between %d and %d for %s",
-				MIN_HomeAgentLifetime, MAX_HomeAgentLifetime,
-				iface->Name);
+				"HomeAgentLifetime for %s (%d) must be between %d and %d",
+				iface->Name, iface->HomeAgentLifetime,
+				MIN_HomeAgentLifetime, MAX_HomeAgentLifetime);
 			res = -1;
 		}
 	}
 
 	/* Mobile IPv6 ext */
-	if (MIPv6)
+	if (iface->AdvHomeAgentInfo && !(iface->AdvHomeAgentFlag))
 	{
-		if (iface->AdvHomeAgentInfo && !(iface->AdvHomeAgentFlag))
-		{
-			flog(LOG_ERR, 
-				"AdvHomeAgentFlag must be set with HomeAgentInfo");
-			res = -1;
-		}
+		flog(LOG_ERR, 
+			"AdvHomeAgentFlag for %s must be set with HomeAgentInfo", iface->Name);
+		res = -1;
 	}
 
 	/* XXX: need this? prefix = iface->AdvPrefixList; */
@@ -216,15 +200,15 @@ check_iface(struct Interface *iface)
 	{
 		if (prefix->PrefixLen > MAX_PrefixLen)
 		{
-			flog(LOG_ERR, "invalid prefix length for %s", iface->Name);
+			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->PrefixLen, iface->Name);
 			res = -1;
 		}
 
 		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
 		{
-			flog(LOG_ERR, "AdvValidLifetime must be "
-				"greater than AdvPreferredLifetime for %s", 
-				iface->Name);
+			flog(LOG_ERR, "AdvValidLifetime for %s (%u) must be "
+				"greater than AdvPreferredLifetime for", 
+				iface->Name, prefix->AdvValidLifetime);
 			res = -1;
 		}
 
@@ -238,7 +222,7 @@ check_iface(struct Interface *iface)
 	{
 		if (route->PrefixLen > MAX_PrefixLen)
 		{
-			flog(LOG_ERR, "invalid route prefix length for %s", iface->Name);
+			flog(LOG_ERR, "invalid route prefix length (%u) for %s", route->PrefixLen, iface->Name);
 			res = -1;
 		}
 
