@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.10 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: device-linux.c,v 1.11 2004/10/25 20:38:38 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -125,7 +125,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 		return (-1);	
 	}
 	
-	while (fscanf(fp, "%32s %02x %02x %02x %02x %15s\n",
+	while (fscanf(fp, "%32s %x %02x %02x %02x %15s\n",
 		      str_addr, &if_idx, &plen, &scope, &dad_status,
 		      devname) != EOF)
 	{
