@@ -1,4 +1,4 @@
-$Id: TODO,v 1.12 2004/10/26 05:30:34 psavola Exp $
+$Id: TODO,v 1.13 2005/02/11 16:58:23 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -29,3 +29,26 @@ consider whether UnicastOnly flag should be detected by radvdump.
 
 read the man pages one more time and make sure their are understandable
 and English is correct
+
+The following parts of RFC2461(bis) are not implemented:
+ - section 6.2.1: Adv{Valid,Preferred}Lifetime that decrements in real time,
+   that is, one that will result in a Lifetime of zero at the specified time in
+   the future. (MUST)
+ - section 6.2.5: when AdvSendAdvertisements changes to FALSE, we don't send 
+   a final RA with zero Router Lifetime (we just send it when shutting down).
+   (SHOULD)
+ - section 6.2.5: if system management disables IP forwarding, subsequent
+   RAs MUST set the Router Lifetime to zero (MUST)
+ - section 6.2.8: if the link-local address of the router changes, it should
+   multicast a few RAs from the old address with zero router lifetime, and a
+   few from the new address. (SHOULD).
+  
+Notes on the implementation:
+ - RFC2461(bis) section 6.2.6: we send RA in response to a RS slightly
+   differently, but in a compliant(?) manner.  If the multicast response
+   would be rate-limited, we just use unicast instead and send it
+   immediately after the random delay.
+
+   However, we could check first whether a RA is already scheduled, and if
+   yes, not send anything at all.
+
