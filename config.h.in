@@ -1,6 +1,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
- *   $Id: config.h.in,v 1.6 2000/11/26 22:17:10 lf Exp $
+ *   $Id: config.h.in,v 1.8 2001/02/01 16:40:58 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -26,6 +26,9 @@
 
 /* Do we want EUI-64 support ? */
 #undef EUI_64_SUPPORT
+
+/* Whether struct sockaddr_in6 has sin6_scope_id */
+#undef HAVE_SIN6_SCOPE_ID
 
 /* Define if you have the getopt_long function.  */
 #undef HAVE_GETOPT_LONG

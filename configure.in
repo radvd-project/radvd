@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.4 2000/11/26 22:17:11 lf Exp $
+dnl  $Id: configure.in,v 1.5 2001/02/01 16:40:42 lf Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <lf@elemental.net>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.4 2000/11/26 22:17:11 lf Exp $)
+AC_REVISION ($Id: configure.in,v 1.5 2001/02/01 16:40:42 lf Exp $)
 AC_INIT(radvd.c)
 
 VERSION=`cat VERSION | grep -v '^#' | tr -d '\012'`
@@ -175,6 +175,12 @@ AC_CHECK_HEADERS(machine/param.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+
+AC_MSG_CHECKING(whether struct sockaddr_in6 has sin6_scope_id)
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <netinet/in.h>], [static struct sockaddr_in6 ac_sin6; int ac_size = 
+sizeof (ac_sin6.sin6_scope_id);], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SIN6_SCOPE_ID)],
+AC_MSG_RESULT(no))
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
