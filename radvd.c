@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.12 2001/12/28 08:39:54 psavola Exp $
+ *   $Id: radvd.c,v 1.13 2003/06/10 20:23:51 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -167,8 +167,10 @@ main(int argc, char *argv[])
 			exit (1);
 		}
 		
-		chdir("/");
-	
+		if (chdir("/") == -1) {
+			perror("chdir");
+			exit (1);
+		}
 		/* username will be switched later */
 	}
 	
