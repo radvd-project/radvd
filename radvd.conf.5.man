@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.2 2000/11/26 22:17:12 lf Exp $
+.\"   $Id: radvd.conf.5.man,v 1.3 2000/12/23 22:47:16 lf Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -17,7 +17,7 @@
 .TH RADVD.CONF 5 "17 Nov 2000" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
-radvd
+.B radvd
 .SH DESCRIPTION
 This file describes the information which is included in the router
 advertisement (RA) of a specific interface.

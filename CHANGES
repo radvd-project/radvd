@@ -1,4 +1,9 @@
-$Id: CHANGES,v 1.7 2000/11/26 22:17:10 lf Exp $
+$Id: CHANGES,v 1.8 2000/12/23 22:47:16 lf Exp $
+
+12/02/2000	man pages update, rewritten pid file handling, rewritten
+		signal handling (SIGHUP and SIGTERM), gcc warnings cleanup,
+		new radvdump option -f: print received RAs in config file
+		format (by Marko)
 
 11/19/2000	integrated the last two change entries into the main source
 		(patches by Marko Myllynen), fixed bug in log.c, fixed file

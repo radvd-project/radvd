@@ -1,4 +1,4 @@
-$Id: TODO,v 1.5 2000/11/26 22:17:10 lf Exp $
+$Id: TODO,v 1.6 2000/12/23 22:47:16 lf Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -22,3 +22,15 @@ Quoting Peter Bieringer (peter@bieringer.de):
 from forking.]
 
 support for few protocol constants defined in RFC 2461 Sec 10 is missing.
+
+TODOs by Marko:
+
+* double check all functions/system calls for buffer overflows/security
+  vulnerabilities (I know practically nothing about buffer overflows etc,
+  so I can't help here. For example: is it possible to send strange Router
+  advertisement with malicious fields/code and affect to system running
+  radvd which receives the adv?)
+* read the man pages one more time and make sure their are understandable
+  and English is correct - my written English is far from perfect
+* finish radvdump --file-output interface identifier code
+  (hard-coded eth0->actual receiving interface - for both BSD/Linux)

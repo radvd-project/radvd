@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.5 2000/12/23 22:47:16 lf Exp $
+ *   $Id: radvd.c,v 1.6 2000/12/23 22:50:10 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -51,6 +51,7 @@ volatile int sigint_received = 0;
 
 void sighup_handler(int sig);
 void sigterm_handler(int sig);
+void sigint_handler(int sig);
 void timer_handler(void *data);
 void reload_config(void);
 int readin_config(char *);
@@ -381,7 +382,7 @@ version(void)
 	fprintf(stderr, "Version: %s\n\n", VERSION);
 	fprintf(stderr, "Compiled in settings:\n");
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
-	fprintf(stderr, "  default pidfile              \"%s\"\n", PATH_RADVD_PID);
+	fprintf(stderr, "  default pidfile		\"%s\"\n", PATH_RADVD_PID);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
 	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
 #ifdef EUI_64_SUPPORT
