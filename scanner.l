@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.5 2002/04/09 20:37:44 lutchann Exp $
+ *   $Id: scanner.l,v 1.6 2002/07/11 21:26:16 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -32,7 +32,7 @@ hexdigit	([a-f]|[A-F]|[0-9])
 addr1		{hexdigit}{1,4}":"({hexdigit}{1,4}":")*(":"{hexdigit}{1,4})+
 addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
 addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
-addr		({addr1}|{addr2}|{addr3})
+addr		({addr1}|{addr2}|{addr3}|"::")
 whitespace	([ \t])+
 string		[a-z]([a-z]|{digit})*([:.]{digit}+)?
 %%
