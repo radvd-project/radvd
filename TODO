@@ -1,4 +1,4 @@
-$Id: TODO,v 1.14 2005/02/15 08:11:02 psavola Exp $
+$Id: TODO,v 1.15 2005/02/15 08:15:35 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -40,13 +40,3 @@ The following parts of RFC2461(bis) are not implemented:
  - section 6.2.8: if the link-local address of the router changes, it should
    multicast a few RAs from the old address with zero router lifetime, and a
    few from the new address. (SHOULD).
-  
-Notes on the implementation:
- - RFC2461(bis) section 6.2.6: we send RA in response to a RS slightly
-   differently, but in a compliant(?) manner.  If the multicast response
-   would be rate-limited, we just use unicast instead and send it
-   immediately after the random delay.
-
-   However, we could check first whether a RA is already scheduled, and if
-   yes, not send anything at all.
-
