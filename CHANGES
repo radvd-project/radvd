@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.32 2004/12/15 06:54:38 psavola Exp $
+$Id: CHANGES,v 1.33 2005/01/07 19:16:52 lutchann Exp $
+
+01/07/2005	Accomodate interface indexes > 9999, from Hagen Fritsch.
 
 12/15/2004	Advertise zero Router Lifetime when shutting down;
 		implements a SHOULD in RFC2461 section 6.2.5.

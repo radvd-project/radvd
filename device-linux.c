@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.11 2004/10/25 20:38:38 psavola Exp $
+ *   $Id: device-linux.c,v 1.12 2005/01/07 19:16:52 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -190,7 +190,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 		return (-1);	
 	}
 	
-	while ( (ret=fscanf(fp, "%4u %*s %32[0-9A-Fa-f] %*x %*x %*x\n", &if_idx, addr)) != EOF) {
+	while ( (ret=fscanf(fp, "%u %*s %32[0-9A-Fa-f] %*x %*x %*x\n", &if_idx, addr)) != EOF) {
 		if (ret == 2) {
 			if (iface->if_index == if_idx) {
 				if (strncmp(addr, ALL_ROUTERS_MCAST, sizeof(addr)) == 0)
