@@ -1,8 +1,11 @@
-$Id: TODO,v 1.1 1997/10/14 17:17:40 lf Exp $
+$Id: TODO,v 1.2 1997/10/19 18:57:15 lf Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
 
-follow interface state via netlink interface
+follow interface state via netlink interface and send RAs only when the
+interface is up
 
 man page for radvdump
+
+information in INTRO.html is outdated
