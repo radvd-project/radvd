@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.15 2004/08/20 07:22:09 psavola Exp $
+ *   $Id: radvd.c,v 1.16 2004/08/20 08:09:03 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -494,7 +494,7 @@ check_ip6_forwarding(void)
 		fclose(fp);
 	}
 	else
-		log(LOG_DEBUG, "Correct IPv6 forwarding procfs entry not found, "
+		flog(LOG_DEBUG, "Correct IPv6 forwarding procfs entry not found, "
 	                       "perhaps the procfs is disabled, "
 	                        "or the kernel interface has changed?");
 #endif /* __linux__ */
