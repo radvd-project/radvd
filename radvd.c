@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.19 2005/02/19 18:57:54 lutchann Exp $
+ *   $Id: radvd.c,v 1.20 2005/02/21 07:42:50 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -357,7 +357,8 @@ void reload_config(void)
 	/* disable timers, free interface and prefix structures */
 	for(iface=IfaceList; iface; iface=iface->next)
 	{
-		if(! iface->UnicastOnly && iface->AdvSendAdvert)
+		/* check that iface->tm was set in the first place */
+		if (iface->tm.next && iface->tm.prev)
 		{
 			dlog(LOG_DEBUG, 4, "disabling timer for %s", iface->Name);
 			clear_timer(&iface->tm);
