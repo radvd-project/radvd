@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.4 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: defaults.h,v 1.5 2001/11/22 08:30:26 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -136,7 +136,7 @@
 
 #define AdvertisementInterval(iface)	((iface)->MaxRtrAdvInterval))
 
-#define MIN_MinRtrAdvInterval_MIPv6	(1.0/2.0)
+#define MIN_MinRtrAdvInterval_MIPv6	(1.0/20.0)
 #define MIN_MaxRtrAdvInterval_MIPv6	(3.0/2.0)
 #define RTR_SOLICITATION_INTERVAL_MIPv6	1 /* Recommended value by MIPv6 */
 

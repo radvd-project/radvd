@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.4 2001/11/14 19:58:11 lutchann Exp $
+.\"   $Id: radvd.conf.5.man,v 1.5 2001/11/22 08:30:26 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -99,7 +99,7 @@ router advertisements from the interface, in seconds.
 Must be no less than 3 seconds and no greater than 0.75 *
 MaxRtrAdvInterval.
 
-Minimum when using Mobile IPv6 extensions: 0.5.
+Minimum when using Mobile IPv6 extensions: 0.05.
 
 Default: 0.33 * MaxRtrAdvInterval
 
