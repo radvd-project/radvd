@@ -1,4 +1,4 @@
-$Id: TODO,v 1.2 1997/10/19 18:57:15 lf Exp $
+$Id: TODO,v 1.3 1997/10/21 19:59:13 lf Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -9,3 +9,8 @@ interface is up
 man page for radvdump
 
 information in INTRO.html is outdated
+
+add on option to radvdump to dump incoming RAs as a radvd config file
+
+use getaddrinfo() instead of inet_pton in scanner.l so that DNS names
+can be used
