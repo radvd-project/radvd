@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.2 2000/11/26 22:17:12 lf Exp $
+ *   $Id: scanner.l,v 1.3 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,14 +10,14 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 %{
 #include <config.h>
 #include <includes.h>
 #include <radvd.h>
-#include <y.tab.h>
+#include <gram.h>
 
 extern char *conf_file;
 
@@ -26,13 +26,15 @@ int num_lines = 1;
 
 digit		[0-9]
 number		({digit})+
+snum		-?({digit})+
 decimal		({number}"."{number})
 hexdigit	([a-f]|[A-F]|[0-9])
 addr1		{hexdigit}{1,4}":"({hexdigit}{1,4}":")*(":"{hexdigit}{1,4})+
-addr2		({hexdigit}{1,4}":"){7}{hexdigit}
-addr		({addr1}|{addr2})
+addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
+addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
+addr		({addr1}|{addr2}|{addr3})
 whitespace	([ \t])+
-string		[a-z]([a-z]|{digit})*
+string		[a-z]([a-z]|{digit})*(":"{digit}+)?
 %%
 
 #.*$			{/* ignore comments */}
@@ -63,6 +65,9 @@ AdvRouterAddr		{ return T_AdvRouterAddr; }
 AdvHomeAgentFlag	{ return T_AdvHomeAgentFlag; }
 AdvIntervalOpt		{ return T_AdvIntervalOpt; }
 AdvHomeAgentInfo	{ return T_AdvHomeAgentInfo; }
+UnicastOnly		{ return T_UnicastOnly; }
+
+Base6to4Interface	{ return T_Base6to4Interface; }
 
 HomeAgentPreference	{ return T_HomeAgentPreference; }
 HomeAgentLifetime	{ return T_HomeAgentLifetime; }
@@ -92,6 +97,8 @@ HomeAgentLifetime	{ return T_HomeAgentLifetime; }
 
 {number}	{ yylval.num = atoi(yytext); return NUMBER; }
 
+{snum}		{ yylval.snum = atoi(yytext); return SIGNEDNUMBER; }
+
 {decimal}	{ yylval.dec = atof(yytext); return DECIMAL; }
 
 infinity	{ return INFINITY; }
@@ -103,7 +110,7 @@ off			{ yylval.bool = 0; return SWITCH; }
 {string}	{
 			static char name[IFNAMSIZ];
 				
-			strcpy(name, yytext);
+			strncpy(name, yytext, IFNAMSIZ-1);
 			yylval.str = name;
 			return STRING;
 		}

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.7 1998/03/03 14:54:22 lf Exp $
+ *   $Id: device-bsd44.c,v 1.8 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -88,19 +88,11 @@ setup_deviceinfo(int sock, struct Interface *iface)
           		switch(((struct sockaddr_dl *)p)->sdl_type) {
             		case IFT_ETHER:
             		case IFT_ISO88023:
-#ifdef EUI_64_SUPPORT
             			iface->if_prefix_len = 64;
-#else
-				iface->if_prefix_len = 80;
-#endif            		
               			iface->if_maxmtu = 1500;
               			break;
             		case IFT_FDDI:
-#ifdef EUI_64_SUPPORT
             			iface->if_prefix_len = 64;
-#else
-				iface->if_prefix_len = 80;
-#endif            		
               			iface->if_maxmtu = 4352;
               			break;
             		default:
@@ -215,4 +207,51 @@ ret:
 int setup_allrouters_membership(int sock, struct Interface *iface)
 {
 	return (0);
+}
+
+int check_allrouters_membership(int sock, struct Interface *iface)
+{
+	return (0);
+}
+
+/* UNTESTED - This code is from device-linux.c and has not been tested
+ * under BSD.  If it is broken in the distribution and you fix it, please
+ * send me the patch.  -lutchann */
+
+int
+get_v4addr(const char *ifn, unsigned int *dst)
+{
+	struct ifreq	ifr;
+	struct sockaddr_in *addr;
+	int fd;
+
+	if( ( fd = socket(AF_INET,SOCK_DGRAM,0) ) < 0 )
+	{
+		log(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
+			ifn, strerror(errno));
+		return (-1);
+	}
+	
+	memset( &ifr, 0, sizeof( struct ifreq ) );
+	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
+	ifr.ifr_addr.sa_family = AF_INET;
+	
+	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
+	{
+		log(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
+			ifn, strerror(errno));
+		close( fd );
+		return (-1);
+	}
+
+	addr = (struct sockaddr_in *)(&ifr.ifr_addr);
+
+	dlog(LOG_DEBUG, 3, "IPv4 address for %s is %s", ifn,
+		inet_ntoa( addr->sin_addr ) ); 
+
+	*dst = addr->sin_addr.s_addr;
+
+	close( fd );
+
+	return 0;
 }

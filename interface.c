@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.2 2000/11/26 22:17:11 lf Exp $
+ *   $Id: interface.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -49,6 +49,8 @@ prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->AdvRouterAddr = DFLT_AdvRouterAddr;
 	prefix->AdvValidLifetime = DFLT_AdvValidLifetime;
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
+	prefix->if6to4[0] = 0;
+	prefix->enabled = 1;
 }
 
 int

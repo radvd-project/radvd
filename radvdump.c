@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.5 2000/12/23 22:47:16 lf Exp $
+ *   $Id: radvdump.c,v 1.6 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -12,14 +12,13 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
 #include <config.h>
 #include <includes.h>
 #include <radvd.h>
-#include <pathnames.h>
 
 char usage_str[] = "[-vhf] [-d level]";
 

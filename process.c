@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.4 2000/11/26 22:17:12 lf Exp $
+ *   $Id: process.c,v 1.5 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -31,6 +31,12 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 	struct Interface *iface;
 	struct icmp6_hdr *icmph;
 	char addr_str[INET6_ADDRSTRLEN];
+
+	if ( ! pkt_info )
+	{
+		log(LOG_WARNING, "received packet with no pkt_info!" );
+		return;
+	}
 
 	/*
 	 * can this happen?
@@ -56,6 +62,41 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 		return;
 	}
 
+	if (icmph->icmp6_type == ND_ROUTER_ADVERT)
+	{
+		if (len < sizeof(struct nd_router_advert)) {
+			log(LOG_WARNING, "received icmpv6 RA packet with invalid length: %d",
+				len);
+			return;
+		}
+
+		if (!IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
+			log(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address");
+			return;
+		}
+	}			
+	
+	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
+	{
+		if (len < sizeof(struct nd_router_solicit)) {
+			log(LOG_WARNING, "received icmpv6 RS packet with invalid length: %d",
+				len);
+			return;
+		}
+		
+		/* 
+		 * XXX: RFC2461 6.1.1: if RS src addr is the unspecified address,
+		 *	and there is a lladdr option, the packet MUST be dropped
+		 */
+	}			
+
+	if (icmph->icmp6_code != 0)
+	{
+		log(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code: %d",
+			icmph->icmp6_code);
+		return;
+	}
+	
 	dlog(LOG_DEBUG, 4, "if_index %d", pkt_info->ipi6_ifindex);
 
 	/* get iface by received if_index */
@@ -114,7 +155,8 @@ process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 	dlog(LOG_DEBUG, 3, "random mdelay for %s: %d", iface->Name, delay);
 	mdelay(delay);
  	
-	if (tv.tv_sec - iface->last_multicast < MIN_DELAY_BETWEEN_RAS)
+	if (iface->UnicastOnly
+		|| tv.tv_sec - iface->last_multicast < MIN_DELAY_BETWEEN_RAS)
 	{
 		/*
 		 *	unicast reply
@@ -242,7 +284,8 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			prefix = iface->AdvPrefixList;
 			while (prefix)
 			{
-				if ((prefix->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
+				if (prefix->enabled &&
+				    (prefix->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
 				    addr_match(&prefix->Prefix, &pinfo->nd_opt_pi_prefix,
 				    	 prefix->PrefixLen))
 				{

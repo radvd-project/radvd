@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.9 2001/02/01 16:40:42 lf Exp $
+ *   $Id: send.c,v 1.10 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -34,6 +34,10 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	int len = 0;
 	int err;
 
+	/* Make sure that we've joined the all-routers multicast group */
+	if (check_allrouters_membership(sock, iface) < 0)
+		log(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
+
 	dlog(LOG_DEBUG, 3, "sending RA on %s", iface->Name);
 
 	if (dest == NULL)
@@ -46,6 +50,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		iface->last_multicast = tv.tv_sec;
 	}
 	
+	memset((void *)&addr, 0, sizeof(struct sockaddr_in6));
 	addr.sin6_family = AF_INET6;
 	addr.sin6_port = htons(IPPROTO_ICMPV6);
 	memcpy(&addr.sin6_addr, dest, sizeof(struct in6_addr));
@@ -80,30 +85,33 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	while(prefix)
 	{
-		struct nd_opt_prefix_info *pinfo;
-		
-		pinfo = (struct nd_opt_prefix_info *) (buff + len);
+		if( prefix->enabled )
+		{
+			struct nd_opt_prefix_info *pinfo;
+			
+			pinfo = (struct nd_opt_prefix_info *) (buff + len);
 
-		pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
-		pinfo->nd_opt_pi_len	     = 4;
-		pinfo->nd_opt_pi_prefix_len  = prefix->PrefixLen;
-		
-		pinfo->nd_opt_pi_flags_reserved  = 
-			(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
-		pinfo->nd_opt_pi_flags_reserved	|=
-			(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
-		/* Mobile IPv6 ext */
-		pinfo->nd_opt_pi_flags_reserved |=
-			(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
+			pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
+			pinfo->nd_opt_pi_len	     = 4;
+			pinfo->nd_opt_pi_prefix_len  = prefix->PrefixLen;
+			
+			pinfo->nd_opt_pi_flags_reserved  = 
+				(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
+			pinfo->nd_opt_pi_flags_reserved	|=
+				(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
+			/* Mobile IPv6 ext */
+			pinfo->nd_opt_pi_flags_reserved |=
+				(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
 
-		pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
-		pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
-		pinfo->nd_opt_pi_reserved2	= 0;
-		
-		memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
-		       sizeof(struct in6_addr));
+			pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
+			pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
+			pinfo->nd_opt_pi_reserved2	= 0;
+			
+			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
+			       sizeof(struct in6_addr));
 
-		len += sizeof(struct nd_opt_prefix_info);
+			len += sizeof(struct nd_opt_prefix_info);
+		}
 
 		prefix = prefix->next;
 	}

@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.5 2000/11/26 22:17:12 lf Exp $
+ *   $Id: timer.c,v 1.6 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.6 2000/12/23 22:50:10 lf Exp $
+ *   $Id: radvd.c,v 1.7 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -23,7 +23,7 @@ struct Interface *IfaceList = NULL;
 
 char usage_str[] =
 	"[-vh] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
-	"\t[-f facility]";
+	"\t[-f facility] [-u username] [-t chrootdir]";
 
 #ifdef HAVE_GETOPT_LONG
 struct option prog_opt[] = {
@@ -33,6 +33,8 @@ struct option prog_opt[] = {
 	{"logfile", 1, 0, 'l'},
 	{"logmethod", 1, 0, 'm'},
 	{"facility", 1, 0, 'f'},
+	{"username", 1, 0, 'u'},
+	{"chrootdir",1, 0, 't'},
 	{"version", 0, 0, 'v'},
 	{"help", 0, 0, 'h'},
 	{NULL, 0, 0, 0}
@@ -53,7 +55,9 @@ void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void timer_handler(void *data);
+void kickoff_adverts(void);
 void reload_config(void);
+int drop_root_privileges(const char *);
 int readin_config(char *);
 void version(void);
 void usage(void);
@@ -61,11 +65,14 @@ void usage(void);
 int
 main(int argc, char *argv[])
 {
-	unsigned char msg[MSG_SIZE], pidstr[16];
+	unsigned char msg[MSG_SIZE];
+	char pidstr[16];
 	struct Interface *iface;
 	int c, log_method;
 	char *logfile, *pidfile;
 	int facility, fd;
+	char *username = NULL;
+	char *chrootdir = NULL;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
@@ -82,9 +89,9 @@ main(int argc, char *argv[])
 
 	/* parse args */
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt_long(argc, argv, "d:C:l:m:p:vh", prog_opt, &opt_idx)) > 0)
+	while ((c = getopt_long(argc, argv, "d:C:l:m:p:t:u:vh", prog_opt, &opt_idx)) > 0)
 #else
-	while ((c = getopt(argc, argv, "d:C:l:m:p:vh")) > 0)
+	while ((c = getopt(argc, argv, "d:C:l:m:p:t:u:vh")) > 0)
 #endif
 	{
 		switch (c) {
@@ -126,6 +133,12 @@ main(int argc, char *argv[])
 				exit(1);
 			}
 			break;
+		case 't':
+			chrootdir = strdup(optarg);
+			break;
+		case 'u':
+			username = strdup(optarg);
+			break;
 		case 'v':
 			version();
 			break;
@@ -141,6 +154,22 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 	}
+
+	if (chrootdir) {
+		if (!username) {
+			fprintf(stderr, "Chroot as root is not safe, exiting.\n");
+			exit(1);
+		}
+		
+		if (chroot(chrootdir) == -1) {
+			perror("chroot");
+			exit (1);
+		}
+		
+		chdir("/");
+	
+		/* username will be switched later */
+	}
 	
 	if (log_open(log_method, pname, logfile, facility) < 0)
 		exit(1);
@@ -152,10 +181,25 @@ main(int argc, char *argv[])
 	if (sock < 0)
 		exit(1);
 
+	/* drop root privileges if requested. */
+	if (username) {
+		if (drop_root_privileges(username) < 0)
+			exit(1);
+
+	/* XXX: sanity check: radvd.conf should not be writable by username */
+	}
+	
 	/* parse config file */
 	if (readin_config(conf_file) < 0)
 		exit(1);
 
+	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
+	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
+	{
+		log(LOG_ERR, "another radvd seems to be already running, terminating");
+		exit(1);
+	}
+	
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
@@ -163,18 +207,9 @@ main(int argc, char *argv[])
 
 	if (get_debuglevel() == 0) {
 
-		switch (fork()) {
-			case 0:
-				/* child falls through */
-				break;
-			case -1:
-				log(LOG_ERR, "fork: %s", strerror(errno));
-				exit(1);
-			default:
-				/* parent exists */
-				log_close();
-				exit(0);	
-		}
+		/* Detach from controlling terminal */
+		if (daemon(0, 0) < 0)
+			perror("daemon");
 
 		/*
 		 * reopen logfile, so that we get the process id right in the syslog
@@ -182,11 +217,6 @@ main(int argc, char *argv[])
 		if (log_reopen() < 0)
 			exit(1);
 
-		/*
-		 * detach from our controlling terminal
-		 */
-	 
-		setsid();
 	}
 
 	/*
@@ -197,35 +227,13 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigint_handler);
 
-	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
-	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
-	{
-		log(LOG_ERR, "another radvd seems to be already running, terminating");
-		exit(1);
-	}
-	
 	snprintf(pidstr, sizeof(pidstr), "%d\n", getpid());
 	
 	write(fd, pidstr, strlen(pidstr));
 	
 	close(fd);
 
-	/*
-	 *	send initial advertisement and set timers
-	 */
-
-	for(iface=IfaceList; iface; iface=iface->next)
-	{
-		init_timer(&iface->tm, timer_handler, (void *) iface);
-		if (iface->AdvSendAdvert)
-		{
-			/* send an initial advertisement */
-			send_ra(sock, iface, NULL);
-
-			set_timer(&iface->tm, iface->MaxRtrAdvInterval);
-		}
-	}
-
+	kickoff_adverts();
 
 	/* enter loop */
 
@@ -266,6 +274,31 @@ timer_handler(void *data)
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
 	set_timer(&iface->tm, next);
+}
+
+void
+kickoff_adverts(void)
+{
+	struct Interface *iface;
+
+	/*
+	 *	send initial advertisement and set timers
+	 */
+
+	for(iface=IfaceList; iface; iface=iface->next)
+	{
+		if( ! iface->UnicastOnly )
+		{
+			init_timer(&iface->tm, timer_handler, (void *) iface);
+			if (iface->AdvSendAdvert)
+			{
+				/* send an initial advertisement */
+				send_ra(sock, iface, NULL);
+
+				set_timer(&iface->tm, iface->MaxRtrAdvInterval);
+			}
+		}
+	}
 }
 
 void reload_config(void)
@@ -312,20 +345,7 @@ void reload_config(void)
 	if (readin_config(conf_file) < 0)
 		exit(1);
 
-	/*
-	 *	send initial advertisement and set timers
-	 */
-	for(iface=IfaceList; iface; iface=iface->next)
-	{
-		init_timer(&iface->tm, timer_handler, (void *)iface);
-		if (iface->AdvSendAdvert)
-		{
-			/* send an initial advertisement */
-			send_ra(sock, iface, NULL);
-		
-			set_timer(&iface->tm, iface->MaxRtrAdvInterval);
-		}
-	}
+	kickoff_adverts();
 
 	log(LOG_INFO, "resuming normal operation");
 }
@@ -336,6 +356,8 @@ sighup_handler(int sig)
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGHUP, sighup_handler);
 
+	dlog(LOG_DEBUG, 4, "sighup_handler called");
+
 	sighup_received = 1;
 }
 
@@ -344,6 +366,8 @@ sigterm_handler(int sig)
 {
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGTERM, sigterm_handler);
+
+	dlog(LOG_DEBUG, 4, "sigterm_handler called");
 
 	sigterm_received = 1;
 }
@@ -354,7 +378,28 @@ sigint_handler(int sig)
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGINT, sigint_handler);
 
+	dlog(LOG_DEBUG, 4, "sigint_handler called");
+
 	sigint_received = 1;
+}
+
+int
+drop_root_privileges(const char *username)
+{
+	struct passwd *pw = NULL;
+	pw = getpwnam(username);
+	if (pw) {
+		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
+			log(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d\n", 
+					username, pw->pw_uid, pw->pw_gid);
+			return (-1);
+		}
+	}
+	else {
+		log(LOG_ERR, "Couldn't find user '%.32s'\n", username);
+		return (-1);
+	}
+	return 0;
 }
 
 int
@@ -385,11 +430,6 @@ version(void)
 	fprintf(stderr, "  default pidfile		\"%s\"\n", PATH_RADVD_PID);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
 	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
-#ifdef EUI_64_SUPPORT
-	fprintf(stderr, "  EUI-64 support		enabled\n\n"); 	
-#else
-	fprintf(stderr, "  EUI-64 support		disabled\n\n");
-#endif	
 	fprintf(stderr, "Please send bug reports or suggestions to %s.\n",
 		CONTACT_EMAIL);
 

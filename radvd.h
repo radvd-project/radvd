@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.6 2000/11/26 22:17:12 lf Exp $
+ *   $Id: radvd.h,v 1.7 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -21,7 +21,7 @@
 #include <includes.h>
 #include <defaults.h>
 
-#define CONTACT_EMAIL	"Lars Fenneberg <lf@elemental.net>"
+#define CONTACT_EMAIL	"Nathan Lutchansky <lutchann@litech.org>"
 
 /* for log.c */
 #define	L_NONE		0
@@ -44,7 +44,7 @@ struct AdvPrefix;
 #define HWADDR_MAX 16
 
 struct Interface {
-	char			Name[IFNAMSIZ+1];	/* interface name */
+	char			Name[IFNAMSIZ];	/* interface name */
 
 	struct in6_addr		if_addr;
 	int			if_index;
@@ -65,6 +65,7 @@ struct Interface {
 	int			AdvCurHopLimit;
 	int			AdvDefaultLifetime;
 	int			AdvSourceLLAddress;
+	int			UnicastOnly;
 
 	/* Mobile IPv6 extensions */
 	int			AdvIntervalOpt;
@@ -92,6 +93,9 @@ struct AdvPrefix {
 	/* Mobile IPv6 extensions */
         int                     AdvRouterAddr;
 
+	/* 6to4 extensions */
+	char			if6to4[IFNAMSIZ];
+	int			enabled;
 
 	struct AdvPrefix	*next;
 };
@@ -139,6 +143,8 @@ int setup_deviceinfo(int, struct Interface *);
 int check_device(int, struct Interface *);
 int setup_linklocal_addr(int, struct Interface *);
 int setup_allrouters_membership(int, struct Interface *);
+int check_allrouters_membership(int, struct Interface *);
+int get_v4addr(const char *, unsigned int *);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);

@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.3 2000/12/23 22:47:16 lf Exp $
+.\"   $Id: radvd.conf.5.man,v 1.4 2001/11/14 19:58:11 lutchann Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -10,11 +10,11 @@
 .\"
 .\"   The license which is distributed with this software in the file COPYRIGHT
 .\"   applies to this software. If your distribution is missing this file, you
-.\"   may request it from <lf@elemental.net>.
+.\"   may request it from <lutchann@litech.org>.
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "17 Nov 2000" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "29 Mar 2001" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd
@@ -62,7 +62,21 @@ A flag indicating whether or not the router sends
 periodic router advertisements and responds to
 router solicitations. 
 
-.B "This option has to be specified and it has to come before all other interface specific options."
+This option no longer has to be specified first, but it
+needs to be
+.B on
+to enable advertisement on this interface.
+
+.TP
+.BR UnicastOnly " " on | off
+
+Indicates that the interface link type only supports unicast.
+This will prevent unsolicited advertisements from being sent, and
+will cause solicited advertisements to be unicast to the
+soliciting node.  This option is necessary for non-broadcast,
+multiple-access links, such as ISATAP.
+
+Default: no
 
 .TP
 .BR "MaxRtrAdvInterval " seconds
@@ -115,7 +129,7 @@ The MTU option is used in  router advertisement messages to insure
 that all nodes on a link use the same MTU value in those cases where
 the link MTU is not well known.
 
-If specified, i.e. not 0, must be geater than 576 and not be greater
+If specified, i.e. not 0, must not be smaller than 1280 and not greater
 than the maximum MTU allowed for this link (e.g. ethernet has
 a maximum MTU of 1500. See RFC 2464).
 
@@ -289,22 +303,58 @@ See RFC 2462.
 
 Default: 604800 seconds (7 days)
 
+.TP
+.BR "Base6to4Interface " name 
+
+If this option is specified, this prefix will be combined with the
+IPv4 address of interface
+.B name
+to produce a valid 6to4 prefix. The first 16 bits of this prefix
+will be replaced by
+.B 2002
+and the next 32 bits of this prefix will be replaced by the IPv4
+address assigned to interface
+.B name
+at configuration time. The remaining 80 bits of the prefix (including
+the SLA ID) will be advertised as specified in the configuration file.
+See the next section for an example.
+
+If interface
+.B name
+is not available at configuration time, a warning will be written to
+the log and this prefix will be disabled until radvd is reconfigured.
+
+This option enables systems with dynamic IPv4 addresses to update their
+advertised 6to4 prefixes simply by restarting radvd or sending a SIGHUP
+signal to cause radvd to reconfigure itself.
+
+Note that 6to4 prefixes derived from dynamically-assigned IPv4 addresses
+should be advertised with a significantly shorter lifetime (see the
+.B AdvValidLifetime
+and
+.B AdvPreferredLifetime
+options).
+
+For more information on 6to4, see RFC 3056.
+
+Default: 6to4 is not used
+
 .SH EXAMPLES
 
 .nf
 interface eth0
 {
-	AdvSendAdvert on;
-	prefix fec0:0:0:1::0/64
-	{
+        AdvSendAdvert on;
+        prefix fec0:0:0:1::/64
+        {
                 AdvOnLink on;
                 AdvAutonomous on;
-	};
+        };
 };
 .fi
 
 It says that router advertisement daemon should advertise
-(AdvSendAdvert on;) the prefix fec0:0:0:1::0 which has a lenght of 64
+(AdvSendAdvert on;) the prefix fec0:0:0:1:: which has a lenght of 64
 on the interface eth0.  Also the prefix should be marked as autonomous
 (AdvAutonomous on;) and as on-link (AdvOnLink on;).  All the other
 options are left on their default values.
@@ -315,15 +365,48 @@ address of interface should be used instead of network prefix:
 .nf
 interface eth0
 {
-	AdvSendAdvert on;
-	prefix fec0:0:0:1::4/64
-	{
+        AdvSendAdvert on;
+        prefix fec0:0:0:1::4/64
+        {
                 AdvOnLink on;
                 AdvAutonomous on;
                 AdvRouterAddr on;
-	};
+        };
 };
 .fi
+
+For 6to4 support, include the
+.B Base6to4Interface
+option in each prefix section. When using a dynamic IPv4 address, set
+small prefix lifetimes to prevent hosts from retaining unreachable
+prefixes after a new IPv4 address has been assigned.
+
+.nf
+interface eth0
+{
+        AdvSendAdvert on;
+
+        # Advertise at least every 30 seconds
+        MaxRtrAdvInterval 30;
+
+        prefix 0:0:0:5678::/64
+        {
+                AdvOnLink on;
+                AdvAutonomous on;
+                Base6to4Interface ppp0;
+
+                # Very short lifetimes for dynamic addresses
+                AdvDefaultLifetime 300;
+                AdvPreferredLifetime 120;
+        };
+};
+.fi
+
+Since 6to4 is enabled, the prefix will be advertised as
+2002:WWXX:YYZZ:5678::/64, where WW.XX.YY.ZZ is the IPv4 address of
+ppp0 at configuration time. (IPv6 addresses are written in hexadecimal
+whereas IPv4 addresses are written in decimal, so the IPv4 address
+WW.XX.YY.ZZ in the 6to4 prefix will be represented in hex.)
 
 .SH FILES
 
@@ -353,6 +436,9 @@ for the Internet Protocol Version 6 (IPv6)", RFC 2463, December 1998.
 .PP
 Crawford, M., "Transmission of IPv6 Packets over Ethernet Networks",
 RFC 2464, December 1998.	
+.PP
+Carpenter B., Moore K., "Connection of IPv6 Domains via IPv4 Clouds",
+RFC 3056, February 2001. (6to4 specification)
 
 .SH "SEE ALSO"
 

@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.5 2001/02/01 16:40:42 lf Exp $
+dnl  $Id: configure.in,v 1.6 2001/11/14 19:58:11 lutchann Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,16 +9,17 @@ dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
 dnl   applies to this software. If your distribution is missing this file, you
-dnl   may request it from <lf@elemental.net>.
+dnl   may request it from <lutchann@litech.org>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.5 2001/02/01 16:40:42 lf Exp $)
+AC_REVISION ($Id: configure.in,v 1.6 2001/11/14 19:58:11 lutchann Exp $)
 AC_INIT(radvd.c)
 
-VERSION=`cat VERSION | grep -v '^#' | tr -d '\012'`
-
 AC_CANONICAL_SYSTEM
+VERSION=`cat ${srcdir}/VERSION | grep -v '^#' | tr -d '\012'`
+AM_INIT_AUTOMAKE(radvd,$VERSION,true)
+
 echo $ac_n "building for architecture""... $ac_c" 1>&6
 case "$target" in
 	*linux*)
@@ -54,7 +55,7 @@ fi
 dnl Not needed
 AC_PATH_PROG(LN, ln)
 AC_PROG_YACC
-AC_PROG_LEX
+AM_PROG_LEX
 AC_PATH_PROG(TAR, tar)
 AC_PATH_PROG(GZIP, gzip)
 
@@ -89,22 +90,6 @@ AC_ARG_WITH(facility,
 	LOG_FACILITY=$withval,
 	LOG_FACILITY=LOG_DAEMON)
 AC_MSG_RESULT($LOG_FACILITY)
-
-AC_MSG_CHECKING(whether to enable EUI-64 support)
-AC_ARG_ENABLE(eui-64,
-[  --disable-eui-64        Disable EUI-64 support (default: enabled).],
-[ case "$enableval" in
-  no)
-    AC_MSG_RESULT(no)
-    ;;
-  *)
-    AC_MSG_RESULT(yes)
-    AC_DEFINE(EUI_64_SUPPORT)
-    ;;
-  esac ],
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(EUI_64_SUPPORT)
-)
 
 dnl Checks for libraries.
 
@@ -172,6 +157,7 @@ unset hdrfound
 AC_CHECK_HEADERS(sys/sockio.h getopt.h inttypes.h)
 AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)
 AC_CHECK_HEADERS(machine/param.h)
+AC_CHECK_HEADERS(machine/limits.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -180,6 +166,11 @@ AC_MSG_CHECKING(whether struct sockaddr_in6 has sin6_scope_id)
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <netinet/in.h>], [static struct sockaddr_in6 ac_sin6; int ac_size = 
 sizeof (ac_sin6.sin6_scope_id);], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SIN6_SCOPE_ID)],
+AC_MSG_RESULT(no))
+
+AC_MSG_CHECKING(whether struct in6_addr has u6_addrXX and defines s6_addrXX)
+AC_TRY_COMPILE([#include <netinet/in.h>], [static struct in6_addr in6_u; 
+int u =  in6_u.s6_addr16;], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_IN6_ADDR_S6_ADDR)],
 AC_MSG_RESULT(no))
 
 dnl Checks for library functions.
@@ -193,5 +184,5 @@ AC_SUBST(PATH_RADVD_PID)
 AC_SUBST(PATH_RADVD_LOG)
 AC_SUBST(LOG_FACILITY)
 
-AC_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(Makefile)
