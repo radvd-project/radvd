@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.9 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: includes.h,v 1.10 2001/12/28 07:25:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -59,6 +59,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/uio.h>
+#include <sys/sysctl.h>
 
 #include <sys/stat.h>
 #include <fcntl.h>
