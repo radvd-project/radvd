@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.13 2003/06/10 20:23:51 psavola Exp $
+ *   $Id: radvd.c,v 1.14 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 	if (log_open(log_method, pname, logfile, facility) < 0)
 		exit(1);
 
-	log(LOG_INFO, "version %s started", VERSION);
+	flog(LOG_INFO, "version %s started", VERSION);
 
 	/* get a raw socket for sending and receiving ICMPv6 messages */
 	sock = open_icmpv6_socket();
@@ -197,17 +197,17 @@ main(int argc, char *argv[])
 		if (get_debuglevel() == 0)
 			exit(1);
 		else
-			log(LOG_WARNING, "Insecure file permissions, but continuing anyway");
+			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
 	
 	/* if we know how to do it, check whether forwarding is enabled */
 	if (check_ip6_forwarding()) {
 		if (get_debuglevel() == 0) {
-			log(LOG_ERR, "IPv6 forwarding seems to be disabled, exiting");
+			flog(LOG_ERR, "IPv6 forwarding seems to be disabled, exiting");
 			exit(1);
 		}
 		else
-			log(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
+			flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
 	/* parse config file */
@@ -217,7 +217,7 @@ main(int argc, char *argv[])
 	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
 	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
 	{
-		log(LOG_ERR, "another radvd seems to be already running, terminating");
+		flog(LOG_ERR, "another radvd seems to be already running, terminating");
 		exit(1);
 	}
 	
@@ -326,7 +326,7 @@ void reload_config(void)
 {
 	struct Interface *iface;
 
-	log(LOG_INFO, "attempting to reread config file");
+	flog(LOG_INFO, "attempting to reread config file");
 
 	dlog(LOG_DEBUG, 4, "reopening log");
 	if (log_reopen() < 0)
@@ -344,6 +344,7 @@ void reload_config(void)
 	{
 		struct Interface *next_iface = iface->next;
 		struct AdvPrefix *prefix;
+		struct AdvRoute *route;
 
 		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
 		
@@ -356,6 +357,15 @@ void reload_config(void)
 			prefix = next_prefix;
 		}
 		
+		route = iface->AdvRouteList;
+		while (route)
+		{
+			struct AdvRoute *next_route = route->next;
+
+			free(route);
+			route = next_route;
+		}  
+
 		free(iface);
 		iface = next_iface;
 	}
@@ -368,7 +378,7 @@ void reload_config(void)
 
 	kickoff_adverts();
 
-	log(LOG_INFO, "resuming normal operation");
+	flog(LOG_INFO, "resuming normal operation");
 }
 
 void
@@ -411,13 +421,13 @@ drop_root_privileges(const char *username)
 	pw = getpwnam(username);
 	if (pw) {
 		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
-			log(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d\n", 
+			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d\n", 
 					username, pw->pw_uid, pw->pw_gid);
 			return (-1);
 		}
 	}
 	else {
-		log(LOG_ERR, "Couldn't find user '%.32s'\n", username);
+		flog(LOG_ERR, "Couldn't find user '%.32s'\n", username);
 		return (-1);
 	}
 	return 0;
@@ -431,7 +441,7 @@ check_conffile_perm(const char *username, const char *conf_file)
 	FILE *fp = fopen(conf_file, "r");
 
 	if (fp == NULL) {
-		log(LOG_ERR, "can't open %s: %s", conf_file, strerror(errno));
+		flog(LOG_ERR, "can't open %s: %s", conf_file, strerror(errno));
 		return (-1);
 	}
 	fclose(fp);
@@ -449,7 +459,7 @@ check_conffile_perm(const char *username, const char *conf_file)
 		goto errorout;
 
 	if (st->st_mode & S_IWOTH) {
-                log(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
+                flog(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
 		goto errorout;
         }
 
@@ -457,7 +467,7 @@ check_conffile_perm(const char *username, const char *conf_file)
 	if (strncmp(username, "root", 5) != 0 &&
 	    ((st->st_mode & S_IWGRP && pw->pw_gid == st->st_gid) ||
 	     (st->st_mode & S_IWUSR && pw->pw_uid == st->st_uid))) {
-                log(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
+                flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
 		goto errorout;
         }
 
@@ -478,13 +488,13 @@ check_ip6_forwarding(void)
 
 	if (sysctl(forw_sysctl, sizeof(forw_sysctl)/sizeof(forw_sysctl[0]),
 	    &value, &size, NULL, 0) < 0) {
-		log(LOG_DEBUG, "Correct IPv6 forwarding sysctl branch not found, "
+		flog(LOG_DEBUG, "Correct IPv6 forwarding sysctl branch not found, "
 			"perhaps the kernel interface has changed?");
 		return(0);	/* this is of advisory value only */
 	}
 	
 	if (value != 1) {
-		log(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
+		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
 		return(-1);
 	}
 		
@@ -496,13 +506,13 @@ readin_config(char *fname)
 {
 	if ((yyin = fopen(fname, "r")) == NULL)
 	{
-		log(LOG_ERR, "can't open %s: %s", fname, strerror(errno));
+		flog(LOG_ERR, "can't open %s: %s", fname, strerror(errno));
 		return (-1);
 	}
 
 	if (yyparse() != 0)
 	{
-		log(LOG_ERR, "syntax error in config file: %s", fname);
+		flog(LOG_ERR, "syntax error in config file: %s", fname);
 		return (-1);
 	}
 	

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.3 2002/01/02 11:01:11 psavola Exp $
+ *   $Id: device-common.c,v 1.4 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -28,29 +28,29 @@ check_device(int sock, struct Interface *iface)
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", 
+		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", 
 			iface->Name, strerror(errno));
 		return (-1);
 	}
 
 	if (!(ifr.ifr_flags & IFF_UP))
 	{
-		log(LOG_ERR, "interface %s is not UP", iface->Name);
+		flog(LOG_ERR, "interface %s is not UP", iface->Name);
 		return (-1);
 	}
 	
 	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST))
 	{
-		log(LOG_WARNING, "interface %s does not support multicast",
+		flog(LOG_WARNING, "interface %s does not support multicast",
 			iface->Name);
-		log(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
+		flog(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
 	}
 
 	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_BROADCAST))
 	{
-		log(LOG_WARNING, "interface %s does not support broadcast",
+		flog(LOG_WARNING, "interface %s does not support broadcast",
 			iface->Name);
-		log(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
+		flog(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
 	}
 
 	return 0;

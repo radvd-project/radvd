@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.7 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: radvd.h,v 1.8 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -64,6 +64,7 @@ struct Interface {
 	int			AdvRetransTimer;
 	int			AdvCurHopLimit;
 	int			AdvDefaultLifetime;
+	int			AdvDefaultPreference;
 	int			AdvSourceLLAddress;
 	int			UnicastOnly;
 
@@ -75,6 +76,7 @@ struct Interface {
 	uint16_t		HomeAgentLifetime;
 
 	struct AdvPrefix	*AdvPrefixList;
+	struct AdvRoute		*AdvRouteList;
 	struct timer_lst	tm;
 	unsigned long		last_multicast;
 	struct Interface	*next;
@@ -98,6 +100,18 @@ struct AdvPrefix {
 	int			enabled;
 
 	struct AdvPrefix	*next;
+};
+
+/* More-Specific Routes extensions */
+
+struct AdvRoute {
+	struct in6_addr		Prefix;
+	int			PrefixLen;
+	
+	int			AdvRoutePreference;
+	uint32_t		AdvRouteLifetime;
+
+	struct AdvRoute		*next;
 };
 
 /* Mobile IPv6 extensions */
@@ -131,7 +145,7 @@ void init_timer(struct timer_lst *, void (*)(void *), void *);
 
 /* log.c */
 int log_open(int, char *, char*, int);
-int log(int, char *, ...);
+int flog(int, char *, ...);
 int dlog(int, int, char *, ...);
 int log_close(void);
 int log_reopen(void);
@@ -149,6 +163,7 @@ int get_v4addr(const char *, unsigned int *);
 /* interface.c */
 void iface_init_defaults(struct Interface *);
 void prefix_init_defaults(struct AdvPrefix *);
+void route_init_defaults(struct AdvRoute *, struct Interface *);
 int check_iface(struct Interface *);
 
 /* socket.c */

@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.6 2002/07/11 21:26:16 lutchann Exp $
+ *   $Id: scanner.l,v 1.7 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,7 +34,7 @@ addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
 addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
 addr		({addr1}|{addr2}|{addr3}|"::")
 whitespace	([ \t])+
-string		[a-z]([a-z]|{digit})*([:.]{digit}+)?
+string		[a-z]([a-z]|{digit}|_)*([:.]{digit}+)?
 %%
 
 #.*$			{/* ignore comments */}
@@ -43,6 +43,7 @@ string		[a-z]([a-z]|{digit})*([:.]{digit}+)?
 
 interface		{ return T_INTERFACE; }
 prefix			{ return T_PREFIX; }
+route			{ return T_ROUTE; }
 
 AdvSendAdvert		{ return T_AdvSendAdvert; }
 MaxRtrAdvInterval	{ return T_MaxRtrAdvInterval; }
@@ -54,6 +55,7 @@ AdvReachableTime	{ return T_AdvReachableTime; }
 AdvRetransTimer		{ return T_AdvRetransTimer; }
 AdvCurHopLimit		{ return T_AdvCurHopLimit; }
 AdvDefaultLifetime	{ return T_AdvDefaultLifetime; }
+AdvDefaultPreference	{ return T_AdvDefaultPreference; }
 AdvSourceLLAddress	{ return T_AdvSourceLLAddress; }
 
 AdvOnLink		{ return T_AdvOnLink; }
@@ -72,6 +74,9 @@ Base6to4Interface	{ return T_Base6to4Interface; }
 HomeAgentPreference	{ return T_HomeAgentPreference; }
 HomeAgentLifetime	{ return T_HomeAgentLifetime; }
 
+AdvRoutePreference	{ return T_AdvRoutePreference; }
+AdvRouteLifetime	{ return T_AdvRouteLifetime; }
+
 {addr}		{
 			static struct in6_addr addr;
 			int i;
@@ -86,7 +91,7 @@ HomeAgentLifetime	{ return T_HomeAgentLifetime; }
 			 * bytes on success (16 for an IPv6 address)
 			 */
 			if (i < 1) {
-				log(LOG_ERR, "invalid address in %s, line %d", conf_file,
+				flog(LOG_ERR, "invalid address in %s, line %d", conf_file,
 					num_lines);
 				return T_BAD_TOKEN;
 			}
@@ -106,6 +111,12 @@ infinity	{ return INFINITY; }
 on			{ yylval.bool = 1; return SWITCH; }
 
 off			{ yylval.bool = 0; return SWITCH; }
+
+low		{ yylval.snum = -1; return SIGNEDNUMBER; }
+
+medium		{ yylval.snum = 0; return SIGNEDNUMBER; }
+
+high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 {string}	{
 			static char name[IFNAMSIZ];
