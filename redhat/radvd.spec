@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.11 2005/02/19 09:25:34 psavola Exp $
+# $Id: radvd.spec,v 1.12 2005/02/19 09:44:58 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -13,9 +13,7 @@ Release: 1
 License: BSD-style
 Group: System Environment/Daemons
 Packager: Pekka Savola <pekkas@netcore.fi>
-Source0: http://www.litech.org/radvd/radvd-%{version}.tar.gz
-Source1: radvd.init
-Source2: radvd.sysconfig
+Source: http://www.litech.org/radvd/radvd-%{version}.tar.gz
 PreReq: chkconfig, /usr/sbin/useradd, /sbin/service, initscripts
 BuildRoot: %{_tmppath}/%{name}-root
 
@@ -45,9 +43,9 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 mkdir -p $RPM_BUILD_ROOT%{initdir}
 mkdir -p $RPM_BUILD_ROOT/var/run/radvd
 
-install -m 644 $RPM_BUILD_DIR/radvd-%{version}/radvd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/radvd.conf
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT%{initdir}/radvd
-install -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/radvd
+install -m 644 radvd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/radvd.conf
+install -m 755 redhat/radvd.init $RPM_BUILD_ROOT%{initdir}/radvd
+install -m 644 redhat/radvd.sysconfig $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/radvd
 
 %clean
 [ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
