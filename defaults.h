@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.5 2001/11/22 08:30:26 psavola Exp $
+ *   $Id: defaults.h,v 1.6 2001/12/28 07:38:44 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -29,7 +29,7 @@
 
 /* For each multicast interface: */
 
-/* #define DFLT_AdvSendAdv		not used, always read from config */
+#define DFLT_AdvSendAdv			0
 #define DFLT_MaxRtrAdvInterval		600
 #define DFLT_MinRtrAdvInterval(iface)	((int)(0.33 * (double)(iface)->MaxRtrAdvInterval))
 #define DFLT_AdvManagedFlag		0
