@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvdump.8.man,v 1.2 2001/11/14 19:58:11 lutchann Exp $
+.\"   $Id: radvdump.8.man,v 1.3 2001/12/31 11:40:56 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -14,12 +14,12 @@
 .\"
 .\"
 .\"
-.TH RADVDUMP 8 "17 Nov 2000" "radvd @VERSION@" ""
+.TH RADVDUMP 8 "29 Dec 2001" "radvd @VERSION@" ""
 .SH NAME
 radvdump \- dump router advertisements
 .SH SYNOPSIS
 .B radvdump
-.B "[ \-vhf ]"
+.B "[ \-vhfe ]"
 .BI "[ \-d " debuglevel " ]"
 
 .SH DESCRIPTION
@@ -43,10 +43,16 @@ and then aborts.
 .BR "\-h" , " \-\-help"
 Displays a short usage description and then aborts.
 .TP
-.BR "\-f" , " \-\-file\-output"
+.BR "\-f" , " \-\-file\-format"
 Output received router advertisements in the format of the
 .B radvd
 configuration file. 
+.TP
+.BR "\-e" , " \-\-exclude-defaults"
+Exclude default valued options from configuration file format.
+This option is ignored if option
+.B "\-f"
+is not set.
 .TP
 .BR "\-d " debuglevel, " \-\-debug " debuglevel
 With this option you turn on debugging information. The debugging level is
