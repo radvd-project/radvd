@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.8 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: process.c,v 1.9 2005/02/15 07:19:52 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -149,14 +149,14 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 static void
 process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 {
-	int delay;
+	double delay;
 	double next;
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
 
-	delay = (int) (MAX_RA_DELAY_TIME*rand()/(RAND_MAX+1.0));
-	dlog(LOG_DEBUG, 3, "random mdelay for %s: %d", iface->Name, delay);
+	delay = MAX_RA_DELAY_TIME*rand()/(RAND_MAX+1.0);
+	dlog(LOG_DEBUG, 3, "random mdelay for %s: %.2f", iface->Name, delay);
 	mdelay(delay);
  	
 	if (iface->UnicastOnly
