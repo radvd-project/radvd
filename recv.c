@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.2 1997/10/14 19:49:38 lf Exp $
+ *   $Id: recv.c,v 1.3 1997/10/18 20:35:03 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -19,11 +19,10 @@
 #include <radvd.h>
 
 #ifdef IPV6_HOPLIMIT
-#define CMSG_SIZE_MAX (2 * sizeof(struct cmsghdr) + \
-		       sizeof(struct in6_pktinfo) + \
-		       sizeof(int))
+#define CMSG_SIZE_MAX (CMSG_SPACE(sizeof(struct in6_pktinfo)) + \
+		       CMSG_SPACE(sizeof(int)))
 #else
-#define CMSG_SIZE_MAX (sizeof(struct cmsghdr) + sizeof(struct in6_pktinfo))
+#define CMSG_SIZE_MAX CMSG_SPACE(sizeof(struct in6_pktinfo))
 #endif
 
 int
@@ -44,7 +43,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *)chdr;
-	mhdr.msg_controllen = sizeof(chdr);
+	mhdr.msg_controllen = CMSG_SIZE_MAX;
 
 	len = recvmsg(sock, &mhdr, 0);
 
@@ -67,7 +66,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
           {
 #ifdef IPV6_HOPLIMIT
               case IPV6_HOPLIMIT:
-                if ((cmsg->cmsg_len == sizeof(struct cmsghdr) + sizeof(int)) && 
+                if ((cmsg->cmsg_len == CMSG_LEN(sizeof(int))) && 
                     (*(int *)CMSG_DATA(cmsg) >= 0) && 
                     (*(int *)CMSG_DATA(cmsg) < 256))
                 {
@@ -82,7 +81,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
                 break;
 #endif /* IPV6_HOPLIMIT */
               case IPV6_PKTINFO:
-                if ((cmsg->cmsg_len == sizeof(struct cmsghdr) + sizeof(struct in6_pktinfo)) &&
+                if ((cmsg->cmsg_len == CMSG_LEN(sizeof(struct in6_pktinfo))) &&
                     ((struct in6_pktinfo *)CMSG_DATA(cmsg))->ipi6_ifindex)
                 {
                   *pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);

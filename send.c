@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.3 1997/10/16 22:19:00 lf Exp $
+ *   $Id: send.c,v 1.4 1997/10/18 20:35:04 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -27,7 +27,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct msghdr mhdr;
 	struct cmsghdr *cmsg;
 	struct iovec iov;
-	char chdr[sizeof(struct cmsghdr) + sizeof(struct in6_pktinfo)];
+	char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
 	struct nd_router_advert *radvert;
 	struct AdvPrefix *prefix;
 	unsigned char buff[MSG_SIZE];
@@ -140,15 +140,14 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	iov.iov_len  = len;
 	iov.iov_base = (caddr_t) buff;
 	
+	memset(chdr, 0, CMSG_SPACE(sizeof(struct in6_pktinfo)));
 	cmsg = (struct cmsghdr *) chdr;
 	
-	cmsg->cmsg_len   = (sizeof(struct cmsghdr) +
-			    sizeof(struct in6_pktinfo));
+	cmsg->cmsg_len   = CMSG_LEN(sizeof(struct in6_pktinfo));
 	cmsg->cmsg_level = IPPROTO_IPV6;
 	cmsg->cmsg_type  = IPV6_PKTINFO;
 	
-	pkt_info = (struct in6_pktinfo *)((void *)cmsg + sizeof(struct cmsghdr));
-	memset(pkt_info, 0, sizeof(struct in6_pktinfo));
+	pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 	pkt_info->ipi6_ifindex = iface->if_index;
 	memcpy(&pkt_info->ipi6_addr, &iface->if_addr, sizeof(struct in6_addr));
 
@@ -157,8 +156,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *) cmsg;
-	mhdr.msg_controllen = (sizeof(struct cmsghdr) +
-			       sizeof(struct in6_pktinfo));
+	mhdr.msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
 
 	err = sendmsg(sock, &mhdr, 0);
 	
