@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.2 1997/10/14 20:35:18 lf Exp $
+ *   $Id: radvd.c,v 1.3 1997/10/16 23:02:28 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -318,7 +318,7 @@ version(void)
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
 	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
-#ifdef EUI64_SUPPORT
+#ifdef EUI_64_SUPPORT
 	fprintf(stderr, "  EUI-64 support		enabled\n\n"); 	
 #else
 	fprintf(stderr, "  EUI-64 support		disabled\n\n");
