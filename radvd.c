@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.8 2001/11/20 21:07:12 psavola Exp $
+ *   $Id: radvd.c,v 1.9 2001/12/28 07:25:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -61,6 +61,7 @@ int drop_root_privileges(const char *);
 int readin_config(char *);
 void version(void);
 void usage(void);
+int check_ip6_forwarding();
 
 int
 main(int argc, char *argv[])
@@ -188,6 +189,16 @@ main(int argc, char *argv[])
 	/* XXX: sanity check: radvd.conf should not be writable by username */
 	}
 	
+	/* if we know how to do it, check whether forwarding is enabled */
+	if (check_ip6_forwarding()) {
+		if (get_debuglevel() == 0) {
+			log(LOG_ERR, "IPv6 forwarding seems to be disabled, exiting");
+			exit(1);
+		}
+		else
+			log(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
+	}
+
 	/* parse config file */
 	if (readin_config(conf_file) < 0)
 		exit(1);
@@ -399,6 +410,28 @@ drop_root_privileges(const char *username)
 		return (-1);
 	}
 	return 0;
+}
+
+int
+check_ip6_forwarding(void)
+{
+	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
+	int value;
+	size_t size = sizeof(value);
+
+	if (sysctl(forw_sysctl, sizeof(forw_sysctl)/sizeof(forw_sysctl[0]),
+	    &value, &size, NULL, 0) < 0) {
+		log(LOG_DEBUG, "Correct IPv6 forwarding sysctl branch not found, "
+			"perhaps the kernel interface has changed?");
+		return(0);	/* this is of advisory value only */
+	}
+	
+	if (value != 1) {
+		log(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
+		return(1);
+	}
+		
+	return(0);
 }
 
 int

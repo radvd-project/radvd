@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.4 2001/11/14 19:58:11 lutchann Exp $
+.\"   $Id: radvd.8.man,v 1.5 2001/12/28 07:25:11 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -36,6 +36,15 @@ solicitations and sends router advertisements as described in
 With these advertisements hosts can automatically configure their
 addresses and some other parameters. They also can choose a default
 router based on these advertisements.
+
+Note that if debugging is not enabled,
+.B radvd
+will not start if IPv6 forwarding is disabled.  IPv6 forwarding can be
+controlled via sysctl(8),
+.B net.ipv6.conf.all.forwarding
+on Linux or
+.B net.inet6.ip6.forwarding
+on BSD.
 
 .SH OPTIONS
 
