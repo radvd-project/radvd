@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.7 2002/06/15 10:25:04 psavola Exp $
+dnl  $Id: configure.in,v 1.8 2004/08/20 07:24:39 psavola Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <lutchann@litech.org>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.7 2002/06/15 10:25:04 psavola Exp $)
+AC_REVISION ($Id: configure.in,v 1.8 2004/08/20 07:24:39 psavola Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -97,23 +97,7 @@ AC_CHECK_LIB(c, inet_ntop,,
  AC_CHECK_LIB(inet6, inet_ntop,
   LIBS="$LIBS -linet6"
   ,
-  unset ac_cv_lib_inet6_inet_ntop
-  oldldflags=$LDFLAGS
-  LDFLAGS="$LDFLAGS -L/usr/inet6/lib"
-  echo $ac_n "with -L/usr/inet6/lib: $ac_c" 1>&6
-  AC_CHECK_LIB(inet6, inet_ntop,
-   LIBS="$LIBS -linet6"
-   ,
-   unset ac_cv_lib_inet6_inet_ntop
-   LDFLAGS=$oldldflags
-   LDFLAGS="$LDFLAGS -L/usr/ipv6/lib"
-   echo $ac_n "with -L/usr/ipv6/lib: $ac_c" 1>&6
-   AC_CHECK_LIB(inet6, inet_ntop,
-    LIBS="$LIBS -linet6"
-    ,
     AC_MSG_ERROR(can't continue without libinet6.a library - check your LDFLAGS)
-   )
-  )
  )
 )
 # prevent caching
@@ -124,33 +108,15 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS(sys/time.h)
 AC_HEADER_TIME
 
-AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes,
- AC_CHECK_HEADER(netinet/ip6.h, hdrfound=yes, hdrfound=no)
-)
+AC_CHECK_HEADER(netinet/ip6.h, hdrfound=yes, hdrfound=no)
 if test "$hdrfound" = no
 then
- AC_MSG_CHECKING(for netinet/ip6.h or ipv6.h in /usr/inet6/include)
- if test -f /usr/inet6/include/netinet/ipv6.h
- then
-  AC_MSG_RESULT([yes (netinet/ipv6.h)])
-  CPPFLAGS="$CPPFLAGS -I/usr/inet6/include"
- elif test -f /usr/inet6/include/netinet/ip6.h
- then
-  AC_MSG_RESULT([yes (netinet/ip6.h)])
-  CPPFLAGS="$CPPFLAGS -I/usr/inet6/include"
- else
-  AC_MSG_RESULT(no)
-  AC_MSG_CHECKING(for netinet/ip6.h or ipv6.h in /usr/ipv6/include)
-  if test -f /usr/ipv6/include/netinet/ipv6.h
-  then
-   AC_MSG_RESULT([yes (netinet/ipv6.h)])
-   CPPFLAGS="$CPPFLAGS -I/usr/ipv6/include"
-  elif test -f /usr/ipv6/include/netinet/ip6.h
-  then
-   AC_MSG_RESULT([yes (netinet/ip6.h)])
-   CPPFLAGS="$CPPFLAGS -I/usr/ipv6/include"
-  fi
- fi
+ # deprecated
+ AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes)
+fi
+if test "$hdrfound" = no
+then
+   AC_MSG_RESULT(no)
 fi
 unset hdrfound
 
