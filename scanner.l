@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.4 2002/01/02 11:01:11 psavola Exp $
+ *   $Id: scanner.l,v 1.5 2002/04/09 20:37:44 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,7 +34,7 @@ addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
 addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
 addr		({addr1}|{addr2}|{addr3})
 whitespace	([ \t])+
-string		[a-z]([a-z]|{digit})*(":"{digit}+)?
+string		[a-z]([a-z]|{digit})*([:.]{digit}+)?
 %%
 
 #.*$			{/* ignore comments */}
