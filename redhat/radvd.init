@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: radvd.init,v 1.1 2001/11/14 19:58:11 lutchann Exp $
+# $Id: radvd.init,v 1.2 2002/01/08 09:00:50 psavola Exp $
 #
 # chkconfig: - 54 46
 # description:	radvd is the router advertisement daemon for IPv6.  It \
@@ -52,10 +52,16 @@ case "$1" in
 	status radvd
 	RETVAL=$?
 	;;
-  restart|reload)
+  restart)
 	$0 stop
 	$0 start
 	RETVAL=$?
+	;;
+  reload)
+	echo -n $"Reloading $prog: "
+	killproc radvd -HUP
+	RETVAL=$?	
+	echo
 	;;
   condrestart)
         if [ -f /var/lock/subsys/radvd ]; then
