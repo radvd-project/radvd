@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.17 2002/01/02 11:01:11 psavola Exp $
+$Id: CHANGES,v 1.18 2002/01/12 15:11:11 psavola Exp $
+
+01/12/2002	Update config.{guess,sub} from ftp.gnu.org
+		Marko Myllynen and Debian bug #115992.
 
 01/02/2002	Ensure NULL-termination with strncpy.
 
