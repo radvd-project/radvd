@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.7 2002/01/02 11:01:11 psavola Exp $
+ *   $Id: device-linux.c,v 1.8 2002/07/02 06:49:20 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -134,8 +134,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 				sscanf(str_addr + i * 2, "%02x", &ap);
 				addr.s6_addr[i] = (unsigned char)ap;
 			}
-			memcpy(&iface->if_addr, &addr,
-			       sizeof(struct in6_addr));
+			memcpy(&iface->if_addr, &addr, sizeof(addr));
 
 			iface->if_index = if_idx;
 			fclose(fp);
@@ -217,7 +216,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 		return (-1);
 	}
 	
-	memset( &ifr, 0, sizeof( struct ifreq ) );
+	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
 	ifr.ifr_addr.sa_family = AF_INET;

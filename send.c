@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.10 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: send.c,v 1.11 2002/07/02 06:49:20 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -50,7 +50,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		iface->last_multicast = tv.tv_sec;
 	}
 	
-	memset((void *)&addr, 0, sizeof(struct sockaddr_in6));
+	memset((void *)&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
 	addr.sin6_port = htons(IPPROTO_ICMPV6);
 	memcpy(&addr.sin6_addr, dest, sizeof(struct in6_addr));
@@ -110,7 +110,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 			       sizeof(struct in6_addr));
 
-			len += sizeof(struct nd_opt_prefix_info);
+			len += sizeof(pinfo);
 		}
 
 		prefix = prefix->next;
@@ -130,7 +130,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		mtu->nd_opt_mtu_reserved = 0; 
 		mtu->nd_opt_mtu_mtu      = htonl(iface->AdvLinkMTU);
 
-		len += sizeof(struct nd_opt_mtu);
+		len += sizeof(mtu);
 	}
 
 	/*
@@ -168,8 +168,8 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		a_ival.reserved	= 0;
 		a_ival.adv_ival	= htonl(ival);
 
-		memcpy(buff + len, &a_ival, sizeof(struct AdvInterval));
-		len += sizeof(struct AdvInterval);
+		memcpy(buff + len, &a_ival, sizeof(a_ival));
+		len += sizeof(a_ival);
 	}
 
 	/*
@@ -187,8 +187,8 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		ha_info.preference	= htons(iface->HomeAgentPreference);
 		ha_info.lifetime	= htons(iface->HomeAgentLifetime);
 
-		memcpy(buff + len, &ha_info, sizeof(struct HomeAgentInfo));
-		len += sizeof(struct HomeAgentInfo);
+		memcpy(buff + len, &ha_info, sizeof(ha_info));
+		len += sizeof(ha_info);
 	}
 	
 	iov.iov_len  = len;
