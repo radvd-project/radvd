@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.2 1997/10/14 20:35:18 lf Exp $
+ *   $Id: timer.c,v 1.3 1999/07/30 11:29:04 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -24,9 +24,29 @@ static struct timer_lst timers_head = {
 	&timers_head, &timers_head
 };
 
-static unsigned long sched_timer = 0;
-
 static void alarm_handler(int sig);
+
+static void
+schedule_timer(struct timer_lst *tm, struct timeval tv *tv)
+{
+	if (tm != &timers_head)
+	{
+		int secs;
+	       
+		secs = tm->expires - tv->tv_sec;
+
+		if (secs <= 0)
+			secs = 1;
+
+		signal(SIGALRM, alarm_handler);
+		dlog(LOG_DEBUG, 4, "calling alarm: %d secs", secs);
+		alarm(secs);
+	}
+	else
+	{
+		alarm(0);
+	}
+}
 
 void
 set_timer(struct timer_lst *tm, int secs)
@@ -37,15 +57,15 @@ set_timer(struct timer_lst *tm, int secs)
 
 	dlog(LOG_DEBUG, 3, "setting timer: %d secs", secs);
 
-	/*
-	 * disable delivery of alarm signals
-	 */
 	sigemptyset(&bmask);
 	sigaddset(&bmask, SIGALRM);
-
 	sigprocmask(SIG_BLOCK, &bmask, &oldmask);
 
 	gettimeofday(&tv, NULL);
+
+	if (secs <= 0)
+		secs = 1;
+
 	tm->expires = tv.tv_sec + secs;
 	
 	lst = &timers_head;
@@ -59,17 +79,8 @@ set_timer(struct timer_lst *tm, int secs)
 	lst->prev = tm;
 	tm->prev->next = tm;
 
-	if (sched_timer == 0 || sched_timer > tm->expires)
-	{		
-		signal(SIGALRM, alarm_handler);
-		sched_timer = tm->expires;		
-		dlog(LOG_DEBUG, 4, "calling alarm: %d secs", secs);
-		alarm(secs);
-	}
+	schedule_timer(timers_head.next, &tv);
 
-	/*
-	 * reenable alarm signals
-	 */
 	sigprocmask(SIG_SETMASK, &oldmask, NULL);
 }
 
@@ -78,15 +89,14 @@ clear_timer(struct timer_lst *tm)
 {
 	sigset_t bmask, oldmask;
 	unsigned long scheduled;
+	struct timeval tv;
 
-	/*
-	 * disable delivery of alarm signals
-	 */
 	sigemptyset(&bmask);
 	sigaddset(&bmask, SIGALRM);
-
 	sigprocmask(SIG_BLOCK, &bmask, &oldmask);
 	
+	gettimeofday(&tv, NULL);
+
 	scheduled = tm->expires;
 		
 	tm->prev->next = tm->next;
@@ -96,27 +106,10 @@ clear_timer(struct timer_lst *tm)
 	
 	tm = timers_head.next;
 
-	if (tm != &timers_head)
-	{
-		struct timeval tv;
-		long secs;
-	
-		gettimeofday(&tv, NULL);
-		secs = tv.tv_sec - tm->expires;
-		sched_timer = tm->expires;
+	gettimeofday(&tv, NULL);
 
-		if (secs < 0)
-			secs = 0;
+	schedule_timer(tm, &tv);
 
-		dlog(LOG_DEBUG, 4, "calling alarm: %d secs", secs);
-		alarm(secs);
-	}
-	else
-		sched_timer = 0;
-
-	/*
-	 * reenable alarm signals
-	 */
 	sigprocmask(SIG_SETMASK, &oldmask, NULL);
 
 	return scheduled;
@@ -128,9 +121,8 @@ alarm_handler(int sig)
 	struct timer_lst *tm, *back;
 	struct timeval tv;
 
-	tm = timers_head.next;
-
 	gettimeofday(&tv, NULL);
+	tm = timers_head.next;
 
 	while (tm->expires <= tv.tv_sec)
 	{		
@@ -146,25 +138,9 @@ alarm_handler(int sig)
 
 	tm = timers_head.next;
 
-	if (tm != &timers_head)
-	{
-		long secs;
-	       
-		secs = tm->expires - tv.tv_sec;
-		sched_timer = tm->expires;
-
-		if (secs <= 0)
-		{
-			secs = 1;
-		}
-
-		signal(SIGALRM, alarm_handler);
-		dlog(LOG_DEBUG, 4, "calling alarm: %d secs", secs);
-		alarm(secs);
-	}
-	else
-		sched_timer = 0;
+	schedule_timer(tm, &tv);
 }
+
 
 void
 init_timer(struct timer_lst *tm, void (*handler)(void *), void *data)
