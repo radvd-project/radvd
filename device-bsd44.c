@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.10 2002/01/02 11:01:11 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.11 2002/07/02 06:49:20 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -216,7 +216,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 		return (-1);
 	}
 	
-	memset( &ifr, 0, sizeof( struct ifreq ) );
+	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
 	ifr.ifr_addr.sa_family = AF_INET;
