@@ -1,12 +1,10 @@
-$Id: TODO,v 1.10 2001/12/31 11:40:56 psavola Exp $
+$Id: TODO,v 1.11 2002/01/12 17:48:43 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
 
 follow interface state via netlink interface and send RAs only when the
 interface is up
-
-information in INTRO.html is outdated
 
 use getaddrinfo() instead of inet_pton in scanner.l so that DNS names
 can be used
