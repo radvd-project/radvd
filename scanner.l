@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.3 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: scanner.l,v 1.4 2002/01/02 11:01:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -111,6 +111,7 @@ off			{ yylval.bool = 0; return SWITCH; }
 			static char name[IFNAMSIZ];
 				
 			strncpy(name, yytext, IFNAMSIZ-1);
+			name[IFNAMSIZ-1] = '\0';
 			yylval.str = name;
 			return STRING;
 		}

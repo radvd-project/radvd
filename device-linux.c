@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.6 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: device-linux.c,v 1.7 2002/01/02 11:01:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -35,7 +35,8 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	struct AdvPrefix *prefix;
 	
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
-	
+	ifr.ifr_name[IFNAMSIZ-1] = '\0';
+
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
 	{
 		log(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s",
@@ -218,6 +219,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 	
 	memset( &ifr, 0, sizeof( struct ifreq ) );
 	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
+	ifr.ifr_name[IFNAMSIZ-1] = '\0';
 	ifr.ifr_addr.sa_family = AF_INET;
 	
 	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
