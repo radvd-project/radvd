@@ -1,0 +1,152 @@
+dnl
+dnl  $Id: configure.in,v 1.1 1997/10/14 17:17:41 lf Exp $
+dnl
+dnl   Authors:
+dnl    Lars Fenneberg		<lf@elemental.net>	 
+dnl
+dnl   This software is Copyright 1996,1997 by the above mentioned author(s), 
+dnl   All Rights Reserved.
+dnl
+dnl   The license which is distributed with this software in the file COPYRIGHT
+dnl   applies to this software. If your distribution is missing this file, you
+dnl   may request it from <lf@elemental.net>.
+dnl
+dnl
+
+AC_REVISION ($Id: configure.in,v 1.1 1997/10/14 17:17:41 lf Exp $)
+AC_INIT(radvd.c)
+
+VERSION=`cat VERSION | grep -v ^#`
+
+AC_CANONICAL_SYSTEM
+echo $ac_n "building for architecture""... $ac_c" 1>&6
+case "$target" in
+	*linux*)
+		AC_MSG_RESULT(linux)
+                arch=linux
+        ;;
+        *bsd*)
+		AC_MSG_RESULT(bsd44)
+                arch=bsd44
+        ;;
+        *)      
+		AC_MSG_RESULT(unknown)
+		AC_MSG_ERROR(
+[currently only Linux and BSD 4.4 with NRL's IPv6 code are
+supported. If you have such a system and it is not guessed correctly 
+you must specifiy it with --target on the configure command line])
+        ;;
+esac
+
+dnl Determine CC and preset CFLAGS
+AC_PROG_CC
+
+dnl Needed for normal compile
+AC_PROG_INSTALL
+AC_PATH_PROG(RM, rm, NOTFOUND)
+if test "x$RM" = xNOTFOUND; then
+	AC_MSG_ERROR(can't find rm in your path - check PATH)
+fi
+AC_PATH_PROG(SED, sed, NOTFOUND)
+if test "x$SED" = xNOTFOUND; then
+	AC_MSG_ERROR(can't find sed in your path - check PATH)
+fi
+dnl Not needed
+AC_PATH_PROG(LN, ln)
+AC_PROG_YACC
+AC_PROG_LEX
+AC_PATH_PROG(CO, co)
+AC_PATH_PROG(CI, ci)
+AC_PATH_PROG(TAR, tar)
+AC_PATH_PROG(GZIP, gzip)
+
+dnl Check where to put the logfile
+echo $ac_n "using the following logfile""... $ac_c" 1>&6
+AC_ARG_WITH(logfile,
+[  --with-logfile          Path to the radvd logfile],
+[
+	AC_MSG_RESULT($withval)
+	PATH_RADVD_LOG=$withval
+],
+[
+	AC_MSG_RESULT(/var/log/radvd.log)
+	PATH_RADVD_LOG=/var/log/radvd.log
+]
+)
+
+dnl Check where to put the configfile
+echo $ac_n "using the following configfile""... $ac_c" 1>&6
+AC_ARG_WITH(configfile,
+[  --with-configfile       Path to the radvd config file],
+[
+	AC_MSG_RESULT($withval)
+	PATH_RADVD_CONF=$withval
+],
+[
+	AC_MSG_RESULT(${sysconfdir}/radvd.conf)
+	PATH_RADVD_CONF=${sysconfdir}/radvd.conf
+]
+)
+
+dnl Checking which syslog facility to use
+AC_MSG_CHECKING(which syslog facility to use)
+AC_ARG_WITH(facility,
+[  --with-facility         Syslog facility to use when using syslog logging],
+[
+	AC_MSG_RESULT($withval)
+	LOG_FACILITY=$withval
+],
+[
+	AC_MSG_RESULT(LOG_DAEMON)
+	LOG_FACILITY=LOG_DAEMON
+]
+)
+
+
+AC_MSG_CHECKING(whether to enable EUI-64 support)
+AC_ARG_ENABLE(eui-64,
+[  --disable-eui-64        Disable EUI-64 support (default: enabled).],
+[ case "$enableval" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(EUI_64_SUPPORT)
+    ;;
+  esac ],
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(EUI_64_SUPPORT)
+)
+
+dnl Checks for libraries.
+
+AC_CHECK_LIB(c, inet_ntop,,
+ AC_CHECK_LIB(inet6, inet_ntop,
+  LIBS="$LIBS -linet6"
+  ,
+  AC_MSG_ERROR(can't continue without libinet6.a library - check your LDFLAGS)
+ )
+)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+AC_CHECK_HEADERS(sys/sockio.h getopt.h)
+AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(getopt_long)
+
+AC_LINK_FILES(device-${arch}.c, device.c)
+
+AC_SUBST(VERSION)
+AC_SUBST(PATH_RADVD_CONF)
+AC_SUBST(PATH_RADVD_LOG)
+AC_SUBST(LOG_FACILITY)
+
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile)

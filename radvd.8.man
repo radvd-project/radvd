@@ -1,0 +1,115 @@
+.\"
+.\"   $Id: radvd.8.man,v 1.1 1997/10/14 17:17:40 lf Exp $
+.\"
+.\"   Authors:
+.\"    Lars Fenneberg		<lf@elemental.net>	 
+.\"
+.\"   This software is Copyright 1996 by the above mentioned author(s), 
+.\"   All Rights Reserved.
+.\"
+.\"   The license which is distributed with this software in the file COPYRIGHT
+.\"   applies to this software. If your distribution is missing this file, you
+.\"   may request it from <lf@elemental.net>.
+.\"
+.\"
+.\"
+.TH RADVD 8 "8 Dec 1996" "radvd @VERSION@" ""
+.SH NAME
+radvd \- router advertisement daemon for IPv6
+.SH SYNOPSIS
+.B radvd
+.B "[ \-vh ]"
+.BI "[ \-d " debuglevel " ]"
+.BI "[ \-C " configfile " ]"
+.BI "[ \-m " method " ]"
+.BI "[ \-l " logfile " ]"
+.BI "[ \-f " facility " ]"
+
+.SH DESCRIPTION
+.B radvd
+is the router advertisement daemon for IPv6. It listens to router
+solicitations and sends router advertisements as described in
+"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 1970). With this
+advertisements hosts can automatically configure there addresses and
+some other parameters. They also can choose a default router based
+on these advertisements.
+
+.SH OPTIONS
+
+For every one character option there is also a long option, which
+is listed right next to the "short" option name:
+
+.TP
+.BR "\-v" , " \-\-version"
+Displays the version of
+.I radvd
+and then aborts.
+.TP
+.BR "\-h" , " \-\-help"
+Displays a short usage description and then aborts.
+.TP
+.BR "\-d " debuglevel, " \-\-debug " debuglevel
+With this option you turn on debugging information. The debugging level is
+an integer in the range from 1 to 4, from  quiet to very verbose. A
+debugging level of 0 completely turns of debugging. If a debugging level 
+greater than 0 is used,
+.I radvd
+doesn't background itself on start. The default debugging level is 0.
+.TP
+.BR "\-C " configfile, " \-\-config " configfile
+Specifies an alternate config file. Normally the compiled in default
+.I @PATH_RADVD_CONF@
+is used.
+.TP
+.BR "\-m " method, " \-\-method " method
+Specifies the logging method to use. Possibly values are:
+.RS
+.TP
+.B none
+Completely disables any logging.
+.TP
+.B logfile
+Logs to the logfile which is specified by the
+.I \-l
+option. If no logfile is specified on the command line, then
+a compiled in default is used (see next option).
+.TP
+.B stderr
+Logs to standard error.
+.TP
+.B syslog
+logs to syslog (default method).
+.RE
+.PP
+.TP
+.BR "\-l " logfile, " \-\-logfile " logfile
+Specifies the logfile to use when using the logging method
+.IR logfile .
+The default logfile is
+.IR @PATH_RADVD_LOG@ .
+.TP
+.BR "\-f " facility, " \-\-facility " facility
+Specifies the facility (as an integer) when using syslog logging. Default
+is @LOG_FACILITY@.
+.SH FILES
+
+.nf
+@sbindir@/radvd
+@PATH_RADVD_CONF@
+@PATH_RADVD_LOG@
+.fi
+.SH BUGS
+
+There certainly are some bugs. If you find them or have other
+suggestions please contact Lars Fennberg <lf@elemental.net>.
+
+.SH "SEE ALSO"
+
+.BR radvd.conf (5)
+.SH AUTHORS
+
+.nf
+Pedro Roque	<roque@di.fc.ul.pt> - wrote first version for Linux
+Lars Fenneberg	<lf@elemental.net>  - current maintainer
+Craig Metz	<cmetz@inner.net>   - port to NRL's IPv6 code for BSD4.4
+.fi

@@ -1,0 +1,75 @@
+$Id: CHANGES,v 1.1 1997/10/14 17:17:40 lf Exp $
+
+09/14/97	EUI-64 "support"
+
+09/01/97	centralized all includes into includes.h for easier
+		maintainance
+
+08/25/97	changed all occurences of IPV6_TXINFO/IPV6_RXINFO
+		to IPV6_PKTINFO
+
+08/25/97	removed some compatibility stuff for older Linux kernels
+
+03/17/97	changed linux/if_arp.h to net/if_arp.h in device-linux.c
+		and configure.in (for glibc compatibility)
+
+03/17/97	integrated patch from Philip Blundell <pjb27@cam.ac.uk>
+		into configure.in to check for inet_* in libc first and
+		then for libinet6 (for glibc compatibility).
+
+03/16/97	corrected small error in radvd.conf(5) man page and other
+		small changes
+
+03/16/97	removed linklocal.c source file from the distribution
+		because it wasn't used anymore
+
+03/16/97	added html version of the INTRO, removed ascii version.
+
+02/12/97	missing directories are now created on make install
+
+01/19/97	now also the rest of a line followed by a '#' is treated
+		as a comment in the config file
+
+01/16/97	added IPPROTO_IPV6/IPV6_HOPLIMIT support, so now incoming
+		RS' and RAs are checked if there hoplimit is 255 (on Linux
+		this only works with kernel version 2.1.21 and above)
+
+01/15/97	lots of portability cleanups; radvd is now using autoconf
+		for automatic configuration; removed support for the
+		in. prefix
+
+01/05/97	integrated BSD 4.4 patches from Craig <cmetz@inner.net>
+
+12/21/96	release of version 0.3
+
+12/15/96	the AdvSendAdvert flag works now
+
+12/14/96	added radvdump, dumps all received RAs in a human
+		readable form	
+
+12/13/96	rewrote radvd to use new advanced API headers
+
+12/08/96	added radvd.conf(5) man page
+
+12/03/96	changed RAW_CHECKSUM to IPV6_CHECKSUM for kernels
+		2.1.14 and above
+
+11/24/96	added checking of received RAs according to RFC 1970
+
+11/20/96	rewrote the default handling, now it should conform
+		to RFC 1970
+
+11/17/96	release of version 0.2
+	
+11/17/96	added -h (--help) and -f (--facility) option
+
+11/17/96	added setsockopt(..., SOL_IPV6, IPV6_MULTICAST_HOPS), so
+	 	that radvd works for kernel versions >2.1.7 (without this
+	 	you get "NDISC: fake router advertisment received" on your
+	 	hosts)
+	
+11/17/96	added a man page for radvd(8)
+
+11/17/96	some minor filename changes
+
+11/13/96	first release of this version of in.radvd (0.1)

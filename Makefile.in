@@ -1,0 +1,145 @@
+#
+#   $Id: Makefile.in,v 1.1 1997/10/14 17:17:40 lf Exp $
+#
+#   Authors:
+#    Lars Fenneberg		<lf@elemental.net>	 
+#
+#   This software is Copyright 1996,1997 by the above mentioned author(s), 
+#   All Rights Reserved.
+#
+#   The license which is distributed with this software in the file COPYRIGHT
+#   applies to this software. If your distribution is missing this file, you
+#   may request it from <lf@elemental.net>.
+#
+
+VERSION=@VERSION@
+
+SHELL = /bin/sh
+
+LEX=@LEX@
+YACC=@YACC@
+TAR=@TAR@
+LN=@LN@
+RM=@RM@
+SED=@SED@
+GZIP=@GZIP@
+CO=@CO@
+CI=@CI@
+COFLAGS=
+CIFLAGS=
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+srcdir=@srcdir@
+VPATH=@srcdir@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+sbindir=@sbindir@
+sysconfdir=@sysconfdir@
+mandir=@mandir@
+
+CFLAGS=@CFLAGS@ 
+ALL_CFLAGS=$(CFLAGS)
+CPPFLAGS=@CPPFLAGS@
+ALL_CPPFLAGS=$(CPPFLAGS) -I$(srcdir) -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" \
+	-DPATH_RADVD_LOG=\"$(PATH_RADVD_LOG)\" -DLOG_FACILITY=$(LOG_FACILITY) \
+	-DVERSION=\"$(VERSION)\" -DINET6=1
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+LEXLIB=@LEXLIB@
+
+VERSION=@VERSION@
+PATH_RADVD_CONF=@PATH_RADVD_CONF@
+PATH_RADVD_LOG=@PATH_RADVD_LOG@
+LOG_FACILITY=@LOG_FACILITY@
+
+########################################################################
+
+HDRS=radvd.h defaults.h pathnames.h includes.h
+
+SRCS=radvd.c timer.c log.c device-linux.c device-bsd44.c socket.c send.c \
+	process.c recv.c util.c interface.c radvdump.c device-common.c
+
+RADVD_OBJS=radvd.o timer.o log.o device.o socket.o send.o \
+	process.o recv.o util.o interface.o y.tab.o lex.yy.o device-common.o
+
+RADVDUMP_OBJS=radvdump.o log.o socket.o recv.o util.o
+
+MANS_IN=radvd.8.man radvd.conf.5.man
+MANS=radvd.8 radvd.conf.5
+
+all: radvd radvdump $(MANS)
+
+.SUFFIXES:
+.SUFFIXES: .c .o .man
+
+.c.o:
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $<
+
+.man:
+	$(SED) 	-e 's,@''VERSION''@,$(VERSION),g' \
+		-e 's,@''sbindir''@,$(sbindir),g' \
+		-e 's,@''PATH_RADVD_CONF''@,$(PATH_RADVD_CONF),g' \
+		-e 's,@''PATH_RADVD_LOG''@,$(PATH_RADVD_LOG),g' \
+		-e 's,@''LOG_FACILITY''@,$(LOG_FACILITY),g' \
+		$< > $@
+
+radvd: $(RADVD_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(RADVD_OBJS) $(LIBS) $(LEXLIB)
+
+radvdump: $(RADVDUMP_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(RADVDUMP_OBJS) $(LIBS) $(LEXLIB)
+
+clean:
+	$(RM) -f $(RADVD_OBJS) $(RADVDUMP_OBJS) radvd radvdump *~ *.bak core \
+		$(MANS)
+
+distclean: clean
+	$(RM) -f device.c Makefile config.cache config.log \
+		 config.status config.h
+
+realclean: distclean
+	$(RM) -f lex.yy.c y.tab.c y.tab.h configure config.h.in
+
+install: all
+	@if test ! \( -d "$(prefix)" -a -d "$(sbindir)" -a -d "$(mandir)" \
+		-a -d "$(mandir)/man8" -a -d "$(mandir)/man5" \) ; then \
+	 echo "Please fix the permissions of the following directories:"; \
+	 if test ! -d "$(prefix)"; then mkdir "$(prefix)"; echo "created $(prefix)"; fi; \
+	 if test ! -d "$(sbindir)"; then mkdir "$(sbindir)"; echo "created $(sbindir)"; fi; \
+	 if test ! -d "$(mandir)"; then mkdir "$(mandir)"; echo "created $(mandir)"; fi; \
+	 if test ! -d "$(mandir)/man8"; then mkdir "$(mandir)/man8"; echo "created $(mandir)/man8"; fi; \
+	 if test ! -d "$(mandir)/man5"; then mkdir "$(mandir)/man5"; echo "created $(mandir)/man5"; fi; \
+	fi
+	$(INSTALL_PROGRAM) radvd $(sbindir)/radvd
+	$(INSTALL_PROGRAM) radvdump $(sbindir)/radvdump
+	$(INSTALL_DATA) radvd.8 $(mandir)/man8/radvd.8
+	$(INSTALL_DATA) radvd.conf.5 $(mandir)/man5/radvd.conf.5
+
+dist:   ci co y.tab.c y.tab.h lex.yy.c distclean
+	cd ..;\
+	$(LN) -s radvd radvd-$(VERSION);\
+	$(TAR) --exclude RCS --exclude expr \
+	 -chvvf radvd-$(VERSION).tar radvd-$(VERSION);\
+	$(GZIP) -9 radvd-$(VERSION).tar;\
+	$(RM) -f radvd-$(VERSION)
+
+ci:
+	-$(CI) $(CIFLAGS) Makefile.in acconfig.h $(SRCS) $(HDRS) \
+		scanner.l gram.y $(MANS_IN) README CHANGES INTRO.html \
+		TODO configure.in
+
+co:
+	-$(CO) $(COFLAGS) Makefile.in acconfig.h $(SRCS) $(HDRS) \
+		scanner.l gram.y $(MANS_IN) README CHANGES INTRO.html \
+		TODO configure.in
+
+lex.yy.c: scanner.l y.tab.h
+	$(LEX) scanner.l
+
+y.tab.c y.tab.h: gram.y
+	$(YACC) -d gram.y
