@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.10 2005/03/29 12:59:41 psavola Exp $
+ *   $Id: defaults.h,v 1.11 2005/03/29 15:15:20 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -165,8 +165,6 @@ struct nd_opt_route_info_local     /* route information */
 #define DFLT_HomeAgentLifetime(iface)	DFLT_AdvDefaultLifetime(iface)
 
 /* Other */
-
-#define AdvertisementInterval(iface)	((iface)->MaxRtrAdvInterval))
 
 #define MIN_MinRtrAdvInterval_MIPv6	(3.0/100.0)
 #define MIN_MaxRtrAdvInterval_MIPv6	(7.0/100.0)
