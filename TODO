@@ -1,4 +1,4 @@
-$Id: TODO,v 1.3 1997/10/21 19:59:13 lf Exp $
+$Id: TODO,v 1.4 1998/08/05 21:25:52 lf Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -14,3 +14,10 @@ add on option to radvdump to dump incoming RAs as a radvd config file
 
 use getaddrinfo() instead of inet_pton in scanner.l so that DNS names
 can be used
+
+Quoting Peter Bieringer (peter@bieringer.de):
+> Das war's schon. Ach ja, wenn Du mal eine neue Version machst, kannst Du
+> noch einen Schalter einbauen, damit radvd trotz debug-level >0 auf Wunsch
+> als daemon in den Hintergrund starten kann?
+[ Peter wants that a debugging level greater than 0 doesn't stop radvd
+from forking.]

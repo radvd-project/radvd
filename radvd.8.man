@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.1 1997/10/14 17:17:40 lf Exp $
+.\"   $Id: radvd.8.man,v 1.2 1998/08/05 21:25:53 lf Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -51,7 +51,7 @@ Displays a short usage description and then aborts.
 .BR "\-d " debuglevel, " \-\-debug " debuglevel
 With this option you turn on debugging information. The debugging level is
 an integer in the range from 1 to 4, from  quiet to very verbose. A
-debugging level of 0 completely turns of debugging. If a debugging level 
+debugging level of 0 completely turns off debugging. If a debugging level 
 greater than 0 is used,
 .I radvd
 doesn't background itself on start. The default debugging level is 0.
