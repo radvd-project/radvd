@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.8 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: device-bsd44.c,v 1.9 2001/11/20 21:06:10 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -30,29 +30,21 @@ int
 setup_deviceinfo(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
-	int i, nlen;
+	int nlen;
 	uint8_t *p, *end;
 	struct AdvPrefix *prefix;
 
-	for (i = 0; i < 32; i++)
+	/* just allocate 8192 bytes, should be more than enough.. */
+	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
 	{
-		if (i)
-			free(ifconf.ifc_buf);
+		log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		goto ret;
+	}
 
-		if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (i << 8))))
-		{
-			log(LOG_CRIT, "malloc(%d) failed: %s", i, strerror(errno));
-			goto ret;
-		}
-
-		if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
-		{
-			log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
-			goto ret;
-		};
-
-		if (((i << 8) - ifconf.ifc_len) > sizeof(struct ifreq))
-			break;
+	if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
+	{
+		log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
+		goto ret;
 	}
 
 	p = (uint8_t *)ifconf.ifc_buf;
@@ -138,30 +130,22 @@ ret:
 int setup_linklocal_addr(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
-	int i, nlen;
+	int nlen;
 	uint8_t *p, *end;
 	int index = 0;
 
-	for (i = 0; i < 32; i++)
+	/* just allocate 8192 bytes, should be more than enough.. */
+	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
 	{
-		if (i)
-			free(ifconf.ifc_buf);
+		log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		goto ret;
+	}
 
-		if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (i << 8))))
-		{
-			log(LOG_ERR, "malloc(%d) failed: %s", i, strerror(errno));
-			goto ret;
-		}
-
-		if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
-		{
-      			log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
-			goto ret;
-		}
-
-		if (((i << 8) - ifconf.ifc_len) > sizeof(struct ifreq))
-			break;
-  	}
+	if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
+	{
+		log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
+		goto ret;
+	}
 
 	p = (uint8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
