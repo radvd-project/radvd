@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.2 1997/10/14 19:49:37 lf Exp $
+ *   $Id: includes.h,v 1.3 1997/10/16 22:18:57 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -30,6 +30,10 @@
 #include <netdb.h>
 
 #include <sys/types.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>

@@ -1,18 +1,12 @@
-$Id: README,v 1.2 1997/10/14 19:49:34 lf Exp $
-
-radvdump
-========
-
-radvdump is a small program which dumps all received RAs in a human
-readable form.
+$Id: README,v 1.3 1997/10/16 22:18:54 lf Exp $
 
 Installation:
 =============
 
 Run configure, e.g.
 
-CPPFLAGS="-I/usr/ipv6/include" LDFLAGS="-s -L/usr/ipv6/lib"  ./configure \
-	--prefix=/usr/ipv6
+CPPFLAGS="-I/usr/inet6/include" LDFLAGS="-s -L/usr/inet6/lib"  ./configure \
+	--prefix=/usr/inet6
 
 The configure script will now try to guess where your IPv6 libraries and
 include files are if you don't specify them explicitly via LDFLAGS or
@@ -26,6 +20,18 @@ See configure --help for additional command line arguments.
 
 Run make and make install. 
 
+
+Notes
+=====
+
+radvdump is a small program which dumps all received RAs in a human
+readable form.
+
+Starting with version pre0.4.1-2 I changed all usages of u_int*_t to
+uint*_t. The new code will not compile on older Linux systems. If you're
+desperate try defining translations for the new types in includes.h
+(e.g. #define uint8_t u_int8_t).
+
 For bug reports, fixes and suggestions contact me at lf@elemental.net.
 
-Lars Fenneberg, 10/14/97
+Lars Fenneberg, 10/16/97

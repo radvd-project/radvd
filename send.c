@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.2 1997/10/14 19:49:38 lf Exp $
+ *   $Id: send.c,v 1.3 1997/10/16 22:19:00 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -21,7 +21,7 @@
 void
 send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 {
-	u_int8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+	uint8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 	struct sockaddr_in6 addr;
 	struct in6_pktinfo *pkt_info;
 	struct msghdr mhdr;
@@ -122,15 +122,15 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len != -1)
 	{
-		u_int8_t *ucp;
+		uint8_t *ucp;
 		int i;
 
-		ucp = (u_int8_t *) (buff + len);
+		ucp = (uint8_t *) (buff + len);
 	
 		*ucp++  = ND6_OPT_SOURCE_LINKADDR;
-		*ucp++  = (u_int8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
+		*ucp++  = (uint8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
 
-		len += 2 * sizeof(u_int8_t);
+		len += 2 * sizeof(uint8_t);
 
 		i = (iface->if_hwaddr_len + 7) >> 3;
 		memcpy(buff + len, iface->if_hwaddr, i);

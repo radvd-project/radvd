@@ -1,6 +1,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
- *   $Id: config.h.in,v 1.2 1997/10/14 19:49:35 lf Exp $
+ *   $Id: config.h.in,v 1.3 1997/10/16 22:18:54 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -29,6 +29,9 @@
 
 /* Define if you have the <getopt.h> header file.  */
 #undef HAVE_GETOPT_H
+
+/* Define if you have the <inttypes.h> header file.  */
+#undef HAVE_INTTYPES_H
 
 /* Define if you have the <net/if_arp.h> header file.  */
 #undef HAVE_NET_IF_ARP_H

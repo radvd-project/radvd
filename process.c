@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: process.c,v 1.2 1997/10/16 22:18:59 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -143,7 +143,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 {
 	struct nd_router_advert *radvert;
 	char addr_str[INET6_ADDRSTRLEN];
-	u_int8_t *opt_str;
+	uint8_t *opt_str;
 
 	print_addr(&addr->sin6_addr, addr_str);
 
@@ -187,7 +187,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 	if (len == 0)
 		return;
 		
-	opt_str = (u_int8_t *)(msg + sizeof(struct nd_router_advert));
+	opt_str = (uint8_t *)(msg + sizeof(struct nd_router_advert));
 		
 	while (len > 0)
 	{
@@ -196,7 +196,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		struct nd6_opt_mtu *mtu;
 		struct AdvPrefix *prefix;
 		char prefix_str[INET6_ADDRSTRLEN];
-		u_int32_t preferred, valid;
+		uint32_t preferred, valid;
 
 		if (len < 2)
 		{
@@ -294,8 +294,8 @@ addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 	int pdw;
 	int pbi;
 
-	pdw = prefixlen >> 0x05;  /* num of whole u_int32_t in prefix */
-	pbi = prefixlen &  0x1f;  /* num of bits in incomplete u_int32_t in prefix */
+	pdw = prefixlen >> 0x05;  /* num of whole uint32_t in prefix */
+	pbi = prefixlen &  0x1f;  /* num of bits in incomplete uint32_t in prefix */
 
 	if (pdw) 
 	{
@@ -305,13 +305,13 @@ addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 
 	if (pbi) 
 	{
-		u_int32_t w1, w2;
-		u_int32_t mask;
+		uint32_t w1, w2;
+		uint32_t mask;
 
-		w1 = *((u_int32_t *)a1 + pdw);
-		w2 = *((u_int32_t *)a2 + pdw);
+		w1 = *((uint32_t *)a1 + pdw);
+		w2 = *((uint32_t *)a2 + pdw);
 
-		mask = htonl(((u_int32_t) 0xffffffff) << (0x20 - pbi));
+		mask = htonl(((uint32_t) 0xffffffff) << (0x20 - pbi));
 
 		if ((w1 ^ w2) & mask)
 			return 0;

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.2 1997/10/14 19:49:38 lf Exp $
+ *   $Id: radvd.h,v 1.3 1997/10/16 22:18:59 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -58,7 +58,7 @@ struct Interface {
 	struct in6_addr		if_addr;
 	int			if_index;
 
-	u_int8_t		if_hwaddr[HWADDR_MAX];
+	uint8_t		if_hwaddr[HWADDR_MAX];
 	int			if_hwaddr_len;
 	int			if_prefix_len;
 	int			if_maxmtu;
@@ -87,8 +87,8 @@ struct AdvPrefix {
 	
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
-	u_int32_t		AdvValidLifetime;
-	u_int32_t		AdvPreferredLifetime;
+	uint32_t		AdvValidLifetime;
+	uint32_t		AdvPreferredLifetime;
 
 	struct AdvPrefix	*next;
 };

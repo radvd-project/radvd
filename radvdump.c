@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: radvdump.c,v 1.2 1997/10/16 22:18:59 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -145,7 +145,7 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 {
 	struct nd_router_advert *radvert;
 	char addr_str[INET6_ADDRSTRLEN];
-	u_int8_t *opt_str;
+	uint8_t *opt_str;
 	int i;
 
 	if (get_debuglevel() > 2)
@@ -190,7 +190,7 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 	if (len == 0)
 		return;
 		
-	opt_str = (u_int8_t *)(msg + sizeof(struct nd_router_advert));
+	opt_str = (uint8_t *)(msg + sizeof(struct nd_router_advert));
 		
 	while (len > 0)
 	{

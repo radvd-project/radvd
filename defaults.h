@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: defaults.h,v 1.2 1997/10/16 22:18:56 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -32,7 +32,7 @@
 
 #define DFLT_AdvOnLinkFlag		1
 #define DFLT_AdvAutonomousFlag		1
-#define DFLT_AdvValidLifetime		(~(u_int32_t)0)
+#define DFLT_AdvValidLifetime		(~(uint32_t)0)
 #define DFLT_AdvPreferredLifetime	604800
 
 #define MIN_MinRtrAdvInterval		3

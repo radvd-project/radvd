@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.4 1997/10/15 21:43:38 lf Exp $
+ *   $Id: device-bsd44.c,v 1.5 1997/10/16 22:18:56 lf Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -19,7 +19,7 @@
 #include <defaults.h>
 #include <pathnames.h>		/* for PATH_PROC_NET_IF_INET6 */
 
-static u_int8_t ll_prefix[] = { 0xfe, 0x80 };
+static uint8_t ll_prefix[] = { 0xfe, 0x80 };
 
 /*
  * this function gets the hardware type and address of an interface,
@@ -31,7 +31,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
 	int i, nlen;
-	u_int8_t *p, *end;
+	uint8_t *p, *end;
 	struct AdvPrefix *prefix;
 
 	for (i = 0; i < 32; i++)
@@ -55,7 +55,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 			break;
 	}
 
-	p = (u_int8_t *)ifconf.ifc_buf;
+	p = (uint8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
 	nlen = strlen(iface->Name);
 
@@ -148,7 +148,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
 	int i, nlen;
-	u_int8_t *p, *end;
+	uint8_t *p, *end;
 	int index = 0;
 
 	for (i = 0; i < 32; i++)
@@ -172,7 +172,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 			break;
   	}
 
-	p = (u_int8_t *)ifconf.ifc_buf;
+	p = (uint8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
 	nlen = strlen(iface->Name);
 

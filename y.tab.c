@@ -938,7 +938,7 @@ case 32:
 case 33:
 #line 281 "gram.y"
 {
-                                yyval.num = (u_int32_t)~0;
+                                yyval.num = (uint32_t)~0;
                         ;
     break;}
 }

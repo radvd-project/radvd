@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.in,v 1.3 1997/10/14 19:59:46 lf Exp $
+#   $Id: Makefile.in,v 1.4 1997/10/16 22:18:54 lf Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -102,15 +102,9 @@ realclean: distclean
 	$(RM) -f lex.yy.c y.tab.c y.tab.h configure config.h.in
 
 install: all
-	@if test ! \( -d "$(prefix)" -a -d "$(sbindir)" -a -d "$(mandir)" \
-		-a -d "$(mandir)/man8" -a -d "$(mandir)/man5" \) ; then \
-	 echo "Please fix the permissions of the following directories:"; \
-	 if test ! -d "$(prefix)"; then mkdir "$(prefix)"; echo "created $(prefix)"; fi; \
-	 if test ! -d "$(sbindir)"; then mkdir "$(sbindir)"; echo "created $(sbindir)"; fi; \
-	 if test ! -d "$(mandir)"; then mkdir "$(mandir)"; echo "created $(mandir)"; fi; \
-	 if test ! -d "$(mandir)/man8"; then mkdir "$(mandir)/man8"; echo "created $(mandir)/man8"; fi; \
-	 if test ! -d "$(mandir)/man5"; then mkdir "$(mandir)/man5"; echo "created $(mandir)/man5"; fi; \
-	fi
+	$(srcdir)/mkinstalldirs "$(sbindir)"
+	$(srcdir)/mkinstalldirs "$(mandir)/man8"
+	$(srcdir)/mkinstalldirs "$(mandir)/man5"
 	$(INSTALL_PROGRAM) radvd $(sbindir)/radvd
 	$(INSTALL_PROGRAM) radvdump $(sbindir)/radvdump
 	$(INSTALL_DATA) radvd.8 $(mandir)/man8/radvd.8

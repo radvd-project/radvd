@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: gram.y,v 1.2 1997/10/16 22:18:57 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -279,7 +279,7 @@ number_or_infinity      : NUMBER
                         }
                         | INFINITY
                         {
-                                $$ = (u_int32_t)~0;
+                                $$ = (uint32_t)~0;
                         }
                         ;
 
