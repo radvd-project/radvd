@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.8 2004/06/20 17:52:41 lutchann Exp $
+.\"   $Id: radvd.conf.5.man,v 1.9 2004/08/20 06:53:16 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -14,7 +14,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "21 Nov 2003" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "20 Aug 2004" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd
@@ -387,7 +387,7 @@ Default: medium
 interface eth0
 {
         AdvSendAdvert on;
-        prefix fec0:0:0:1::/64
+        prefix 2001:db8:0:1::/64
         {
                 AdvOnLink on;
                 AdvAutonomous on;
@@ -396,7 +396,7 @@ interface eth0
 .fi
 
 It says that router advertisement daemon should advertise
-(AdvSendAdvert on;) the prefix fec0:0:0:1:: which has a lenght of 64
+(AdvSendAdvert on;) the prefix 2001:db8:0:1:: which has a lenght of 64
 on the interface eth0.  Also the prefix should be marked as autonomous
 (AdvAutonomous on;) and as on-link (AdvOnLink on;).  All the other
 options are left on their default values.
@@ -408,7 +408,7 @@ address of interface should be used instead of network prefix:
 interface eth0
 {
         AdvSendAdvert on;
-        prefix fec0:0:0:1::4/64
+        prefix 2001:db8:0:1::4/64
         {
                 AdvOnLink on;
                 AdvAutonomous on;

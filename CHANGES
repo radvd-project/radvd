@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.25 2004/06/20 17:52:41 lutchann Exp $
+$Id: CHANGES,v 1.26 2004/08/20 06:53:16 psavola Exp $
+
+08/20/2004	Minor documentation cleanups.
 
 11/21/2003	Add support for Router Preferences and More Specific
 		Routes from Markku Savela <msa@burp.tkv.asdf.org>.
