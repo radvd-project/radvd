@@ -2,6 +2,12 @@ interface eth0
 {
 	AdvSendAdvert on;
 
+# This may be needed on some interfaces which are not active when
+# radvd starts, but becomoe available later on, and are activated by sending a
+# HUP signal to radvd; see man page for details.
+
+	# IgnoreIfMissing on;
+
 #
 # These settings cause advertisements to be sent every 3-10 seconds.  This
 # range is good for 6to4 with a dynamic IPv4 address, but can be greatly

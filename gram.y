@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.7 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: gram.y,v 1.8 2004/08/20 07:17:53 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -57,6 +57,7 @@ static void yyerror(char *msg);
 %token	<addr>	IPV6ADDR
 %token 		INFINITY
 
+%token		T_IgnoreIfMissing
 %token		T_AdvSendAdvert
 %token		T_MaxRtrAdvInterval
 %token		T_MinRtrAdvInterval
@@ -130,8 +131,14 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				iface2 = iface2->next;
 			}			
 
-			if (check_device(sock, iface) < 0)
-				ABORT;
+			if (check_device(sock, iface) < 0) {
+				if (iface->IgnoreIfMissing) {
+					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
+					goto skip_interface;
+				}
+				else
+					ABORT;
+			}
 			if (setup_deviceinfo(sock, iface) < 0)
 				ABORT;
 			if (check_iface(iface) < 0)
@@ -146,6 +153,7 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 
 			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
 
+skip_interface:
 			iface = NULL;
 		};
 
@@ -215,6 +223,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_MaxRtrAdvInterval DECIMAL ';'
 		{
 			iface->MaxRtrAdvInterval = $2;
+		}
+		| T_IgnoreIfMissing SWITCH ';'
+		{
+			iface->IgnoreIfMissing = $2;
 		}
 		| T_AdvSendAdvert SWITCH ';'
 		{

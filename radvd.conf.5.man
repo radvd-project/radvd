@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.10 2004/08/20 07:00:51 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.11 2004/08/20 07:17:53 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -66,6 +66,17 @@ The prefix of a route definition should be network prefix; it can be used to
 advertise more specific routes to the hosts.
 
 .SH INTERFACE SPECIFIC OPTIONS
+
+.TP
+.BR IgnoreIfMissing " " on | off
+
+A flag indicating whether or not the interface is ignored
+if it does not exist.
+This is useful for dynamic interfaces which are not active when radvd
+starts, but for which you want to already have configuration -- and when
+they become active, you send HUP signal to radvd to activate them.
+
+Default: off
 
 .TP
 .BR AdvSendAdvert " " on | off
@@ -421,11 +432,14 @@ For 6to4 support, include the
 .B Base6to4Interface
 option in each prefix section. When using a dynamic IPv4 address, set
 small prefix lifetimes to prevent hosts from retaining unreachable
-prefixes after a new IPv4 address has been assigned.
+prefixes after a new IPv4 address has been assigned.  When advertising to on
+a dynamic interface (e.g., Bluetooth), skip the interface if it is not
+active yet.
 
 .nf
-interface eth0
+interface bnep0
 {
+        IgnoreIfMissing on;
         AdvSendAdvert on;
 
         # Advertise at least every 30 seconds
@@ -449,6 +463,9 @@ Since 6to4 is enabled, the prefix will be advertised as
 ppp0 at configuration time. (IPv6 addresses are written in hexadecimal
 whereas IPv4 addresses are written in decimal, so the IPv4 address
 WW.XX.YY.ZZ in the 6to4 prefix will be represented in hex.)
+
+In this specific case, the configuration scripts should send HUP signal to
+radvd when taking bnep0 up or down to notify about the status.
 
 .SH FILES
 

@@ -1,6 +1,12 @@
-$Id: CHANGES,v 1.26 2004/08/20 06:53:16 psavola Exp $
+$Id: CHANGES,v 1.27 2004/08/20 07:17:53 psavola Exp $
 
 08/20/2004	Minor documentation cleanups.
+
+03/09/2004      Implement "IgnoreIfMissing" interface flag, which can be
+                used on interfaces which aren't enabled when radvd starts
+                but will later become available (e.g., Bluetooth) --
+                and then you wish to send HUP to radvd to activate the
+                configs.
 
 11/21/2003	Add support for Router Preferences and More Specific
 		Routes from Markku Savela <msa@burp.tkv.asdf.org>.
