@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.22 2003/03/08 16:03:44 psavola Exp $
+$Id: CHANGES,v 1.23 2003/06/10 20:23:50 psavola Exp $
+
+06/10/2003	When chrooting, check the possible return code 
+		from chdir("/").
 
 03/08/2003	Add patch from MAEDA Naoaki <maeda.naoaki@jp.fujitsu.com>
 		to discard RS's from the unspecied source address with
