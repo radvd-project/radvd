@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.5 2001/11/22 08:30:26 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.6 2001/12/28 07:38:44 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -67,6 +67,8 @@ needs to be
 .B on
 to enable advertisement on this interface.
 
+Default: off
+
 .TP
 .BR UnicastOnly " " on | off
 
@@ -76,7 +78,7 @@ will cause solicited advertisements to be unicast to the
 soliciting node.  This option is necessary for non-broadcast,
 multiple-access links, such as ISATAP.
 
-Default: no
+Default: off
 
 .TP
 .BR "MaxRtrAdvInterval " seconds
