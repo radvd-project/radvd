@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.7 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: radvd.c,v 1.8 2001/11/20 21:07:12 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -67,7 +67,6 @@ main(int argc, char *argv[])
 {
 	unsigned char msg[MSG_SIZE];
 	char pidstr[16];
-	struct Interface *iface;
 	int c, log_method;
 	char *logfile, *pidfile;
 	int facility, fd;
