@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.11 2001/12/28 08:38:18 psavola Exp $
+ *   $Id: radvd.c,v 1.12 2001/12/28 08:39:54 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -23,7 +23,7 @@ struct Interface *IfaceList = NULL;
 
 char usage_str[] =
 	"[-vh] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
-	"\t[-f facility] [-u username] [-t chrootdir]";
+	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
 
 #ifdef HAVE_GETOPT_LONG
 struct option prog_opt[] = {
@@ -483,7 +483,7 @@ check_ip6_forwarding(void)
 	
 	if (value != 1) {
 		log(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
-		return(1);
+		return(-1);
 	}
 		
 	return(0);
