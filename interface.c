@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.7 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: interface.c,v 1.8 2005/03/29 12:59:41 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -79,6 +79,7 @@ check_iface(struct Interface *iface)
 		iface->AdvIntervalOpt)
 	{
 		MIPv6 = 1;
+		flog(LOG_INFO, "using Mobile IPv6 extensions");
 	}
 
 	prefix = iface->AdvPrefixList;	
@@ -91,85 +92,38 @@ check_iface(struct Interface *iface)
 		prefix = prefix->next;
 	}
 
-	if (MIPv6)
-	{
-		flog(LOG_INFO, "using Mobile IPv6 extensions");
-	}
-
 	if (iface->MinRtrAdvInterval == -1)
 		iface->MinRtrAdvInterval = DFLT_MinRtrAdvInterval(iface);
 
-	/* Mobile IPv6 ext */
-	if (MIPv6)
-	{
-		if ((iface->MinRtrAdvInterval < MIN_MinRtrAdvInterval_MIPv6) || 
+	if ((iface->MinRtrAdvInterval < (MIPv6 ? MIN_MinRtrAdvInterval_MIPv6 : MIN_MinRtrAdvInterval)) || 
 		    (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface)))
-		{
-			flog(LOG_ERR, 
-				"MinRtrAdvInterval for %s must be between %.2f and %.2f",
-				iface->Name, MIN_MinRtrAdvInterval_MIPv6,
-				MAX2(MIN_MinRtrAdvInterval_MIPv6, MIN_MinRtrAdvInterval_MIPv6));
-			res = -1;
-		}
-	}
-	else
 	{
-		if ((iface->MinRtrAdvInterval < MIN_MinRtrAdvInterval) || 
-		    (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface)))
-		{
-			flog(LOG_ERR, 
-				"MinRtrAdvInterval for %s must be between %d and %d",
-				iface->Name, (int)MIN_MinRtrAdvInterval,
-				(int)MAX_MinRtrAdvInterval(iface));
-			res = -1;
-		}
+		flog(LOG_ERR, 
+			"MinRtrAdvInterval for %s (%.2f) must be at least %.2f but no more than 3/4 of MaxRtrAdvInterval (%.2f)",
+			iface->Name, iface->MinRtrAdvInterval,
+			MIPv6 ? MIN_MinRtrAdvInterval_MIPv6 : (int)MIN_MinRtrAdvInterval,
+			MAX_MinRtrAdvInterval(iface));
+		res = -1;
 	}
 
-	/* Mobile IPv6 ext */
-	if (MIPv6)
-	{
-		if ((iface->MaxRtrAdvInterval < MIN_MaxRtrAdvInterval_MIPv6) 
+	if ((iface->MaxRtrAdvInterval < (MIPv6 ? MIN_MaxRtrAdvInterval_MIPv6 : MIN_MaxRtrAdvInterval)) 
 			|| (iface->MaxRtrAdvInterval > MAX_MaxRtrAdvInterval))
-		{
-			flog(LOG_ERR, 
-				"MaxRtrAdvInterval for %s must be between %.2f and %d",
-				iface->Name, MIN_MaxRtrAdvInterval_MIPv6,
-				MAX_MaxRtrAdvInterval);
-			res = -1;
-		}
-	}
-	else
 	{
-		if ((iface->MaxRtrAdvInterval < MIN_MaxRtrAdvInterval) 
-			|| (iface->MaxRtrAdvInterval > MAX_MaxRtrAdvInterval))
-		{
-			flog(LOG_ERR, 
-				"MaxRtrAdvInterval must be between %d and %d for %s",
-				MIN_MaxRtrAdvInterval, MAX_MaxRtrAdvInterval, iface->Name);
-			res = -1;
-		}
+		flog(LOG_ERR, 
+			"MaxRtrAdvInterval for %s (%.2f) must be between %.2f and %d",
+			iface->Name, iface->MaxRtrAdvInterval,
+			MIPv6 ? MIN_MaxRtrAdvInterval_MIPv6 : (int)MIN_MaxRtrAdvInterval,
+			MAX_MaxRtrAdvInterval);
+		res = -1;
 	}
 
-	/* Mobile IPv6 ext */
-	if (MIPv6)
+	if (iface->MinDelayBetweenRAs < (MIPv6 ? MIN_DELAY_BETWEEN_RAS_MIPv6 : MIN_DELAY_BETWEEN_RAS)) 
 	{
-		if (iface->MinDelayBetweenRAs < MIN_DELAY_BETWEEN_RAS_MIPv6) 
-		{
-			flog(LOG_ERR, 
-				"MinDelayBetweenRAs for %s must be greater than %.2f",
-				iface->Name, MIN_DELAY_BETWEEN_RAS_MIPv6);
-			res = -1;
-		}
-	}
-	else
-	{
-		if (iface->MinDelayBetweenRAs < MIN_DELAY_BETWEEN_RAS)
-		{
-			flog(LOG_ERR, 
-				"MinDelayBetweenRAs for %s must be greater than %.2f",
-				iface->Name, (double) MIN_DELAY_BETWEEN_RAS);
-			res = -1;
-		}
+		flog(LOG_ERR, 
+			"MinDelayBetweenRAs for %s (%.2f) must be at least %.2f",
+			iface->Name, iface->MinDelayBetweenRAs,
+			MIPv6 ? MIN_DELAY_BETWEEN_RAS_MIPv6 : MIN_DELAY_BETWEEN_RAS);
+		res = -1;
 	}
 
 	if (iface->if_maxmtu != -1)
