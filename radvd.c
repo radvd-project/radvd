@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.10 2001/12/28 07:29:27 psavola Exp $
+ *   $Id: radvd.c,v 1.11 2001/12/28 08:38:18 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -57,11 +57,12 @@ void sigint_handler(int sig);
 void timer_handler(void *data);
 void kickoff_adverts(void);
 void reload_config(void);
-int drop_root_privileges(const char *);
-int readin_config(char *);
 void version(void);
 void usage(void);
+int drop_root_privileges(const char *);
+int readin_config(char *);
 int check_ip6_forwarding();
+int check_conffile_perm(const char *, const char *);
 
 int
 main(int argc, char *argv[])
@@ -185,8 +186,16 @@ main(int argc, char *argv[])
 	if (username) {
 		if (drop_root_privileges(username) < 0)
 			exit(1);
+	}
 
-	/* XXX: sanity check: radvd.conf should not be writable by username */
+	/* check that 'other' cannot write the file
+         * for non-root, also that self/own group can't either
+         */
+	if (check_conffile_perm(username, conf_file) < 0) {
+		if (get_debuglevel() == 0)
+			exit(1);
+		else
+			log(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
 	
 	/* if we know how to do it, check whether forwarding is enabled */
@@ -410,6 +419,52 @@ drop_root_privileges(const char *username)
 		return (-1);
 	}
 	return 0;
+}
+
+int
+check_conffile_perm(const char *username, const char *conf_file)
+{
+	struct stat *st = NULL;
+	struct passwd *pw = NULL;
+	FILE *fp = fopen(conf_file, "r");
+
+	if (fp == NULL) {
+		log(LOG_ERR, "can't open %s: %s", conf_file, strerror(errno));
+		return (-1);
+	}
+	fclose(fp);
+
+	st = malloc(sizeof(struct stat));
+	if (st == NULL)
+		goto errorout;
+
+	if (!username)
+		username = "root";
+	
+	pw = getpwnam(username);
+
+	if (stat(conf_file, st) || pw == NULL)
+		goto errorout;
+
+	if (st->st_mode & S_IWOTH) {
+                log(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
+		goto errorout;
+        }
+
+	/* for non-root: must not be writable by self/own group */
+	if (strncmp(username, "root", 5) != 0 &&
+	    ((st->st_mode & S_IWGRP && pw->pw_gid == st->st_gid) ||
+	     (st->st_mode & S_IWUSR && pw->pw_uid == st->st_uid))) {
+                log(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
+		goto errorout;
+        }
+
+	free(st);
+        return 0;
+
+errorout:
+	free(st);
+	return(-1);
 }
 
 int
