@@ -1,4 +1,13 @@
-$Id: CHANGES,v 1.20 2002/01/15 16:50:51 lutchann Exp $
+$Id: CHANGES,v 1.21 2002/10/28 16:53:49 psavola Exp $
+
+10/28/2002	Release 0.7.2:
+		 - add support for VLANs (from USAGI)
+		 - make it compile better on newer NetBSD's (NetBSD)
+		 - fix a syntax error in radvd.conf(5) sample documentation
+		 - use IPV6_RECV{HOPLIMIT,PKTINFO} not 
+                       IPV6_{HOPLIMIT,PKTINFO} if supported
+		 - (in Red Hat spec file) don't create radvd gid explicitly
+		 - a lot of coding style cleanups
 
 01/16/2002	Release 0.7.1.
 
