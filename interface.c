@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.5 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: interface.c,v 1.6 2004/08/20 07:17:53 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -23,6 +23,7 @@ iface_init_defaults(struct Interface *iface)
 {
 	memset(iface, 0, sizeof(struct Interface));
 
+	iface->IgnoreIfMissing	  = DFLT_IgnoreIfMissing;
 	iface->AdvSendAdvert	  = DFLT_AdvSendAdv;
 	iface->MaxRtrAdvInterval  = DFLT_MaxRtrAdvInterval;
 	iface->AdvSourceLLAddress = DFLT_AdvSourceLLAddress;

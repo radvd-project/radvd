@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.4 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: device-common.c,v 1.5 2004/08/20 07:17:53 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -28,8 +28,9 @@ check_device(int sock, struct Interface *iface)
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0)
 	{
-		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", 
-			iface->Name, strerror(errno));
+		if (!iface->IgnoreIfMissing)
+			flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", 
+				iface->Name, strerror(errno));
 		return (-1);
 	}
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.8 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: radvd.h,v 1.9 2004/08/20 07:17:53 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -54,6 +54,7 @@ struct Interface {
 	int			if_prefix_len;
 	int			if_maxmtu;
 
+	int			IgnoreIfMissing;
 	int			AdvSendAdvert;
 	double			MaxRtrAdvInterval;
 	double			MinRtrAdvInterval;

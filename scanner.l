@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.7 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: scanner.l,v 1.8 2004/08/20 07:17:53 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -45,6 +45,7 @@ interface		{ return T_INTERFACE; }
 prefix			{ return T_PREFIX; }
 route			{ return T_ROUTE; }
 
+IgnoreIfMissing		{ return T_IgnoreIfMissing; }
 AdvSendAdvert		{ return T_AdvSendAdvert; }
 MaxRtrAdvInterval	{ return T_MaxRtrAdvInterval; }
 MinRtrAdvInterval	{ return T_MinRtrAdvInterval; }
