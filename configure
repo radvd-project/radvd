@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in  ($Id: configure,v 1.9 2001/02/01 16:40:58 lf Exp $)
+# From configure.in  ($Id: configure,v 1.8 2001/02/01 16:40:42 lf Exp $)
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
