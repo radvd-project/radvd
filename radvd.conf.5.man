@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.7 2002/06/21 11:57:15 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.8 2004/06/20 17:52:41 lutchann Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -14,7 +14,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "29 Mar 2001" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "21 Nov 2003" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd
@@ -28,6 +28,7 @@ The file contains one or more interface definitions of the form:
 .BR "interface " "name " {
 	list of interface specific options
 	list of prefix definitions
+	list of route definitions
 .B };
 .fi
 
@@ -52,6 +53,17 @@ option has to be terminated by a semicolon.
 Decimal values are allowed only for MaxRtrAdvInterval and
 MinRtrAdvInterval.  Decimal values should be used only when using
 Mobile IPv6 extensions.
+
+Route definitions are of the form:
+
+.nf
+.BR "route " prefix / "length " {
+	list of route specific options
+.B };
+.fi
+
+The prefix of a route definition should be network prefix; it can be used to
+advertise more specific routes to the hosts.
 
 .SH INTERFACE SPECIFIC OPTIONS
 
@@ -184,6 +196,14 @@ lifetime fields.
 Must be either zero or between MaxRtrAdvInterval and 9000 seconds.
 
 Default: 3 * MaxRtrAdvInterval
+
+.TP
+.BR AdvDefaultPreference " " low | medium | high
+
+The preference associated with the default router, as either "low",
+"medium", or "high".
+
+Default: medium
 
 .TP
 .BR AdvSourceLLAddress " " on | off
@@ -341,6 +361,26 @@ For more information on 6to4, see RFC 3056.
 
 Default: 6to4 is not used
 
+.SH ROUTE SPECIFIC OPTIONS
+
+.TP
+.BR "AdvRouteLifetime " seconds "" | infinity
+
+The lifetime associated with the route in units of seconds.
+The symbolic value
+.B infinity
+represents infinity (i.e. a value of all one bits (0xffffffff)).
+
+Default: 3 * MaxRtrAdvInterval
+
+.TP
+.BR AdvRoutePreference " " low | medium | high
+
+The preference associated with the default router, as either "low",
+"medium", or "high".
+
+Default: medium
+
 .SH EXAMPLES
 
 .nf
@@ -441,6 +481,10 @@ RFC 2464, December 1998.
 .PP
 Carpenter B., Moore K., "Connection of IPv6 Domains via IPv4 Clouds",
 RFC 3056, February 2001. (6to4 specification)
+.PP
+Draves, R., Hinden B., "Default Router Preferences, More-Specific Routes,
+and Load Sharing", draft-ietf-ipv6-router-selection-02.txt,
+work-in-progress, June 2002.
 
 .SH "SEE ALSO"
 

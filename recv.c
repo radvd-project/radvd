@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.5 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: recv.c,v 1.6 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -43,7 +43,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	if( select( sock+1, &rfds, NULL, NULL, NULL ) < 0 )
 	{
 		if (errno != EINTR)
-			log(LOG_ERR, "select: %s", strerror(errno));
+			flog(LOG_ERR, "select: %s", strerror(errno));
 			
 		return -1;
 	}
@@ -63,7 +63,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	if (len < 0)
 	{
 		if (errno != EINTR)
-			log(LOG_ERR, "recvmsg: %s", strerror(errno));
+			flog(LOG_ERR, "recvmsg: %s", strerror(errno));
 			
 		return len;
 	}
@@ -87,7 +87,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
                 }
                 else
                 {
-                  log(LOG_ERR, "received a bogus IPV6_HOPLIMIT from the kernel! len=%d, data=%d",
+                  flog(LOG_ERR, "received a bogus IPV6_HOPLIMIT from the kernel! len=%d, data=%d",
                   	cmsg->cmsg_len, *(int *)CMSG_DATA(cmsg));
                   return (-1);	
                 }  
@@ -101,7 +101,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
                 }
                 else
                 {
-                  log(LOG_ERR, "received a bogus IPV6_PKTINFO from the kernel! len=%d, index=%d", 
+                  flog(LOG_ERR, "received a bogus IPV6_PKTINFO from the kernel! len=%d, index=%d", 
                   	cmsg->cmsg_len, ((struct in6_pktinfo *)CMSG_DATA(cmsg))->ipi6_ifindex);
                   return (-1);
                 } 

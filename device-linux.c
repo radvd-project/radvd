@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.9 2003/09/11 19:06:54 psavola Exp $
+ *   $Id: device-linux.c,v 1.10 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -40,7 +40,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s",
+		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s",
 			iface->Name, strerror(errno));
 		return (-1);
 	}
@@ -87,7 +87,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 
 		memset(zero, 0, (iface->if_hwaddr_len + 7) >> 3);
 		if (!memcmp(iface->if_hwaddr, zero, (iface->if_hwaddr_len + 7) >> 3))
-			log(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
+			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
 				iface->Name);
 	}
 
@@ -97,7 +97,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		if ((iface->if_prefix_len != -1) &&
 		   (iface->if_prefix_len != prefix->PrefixLen))
 		{
-			log(LOG_WARNING, "prefix length should be %d for %s",
+			flog(LOG_WARNING, "prefix length should be %d for %s",
 				iface->if_prefix_len, iface->Name);
  		}
  			
@@ -120,7 +120,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 
 	if ((fp = fopen(PATH_PROC_NET_IF_INET6, "r")) == NULL)
 	{
-		log(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IF_INET6,
+		flog(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IF_INET6,
 			strerror(errno));
 		return (-1);	
 	}
@@ -149,7 +149,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 		}
 	}
 
-	log(LOG_ERR, "no linklocal address configured for %s", iface->Name);
+	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 	fclose(fp);
 	return (-1);
 }
@@ -167,7 +167,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 
 	if (setsockopt(sock, SOL_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
 	{
-		log(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
+		flog(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
 		return (-1);
 	}
 
@@ -185,7 +185,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 
 	if ((fp = fopen(PATH_PROC_NET_IGMP6, "r")) == NULL)
 	{
-		log(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IGMP6,
+		flog(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IGMP6,
 			strerror(errno));
 		return (-1);	
 	}
@@ -202,7 +202,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 	fclose(fp);
 
 	if (!allrouters_ok) {
-		log(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
+		flog(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
 		setup_allrouters_membership(sock, iface);
 	}	
 
@@ -218,7 +218,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 
 	if( ( fd = socket(AF_INET,SOCK_DGRAM,0) ) < 0 )
 	{
-		log(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
+		flog(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
 			ifn, strerror(errno));
 		return (-1);
 	}
@@ -230,7 +230,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 	
 	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
+		flog(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
 			ifn, strerror(errno));
 		close( fd );
 		return (-1);

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.12 2003/09/11 19:06:54 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.13 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -38,13 +38,13 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	/* just allocate 8192 bytes, should be more than enough.. */
 	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
 	{
-		log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 		goto ret;
 	}
 
 	if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
+		flog(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
 		goto ret;
 	}
 
@@ -69,7 +69,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		
 			if (((struct sockaddr_dl *)p)->sdl_alen > HWADDR_MAX)
 			{
-				log(LOG_ERR, "address length %d too big for",
+				flog(LOG_ERR, "address length %d too big for",
 					((struct sockaddr_dl *)p)->sdl_alen,
 					iface->Name);
 				goto ret;
@@ -103,7 +103,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 			if (iface->if_prefix_len != -1) {
 				memset(zero, 0, ((struct sockaddr_dl *)p)->sdl_alen);
 				if (!memcmp(iface->if_hwaddr, zero, ((struct sockaddr_dl *)p)->sdl_alen))
-					log(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
+					flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
 						iface->Name);
 			}
 			
@@ -113,7 +113,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 				if ((iface->if_prefix_len != -1) &&
 					(iface->if_prefix_len != prefix->PrefixLen))
 				{
-					log(LOG_WARNING, "prefix length should be %d for %s",
+					flog(LOG_WARNING, "prefix length should be %d for %s",
 						iface->if_prefix_len, iface->Name);
  				}
  			
@@ -145,13 +145,13 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 	/* just allocate 8192 bytes, should be more than enough.. */
 	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
 	{
-		log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 		goto ret;
 	}
 
 	if (ioctl(sock, SIOCGIFCONF, &ifconf) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
+		flog(LOG_ERR, "ioctl(SIOCGIFCONF) failed: %s(%d)", strerror(errno), errno);
 		goto ret;
 	}
 
@@ -191,7 +191,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 	}
 
 ret:
-	log(LOG_ERR, "no linklocal address configured for %s", iface->Name);
+	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 	free(ifconf.ifc_buf);
 	return -1;
 }
@@ -219,7 +219,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 
 	if( ( fd = socket(AF_INET,SOCK_DGRAM,0) ) < 0 )
 	{
-		log(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
+		flog(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
 			ifn, strerror(errno));
 		return (-1);
 	}
@@ -231,7 +231,7 @@ get_v4addr(const char *ifn, unsigned int *dst)
 	
 	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
 	{
-		log(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
+		flog(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
 			ifn, strerror(errno));
 		close( fd );
 		return (-1);

@@ -12,6 +12,13 @@ interface eth0
 	MaxRtrAdvInterval 10;
 
 #
+# You can use AdvDefaultPreference setting to advertise the preference of
+# the router for the purposes of default router determination.
+# NOTE: This feature is still being specified and is not widely supported!
+#
+	AdvDefaultPreference low;
+
+#
 # Disable Mobile IPv6 support
 #
 	AdvHomeAgentFlag off;
@@ -24,6 +31,16 @@ interface eth0
 		AdvOnLink on;
 		AdvAutonomous on;
 		AdvRouterAddr off;
+	};
+
+#
+# example of a more specific route
+# NOTE: This feature is still being specified and is not widely supported!
+#
+	route 2001:db0:fff::/48
+	{
+		AdvRoutePreference high;
+		AdvRouteLifetime 3600;
 	};
 
 #

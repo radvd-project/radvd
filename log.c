@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
+ *	$Id: log.c,v 1.4 2004/06/20 17:52:41 lutchann Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -122,7 +122,7 @@ dlog(int prio, int level, char *format, ...)
 }
 
 int
-log(int prio, char *format, ...)
+flog(int prio, char *format, ...)
 {
 	va_list ap;
 	int res;

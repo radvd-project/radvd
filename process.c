@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.6 2003/03/08 16:03:44 psavola Exp $
+ *   $Id: process.c,v 1.7 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -35,7 +35,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 
 	if ( ! pkt_info )
 	{
-		log(LOG_WARNING, "received packet with no pkt_info!" );
+		flog(LOG_WARNING, "received packet with no pkt_info!" );
 		return;
 	}
 
@@ -45,7 +45,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (len < sizeof(struct icmp6_hdr))
 	{
-		log(LOG_WARNING, "received icmpv6 packet with invalid length: %d",
+		flog(LOG_WARNING, "received icmpv6 packet with invalid length: %d",
 			len);
 		return;
 	}
@@ -59,20 +59,20 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 		 *	We just want to listen to RSs and RAs
 		 */
 		
-		log(LOG_ERR, "icmpv6 filter failed");
+		flog(LOG_ERR, "icmpv6 filter failed");
 		return;
 	}
 
 	if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
 		if (len < sizeof(struct nd_router_advert)) {
-			log(LOG_WARNING, "received icmpv6 RA packet with invalid length: %d",
+			flog(LOG_WARNING, "received icmpv6 RA packet with invalid length: %d",
 				len);
 			return;
 		}
 
 		if (!IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
-			log(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address");
+			flog(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address");
 			return;
 		}
 	}			
@@ -80,7 +80,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
 		if (len < sizeof(struct nd_router_solicit)) {
-			log(LOG_WARNING, "received icmpv6 RS packet with invalid length: %d",
+			flog(LOG_WARNING, "received icmpv6 RS packet with invalid length: %d",
 				len);
 			return;
 		}
@@ -88,7 +88,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 		if (IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr) &&
 		    rs_has_srclladdr(msg, len))
 		{
-			log(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option"); 
+			flog(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option"); 
 			return;
 		}
 				
@@ -96,7 +96,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_code != 0)
 	{
-		log(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code: %d",
+		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code: %d",
 			icmph->icmp6_code);
 		return;
 	}
@@ -123,7 +123,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 	if (hoplimit != 255)
 	{
 		print_addr(&addr->sin6_addr, addr_str);
-		log(LOG_WARNING, "received RS or RA with invalid hoplimit %d from %s",
+		flog(LOG_WARNING, "received RS or RA with invalid hoplimit %d from %s",
 			hoplimit, addr_str);
 		return;
 	}
@@ -200,33 +200,35 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 	if ((radvert->nd_ra_curhoplimit && iface->AdvCurHopLimit) && 
 	   (radvert->nd_ra_curhoplimit != iface->AdvCurHopLimit))
 	{
-		log(LOG_WARNING, "our AdvCurHopLimit on %s doesn't agree with %s",
+		flog(LOG_WARNING, "our AdvCurHopLimit on %s doesn't agree with %s",
 			iface->Name, addr_str);
 	}
 
 	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_MANAGED) && !iface->AdvManagedFlag)
 	{
-		log(LOG_WARNING, "our AdvManagedFlag on %s doesn't agree with %s",
+		flog(LOG_WARNING, "our AdvManagedFlag on %s doesn't agree with %s",
 			iface->Name, addr_str);
 	}
 	
 	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_OTHER) && !iface->AdvOtherConfigFlag)
 	{
-		log(LOG_WARNING, "our AdvOtherConfigFlag on %s doesn't agree with %s",
+		flog(LOG_WARNING, "our AdvOtherConfigFlag on %s doesn't agree with %s",
 			iface->Name, addr_str);
 	}
+
+	/* note: we don't check the default router preference here, because they're likely different */
 
 	if ((radvert->nd_ra_reachable && iface->AdvReachableTime) &&
 	   (ntohl(radvert->nd_ra_reachable) != iface->AdvReachableTime))
 	{
-		log(LOG_WARNING, "our AdvReachableTime on %s doesn't agree with %s",
+		flog(LOG_WARNING, "our AdvReachableTime on %s doesn't agree with %s",
 			iface->Name, addr_str);
 	}
 	
 	if ((radvert->nd_ra_retransmit && iface->AdvRetransTimer) &&
 	   (ntohl(radvert->nd_ra_retransmit) != iface->AdvRetransTimer))
 	{
-		log(LOG_WARNING, "our AdvRetransTimer on %s doesn't agree with %s",
+		flog(LOG_WARNING, "our AdvRetransTimer on %s doesn't agree with %s",
 			iface->Name, addr_str);
 	}
 
@@ -248,7 +250,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 		if (len < 2)
 		{
-			log(LOG_ERR, "trailing garbage in RA on %s from %s", 
+			flog(LOG_ERR, "trailing garbage in RA on %s from %s", 
 				iface->Name, addr_str);
 			break;
 		}
@@ -257,13 +259,13 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 		if (optlen == 0) 
 		{
-			log(LOG_ERR, "zero length option in RA on %s from %s",
+			flog(LOG_ERR, "zero length option in RA on %s from %s",
 				iface->Name, addr_str);
 			break;
 		} 
 		else if (optlen > len)
 		{
-			log(LOG_ERR, "option length greater than total"
+			flog(LOG_ERR, "option length greater than total"
 				" length in RA on %s from %s",
 				iface->Name, addr_str);
 			break;
@@ -276,7 +278,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 			if (iface->AdvLinkMTU && (ntohl(mtu->nd_opt_mtu_mtu) != iface->AdvLinkMTU))
 			{
-				log(LOG_WARNING, "our AdvLinkMTU on %s doesn't agree with %s",
+				flog(LOG_WARNING, "our AdvLinkMTU on %s doesn't agree with %s",
 					iface->Name, addr_str);
 			}
 			break;
@@ -297,7 +299,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 					if (valid != prefix->AdvValidLifetime)
 					{
-						log(LOG_WARNING, "our AdvValidLifetime on"
+						flog(LOG_WARNING, "our AdvValidLifetime on"
 						 " %s for %s doesn't agree with %s",
 						 iface->Name,
 						 prefix_str,
@@ -306,7 +308,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 					}
 					if (preferred != prefix->AdvPreferredLifetime)
 					{
-						log(LOG_WARNING, "our AdvPreferredLifetime on"
+						flog(LOG_WARNING, "our AdvPreferredLifetime on"
 						 " %s for %s doesn't agree with %s",
 						 iface->Name,
 						 prefix_str,
@@ -318,12 +320,15 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 				prefix = prefix->next;
 			}			
 			break;
+		case ND_OPT_ROUTE_INFORMATION:
+			/* not checked: these will very likely vary a lot */
+			break;
 		case ND_OPT_SOURCE_LINKADDR:
 			/* not checked */
 			break;
 		case ND_OPT_TARGET_LINKADDR:
 		case ND_OPT_REDIRECTED_HEADER:
-			log(LOG_ERR, "invalid option %d in RA on %s from %s",
+			flog(LOG_ERR, "invalid option %d in RA on %s from %s",
 				(int)*opt_str, iface->Name, addr_str);
 			break;
 		/* Mobile IPv6 extensions */
@@ -395,7 +400,7 @@ rs_has_srclladdr(unsigned char *msg, int len)
 
 		if (len < 2)
 		{
-			log(LOG_WARNING, "trailing garbage in RS");
+			flog(LOG_WARNING, "trailing garbage in RS");
 			break;
 		}
 
@@ -403,12 +408,12 @@ rs_has_srclladdr(unsigned char *msg, int len)
 
 		if (optlen == 0)
 		{
-			log(LOG_WARNING, "zero length option in RS");
+			flog(LOG_WARNING, "zero length option in RS");
 			break;
 		}
 		else if (optlen > len)
 		{
-			log(LOG_WARNING, "option length greater than total length in RS");
+			flog(LOG_WARNING, "option length greater than total length in RS");
 			break;
 		}
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.6 2001/12/28 07:38:44 psavola Exp $
+ *   $Id: defaults.h,v 1.7 2004/06/20 17:52:41 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -40,6 +40,7 @@
 #define DFLT_AdvCurHopLimit		64	/* as per RFC 1700 or the 
 						   next incarnation of it :) */
 #define	DFLT_AdvDefaultLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
+#define DFLT_AdvDefaultPreference	0
 
 /* Options sent with RA */
 
@@ -52,6 +53,10 @@
 #define DFLT_AdvPreferredLifetime	604800 /* seconds */
 #define DFLT_AdvAutonomousFlag		1
 
+/* Each route has an associated: */
+#define DFLT_AdvRouteLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
+
+#define DFLT_AdvRoutePreference		0 /* medium*/
 
 /* Protocol (RFC2461) constants: */
 
@@ -116,6 +121,28 @@
 #endif
 #ifndef ND_OPT_HOME_AGENT_INFO
 #define ND_OPT_HOME_AGENT_INFO          8
+#endif
+
+/* draft-ietf-ipv6-router-selection-02.txt */
+/* XXX: not formally assigned, this will be changed! */
+#ifndef ND_OPT_ROUTE_INFORMATION
+#define  ND_OPT_ROUTE_INFORMATION	9	
+
+/* XXX: some libc's like KAME already had nd_opt_route_info! */
+struct nd_opt_route_info_local     /* route information */
+  {
+    uint8_t   nd_opt_ri_type;
+    uint8_t   nd_opt_ri_len;
+    uint8_t   nd_opt_ri_prefix_len;
+    uint8_t   nd_opt_ri_flags_reserved;
+    uint32_t  nd_opt_ri_lifetime;
+    struct in6_addr  nd_opt_ri_prefix;
+  };
+
+/* the reserved field is 8 bits and we're interested of the middle two: 000xx000 */
+#define ND_OPT_RI_PRF_SHIFT	3
+#define ND_OPT_RI_PRF_MASK	(3 << ND_OPT_RI_PRF_SHIFT)
+
 #endif
 
 /* Flags */

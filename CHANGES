@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.24 2003/09/11 19:06:53 psavola Exp $
+$Id: CHANGES,v 1.25 2004/06/20 17:52:41 lutchann Exp $
+
+11/21/2003	Add support for Router Preferences and More Specific
+		Routes from Markku Savela <msa@burp.tkv.asdf.org>.
+		NOTE! The specification is not final yet, there will be
+		changes!  (Man page, documentation and radvdump support
+		by Pekka Savola.)
 
 09/11/2003	When starting up, check if the MAC address is all zero
 		(could happen e.g. with bridge interfaces with no attached
