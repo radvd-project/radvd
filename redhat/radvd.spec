@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.7 2002/05/06 21:11:49 psavola Exp $
+# $Id: radvd.spec,v 1.8 2002/10/28 16:50:15 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -7,8 +7,8 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 0.7.1
-Release: 2
+Version: 0.7.2
+Release: 1
 License: BSD-style
 Group: System Environment/Daemons
 Packager: Pekka Savola <pekkas@netcore.fi>
@@ -81,6 +81,9 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Mon Oct 28 2002 Pekka Savola <pekkas@netcore.fi>
+- 0.7.2.
+
 * Tue May  7 2002 Pekka Savola <pekkas@netcore.fi>
 - remove '-g %%{RADVD_GID}' when creating the user, which may be problematic
   if the user didn't exist before.
