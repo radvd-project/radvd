@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.8 2000/12/23 22:47:16 lf Exp $
+$Id: CHANGES,v 1.9 2001/02/01 16:46:15 lf Exp $
+
+02/01/2001	scope_id is not supported in glibc2.1. So it is now
+		compiled conditionally.
+
+01/31/2001	Add CC variable to Makefile. Fix bug with IPV6_ADD_MEMBERSHIP
+		handling. Set scope_id when sending packets.
 
 12/02/2000	man pages update, rewritten pid file handling, rewritten
 		signal handling (SIGHUP and SIGTERM), gcc warnings cleanup,
