@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.29 2004/08/20 07:25:59 psavola Exp $
+$Id: CHANGES,v 1.30 2004/08/20 07:47:40 psavola Exp $
 
 08/20/2004	Minor documentation cleanups.
 
@@ -8,10 +8,17 @@ $Id: CHANGES,v 1.29 2004/08/20 07:25:59 psavola Exp $
                 and then you wish to send HUP to radvd to activate the
                 configs.
 
-02/21/2004      Clean up the build environment, from Marko Myllynen.
+02/21/2004      Further cleanups, to fix autoconf/autoheader problems
+                with newer toolchain; mostly by Marko Myllynen.
 
-01/19/2004      Fix warnings on Linux kernel 2.6, make checking the IPv6
-                forwarding a bit more intelligent.
+02/20/2004      Clean up a bit: remove old junk from configure.in,
+                rename "log()" to "flog()" to satisfy newer GCCs,
+                allow underscores in the interface names (the last two
+                fixes already committed earlier).
+                                                                                
+01/19/2004      Make radvd check for forwarding status using procfs on
+                Linux; needed with 2.6 kernels.  Loosely based on
+                a patch by USAGI.
 
 11/21/2003	Add support for Router Preferences and More Specific
 		Routes from Markku Savela <msa@burp.tkv.asdf.org>.
