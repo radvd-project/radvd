@@ -1,4 +1,4 @@
-$Id: TODO,v 1.8 2001/11/14 19:58:10 lutchann Exp $
+$Id: TODO,v 1.9 2001/12/28 07:31:32 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -7,9 +7,6 @@ follow interface state via netlink interface and send RAs only when the
 interface is up
 
 information in INTRO.html is outdated
-
-add on option to radvdump to dump incoming RAs as a radvd config file
-(inital code is in, coded by Marko)
 
 use getaddrinfo() instead of inet_pton in scanner.l so that DNS names
 can be used
@@ -22,10 +19,6 @@ Quoting Peter Bieringer (peter@bieringer.de):
 from forking.]
 
 support for few protocol constants defined in RFC 2461 Sec 10 is missing.
-
-when starting, check that net.ipv4.conf.all.forwarding=1 (Linux) or 
-net.inet6.ip6.forwarding=1 (BSD), warn if otherwise (not much sense running
-radvd otherwise, unless testing or debugging)
 
 * read the man pages one more time and make sure their are understandable
   and English is correct
