@@ -1,6 +1,8 @@
-$Id: CHANGES,v 1.35 2005/02/19 09:25:34 psavola Exp $
+$Id: CHANGES,v 1.36 2005/02/19 18:57:54 lutchann Exp $
 
 02/21/2005	Release 0.7.3.
+
+02/19/2005	Fix crash when reloading config with AdvSendAdvert off.
 
 02/15/2005	Merge a few fixes and improvements from USAGI:
 		 - support microsecond scheduling and fix RA intervals
