@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.15 2001/12/28 08:38:18 psavola Exp $
+$Id: CHANGES,v 1.16 2001/12/31 11:40:56 psavola Exp $
+
+12/31/2001	Radvdump fixes: eliminate a warning of Prefix Information
+		sections with '-d -f'; add a note that
+		{Min,Max}RtrAdvInterval cannot be obtained with '-f';
+		implement '-e' to be used with '-f' which omits all
+		advertised default settings. Mostly by Marko Myllynen.
 
 12/28/2001	Small cleanups.  AdvSendAdvert is implicitly off by
 		default.  Check configuration file permissions; must
@@ -10,6 +16,7 @@ $Id: CHANGES,v 1.15 2001/12/28 08:38:18 psavola Exp $
 		Marko Myllynen.
 
 11/22/2001	MinRtrAdvInterval for MIPv6 is 0.05 seconds, not 0.5.
+		(Note: untested).
 
 11/20/2001	Rework BSD device memory management a bit, minor cleanups.
 		Version bumped to 0.7.0.

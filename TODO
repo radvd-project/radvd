@@ -1,4 +1,4 @@
-$Id: TODO,v 1.9 2001/12/28 07:31:32 psavola Exp $
+$Id: TODO,v 1.10 2001/12/31 11:40:56 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -20,8 +20,11 @@ from forking.]
 
 support for few protocol constants defined in RFC 2461 Sec 10 is missing.
 
-* read the man pages one more time and make sure their are understandable
-  and English is correct
-* finish radvdump --file-output interface identifier code
-  (change hard-coded eth0->actual receiving interface - for both BSD/Linux
-   and perhaps --file-output could be renamed to --file-format)
+consider whether it's worth integrating radvdump print_ff and print_ra
+functions as they provide very similar service and there's some code
+duplication.
+
+consider whether UnicastOnly flag should be detected by radvdump.
+
+read the man pages one more time and make sure their are understandable
+and English is correct
