@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.2 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: device-common.c,v 1.3 2002/01/02 11:01:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -24,7 +24,8 @@ check_device(int sock, struct Interface *iface)
 	struct ifreq	ifr;
 	
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
-	
+	ifr.ifr_name[IFNAMSIZ-1] = '\0';
+
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0)
 	{
 		log(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", 

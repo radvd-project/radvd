@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.5 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: gram.y,v 1.6 2002/01/02 11:01:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -152,6 +152,7 @@ ifacehead	: T_INTERFACE name
 
 			iface_init_defaults(iface);
 			strncpy(iface->Name, $2, IFNAMSIZ-1);
+			iface->Name[IFNAMSIZ-1] = '\0';
 		}
 		;
 	
@@ -354,6 +355,7 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 		{
 			dlog(LOG_DEBUG, 4, "using interface %s for 6to4", $2);
 			strncpy(prefix->if6to4, $2, IFNAMSIZ-1);
+			prefix->if6to4[IFNAMSIZ-1] = '\0';
 		}
 		;
 
