@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.1 2001/11/14 19:58:11 lutchann Exp $
+# $Id: radvd.spec,v 1.2 2001/11/20 20:46:18 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -38,7 +38,7 @@ CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" %configure --with-pidfile=/var/run/radvd/r
 make
 
 %install
-[ $RPM_BUILD_ROOT != "/"] && rm -rf $RPM_BUILD_ROOT
+[ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 %makeinstall
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
@@ -50,7 +50,7 @@ install -m 755 %{SOURCE1} $RPM_BUILD_ROOT%{initdir}/radvd
 install -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/radvd
 
 %clean
-[ $RPM_BUILD_ROOT != "/"] && rm -rf $RPM_BUILD_ROOT
+[ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 %postun
 if [ "$1" -ge "1" ]; then
