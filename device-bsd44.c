@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.11 2002/07/02 06:49:20 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.12 2003/09/11 19:06:54 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -33,6 +33,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	int nlen;
 	uint8_t *p, *end;
 	struct AdvPrefix *prefix;
+	char zero[HWADDR_MAX];
 
 	/* just allocate 8192 bytes, should be more than enough.. */
 	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
@@ -99,6 +100,13 @@ setup_deviceinfo(int sock, struct Interface *iface)
 			dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name,
 				iface->if_prefix_len);
 
+			if (iface->if_prefix_len != -1) {
+				memset(zero, 0, ((struct sockaddr_dl *)p)->sdl_alen);
+				if (!memcmp(iface->if_hwaddr, zero, ((struct sockaddr_dl *)p)->sdl_alen))
+					log(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
+						iface->Name);
+			}
+			
 			prefix = iface->AdvPrefixList;
 			while (prefix)
 			{
