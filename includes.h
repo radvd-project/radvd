@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.5 1997/10/19 18:57:16 lf Exp $
+ *   $Id: includes.h,v 1.6 1999/06/15 21:42:03 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -41,15 +41,8 @@
 
 #include <netinet/in.h>
 
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 #include <netinet/ip6.h>
 #include <netinet/icmp6.h>
-#define nd_router_advert nd6_router_advert
-#else
-#include <netinet/ipv6.h>
-#include <netinet/nd6_protocol.h>
-#include <netinet/icmpv6.h>
-#endif
 
 #include <arpa/inet.h>
 

@@ -1,6 +1,6 @@
 #
-# $Id: VERSION,v 1.6 1998/03/03 14:54:21 lf Exp $
+# $Id: VERSION,v 1.7 1999/06/15 21:42:00 lf Exp $
 #
 # this file is automatically processed by configure
 #
-0.4.2
+0.5.0

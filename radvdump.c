@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.2 1997/10/16 22:18:59 lf Exp $
+ *   $Id: radvdump.c,v 1.3 1999/06/15 21:42:04 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -89,22 +89,23 @@ main(int argc, char *argv[])
 	        len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
    	     	if (len > 0)
        	 	{
-			struct icmpv6hdr *icmph;
+			struct icmp6_hdr *icmph;
 	
 			/*
 			 * can this happen?
 			 */
 
-			if (len < sizeof(struct icmpv6hdr)) {
+			if (len < sizeof(struct icmp6_hdr))
+			{
 				log(LOG_WARNING, "received icmpv6 packet with invalid length: %d",
 					len);
 				exit(1);
 			}
 
-			icmph = (struct icmpv6hdr *) msg;
+			icmph = (struct icmp6_hdr *) msg;
 
-			if (icmph->icmpv6_type != ND6_ROUTER_SOLICITATION &&
-			    icmph->icmpv6_type != ND6_ROUTER_ADVERTISEMENT)
+			if (icmph->icmp6_type != ND_ROUTER_SOLICIT &&
+			    icmph->icmp6_type != ND_ROUTER_ADVERT)
 			{
 				/*
 				 *	We just want to listen to RSs and RAs
@@ -116,11 +117,11 @@ main(int argc, char *argv[])
 
 			dlog(LOG_DEBUG, 4, "if_index %d", pkt_info->ipi6_ifindex);
 
-			if (icmph->icmpv6_type == ND6_ROUTER_SOLICITATION)
+			if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 			{
 				/* not yet */	
 			}
-			else if (icmph->icmpv6_type == ND6_ROUTER_ADVERTISEMENT)
+			else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 			{
 				print_ra(msg, len, &rcv_addr, hoplimit);
 			}
@@ -173,17 +174,17 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 
 	radvert = (struct nd_router_advert *) msg;
 
-	printf("\tAdvCurHopLimit: %d\n", (int) radvert->radv_maxhoplimit);
+	printf("\tAdvCurHopLimit: %d\n", (int) radvert->nd_ra_curhoplimit);
 
 	printf("\tAdvManagedFlag: %s\n", 
-		(radvert->radv_m_o_res & ND6_RADV_M_BIT)?"on":"off");
+		(radvert->nd_ra_flags_reserved & ND_RA_FLAG_MANAGED)?"on":"off");
 
 	printf("\tAdvOtherConfigFlag: %s\n", 
-		(radvert->radv_m_o_res & ND6_RADV_O_BIT)?"on":"off");
+		(radvert->nd_ra_flags_reserved & ND_RA_FLAG_OTHER)?"on":"off");
 
-	printf("\tAdvReachableTime: %lu\n", ntohl(radvert->radv_reachable));
+	printf("\tAdvReachableTime: %lu\n", ntohl(radvert->nd_ra_reachable));
 
-	printf("\tAdvRetransTimer: %lu\n", ntohl(radvert->radv_retransmit));
+	printf("\tAdvRetransTimer: %lu\n", ntohl(radvert->nd_ra_retransmit));
 
 	len -= sizeof(struct nd_router_advert);
 
@@ -195,8 +196,8 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 	while (len > 0)
 	{
 		int optlen;
-		struct nd6_opt_prefix_info *pinfo;
-		struct nd6_opt_mtu *mtu;
+		struct nd_opt_prefix_info *pinfo;
+		struct nd_opt_mtu *mtu;
 		char prefix_str[INET6_ADDRSTRLEN];
 
 		if (len < 2)
@@ -226,43 +227,43 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 
 		switch (*opt_str)
 		{
-		case ND6_OPT_MTU:
-			mtu = (struct nd6_opt_mtu *)opt_str;
+		case ND_OPT_MTU:
+			mtu = (struct nd_opt_mtu *)opt_str;
 
-			printf("\tAdvLinkMTU: %ld\n", ntohl(mtu->opt_mtu));
+			printf("\tAdvLinkMTU: %ld\n", ntohl(mtu->nd_opt_mtu_mtu));
 			break;
-		case ND6_OPT_PREFIX_INFORMATION:
-			pinfo = (struct nd6_opt_prefix_info *) opt_str;
+		case ND_OPT_PREFIX_INFORMATION:
+			pinfo = (struct nd_opt_prefix_info *) opt_str;
 			
-			print_addr(&pinfo->opt_prefix, prefix_str);	
+			print_addr(&pinfo->nd_opt_pi_prefix, prefix_str);	
 				
-			printf("\tPrefix %s/%d\n", prefix_str, pinfo->opt_prefix_length);
+			printf("\tPrefix %s/%d\n", prefix_str, pinfo->nd_opt_pi_prefix_len);
 	
 	
-			if (ntohl(pinfo->opt_valid_life) == 0xffffffff)
+			if (ntohl(pinfo->nd_opt_pi_valid_time) == 0xffffffff)
 			{		
 				printf("\t\tAdvValidLifetime: infinity (0xffffffff)\n");
 			}
 			else
-				printf("\t\tAdvValidLifetime: %lu\n", (unsigned long) ntohl(pinfo->opt_valid_life));
 			{
+				printf("\t\tAdvValidLifetime: %lu\n", (unsigned long) ntohl(pinfo->nd_opt_pi_valid_time));
 			}
-			if (ntohl(pinfo->opt_preferred_life) == 0xffffffff)
+			if (ntohl(pinfo->nd_opt_pi_preferred_time) == 0xffffffff)
 			{
 				printf("\t\tAdvPreferredLifetime: infinity (0xffffffff)\n");
 			}
 			else
 			{
-				printf("\t\tAdvPreferredLifetime: %lu\n", (unsigned long) ntohl(pinfo->opt_preferred_life));
+				printf("\t\tAdvPreferredLifetime: %lu\n", (unsigned long) ntohl(pinfo->nd_opt_pi_preferred_time));
 			}
 			printf("\t\tAdvOnLink: %s\n", 
-				(pinfo->opt_l_a_res & ND6_OPT_PI_L_BIT)?"on":"off");
+				(pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_ONLINK)?"on":"off");
 
 			printf("\t\tAdvAutonomous: %s\n", 
-				(pinfo->opt_l_a_res & ND6_OPT_PI_A_BIT)?"on":"off");
+				(pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_AUTO)?"on":"off");
 
 			break;
-		case ND6_OPT_SOURCE_LINKADDR:
+		case ND_OPT_SOURCE_LINKADDR:
 			printf("\tAdvSourceLLAddress: ");
 			
 			for (i = 2; i < optlen; i++)
@@ -272,8 +273,8 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit)
 			
 			printf("\n");
 			break;
-		case ND6_OPT_TARGET_LINKADDR:
-		case ND6_OPT_REDIRECTED_HEADER:
+		case ND_OPT_TARGET_LINKADDR:
+		case ND_OPT_REDIRECTED_HEADER:
 			log(LOG_ERR, "invalid option %d in RA", (int)*opt_str);
 			break;
 		default:

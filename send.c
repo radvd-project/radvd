@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.5 1997/10/19 18:39:14 lf Exp $
+ *   $Id: send.c,v 1.6 1999/06/15 21:42:04 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -52,19 +52,19 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	radvert = (struct nd_router_advert *) buff;
 
-	radvert->radv_type  = ND6_ROUTER_ADVERTISEMENT;
-	radvert->radv_code  = 0;
-	radvert->radv_cksum = 0;
+	radvert->nd_ra_type  = ND_ROUTER_ADVERT;
+	radvert->nd_ra_code  = 0;
+	radvert->nd_ra_cksum = 0;
 
-	radvert->radv_maxhoplimit		= iface->AdvCurHopLimit;
-	radvert->radv_m_o_res		= 
-		(iface->AdvManagedFlag)?ND6_RADV_M_BIT:0;
-	radvert->radv_m_o_res		|= 
-		(iface->AdvOtherConfigFlag)?ND6_RADV_O_BIT:0;
-	radvert->radv_router_lifetime	= htons(iface->AdvDefaultLifetime);
+	radvert->nd_ra_curhoplimit	= iface->AdvCurHopLimit;
+	radvert->nd_ra_flags_reserved	= 
+		(iface->AdvManagedFlag)?ND_RA_FLAG_MANAGED:0;
+	radvert->nd_ra_flags_reserved	|= 
+		(iface->AdvOtherConfigFlag)?ND_RA_FLAG_OTHER:0;
+	radvert->nd_ra_router_lifetime	= htons(iface->AdvDefaultLifetime);
 
-	radvert->radv_reachable  = htonl(iface->AdvReachableTime);
-	radvert->radv_retransmit = htonl(iface->AdvRetransTimer);
+	radvert->nd_ra_reachable  = htonl(iface->AdvReachableTime);
+	radvert->nd_ra_retransmit = htonl(iface->AdvRetransTimer);
 
 	len = sizeof(struct nd_router_advert);
 
@@ -76,25 +76,27 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	while(prefix)
 	{
-		struct nd6_opt_prefix_info *pinfo;
+		struct nd_opt_prefix_info *pinfo;
 		
-		pinfo = (struct nd6_opt_prefix_info *) (buff + len);
+		pinfo = (struct nd_opt_prefix_info *) (buff + len);
 
-		pinfo->opt_type		  = ND6_OPT_PREFIX_INFORMATION;
-		pinfo->opt_length	  = 4;
-		pinfo->opt_prefix_length  = prefix->PrefixLen;
-		pinfo->opt_l_a_res	  = 
-			(prefix->AdvOnLinkFlag)?ND6_OPT_PI_L_BIT:0;
-		pinfo->opt_l_a_res	  |=
-			(prefix->AdvAutonomousFlag)?ND6_OPT_PI_A_BIT:0;
-		pinfo->opt_valid_life	  = htonl(prefix->AdvValidLifetime);
-		pinfo->opt_preferred_life = htonl(prefix->AdvPreferredLifetime);
-		pinfo->opt_reserved2	  = 0;
+		pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
+		pinfo->nd_opt_pi_len	     = 4;
+		pinfo->nd_opt_pi_prefix_len  = prefix->PrefixLen;
 		
-		memcpy(&pinfo->opt_prefix, &prefix->Prefix,
+		pinfo->nd_opt_pi_flags_reserved  = 
+			(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
+		pinfo->nd_opt_pi_flags_reserved	|=
+			(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
+			
+		pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
+		pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
+		pinfo->nd_opt_pi_reserved2	= 0;
+		
+		memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 		       sizeof(struct in6_addr));
 
-		len += sizeof(struct nd6_opt_prefix_info);
+		len += sizeof(struct nd_opt_prefix_info);
 
 		prefix = prefix->next;
 	}
@@ -104,16 +106,16 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	 */
 
 	if (iface->AdvLinkMTU != 0) {
-		struct nd6_opt_mtu *mtu;
+		struct nd_opt_mtu *mtu;
 		
-		mtu = (struct nd6_opt_mtu *) (buff + len);
+		mtu = (struct nd_opt_mtu *) (buff + len);
 	
-		mtu->opt_type	  = ND6_OPT_MTU;
-		mtu->opt_length   = 1;
-		mtu->opt_reserved = 0; 
-		mtu->opt_mtu	  = htonl(iface->AdvLinkMTU);
+		mtu->nd_opt_mtu_type     = ND_OPT_MTU;
+		mtu->nd_opt_mtu_len      = 1;
+		mtu->nd_opt_mtu_reserved = 0; 
+		mtu->nd_opt_mtu_mtu      = htonl(iface->AdvLinkMTU);
 
-		len += sizeof(struct nd6_opt_mtu);
+		len += sizeof(struct nd_opt_mtu);
 	}
 
 	/*
@@ -127,7 +129,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 		ucp = (uint8_t *) (buff + len);
 	
-		*ucp++  = ND6_OPT_SOURCE_LINKADDR;
+		*ucp++  = ND_OPT_SOURCE_LINKADDR;
 		*ucp++  = (uint8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
 
 		len += 2 * sizeof(uint8_t);

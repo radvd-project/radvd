@@ -1,5 +1,5 @@
 /*
- *   $Id: socket.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: socket.c,v 1.2 1999/06/15 21:42:04 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -22,7 +22,7 @@ int
 open_icmpv6_socket(void)
 {
 	int sock;
-	struct icmpv6_filter filter;
+	struct icmp6_filter filter;
 	int err, val;
 
         sock = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
@@ -82,12 +82,12 @@ open_icmpv6_socket(void)
 	 * setup ICMP filter
 	 */
 	
-	ICMPV6_FILTER_SETBLOCKALL(&filter);
-	ICMPV6_FILTER_SETPASS(ND6_ROUTER_SOLICITATION, &filter);
-	ICMPV6_FILTER_SETPASS(ND6_ROUTER_ADVERTISEMENT, &filter);
+	ICMP6_FILTER_SETBLOCKALL(&filter);
+	ICMP6_FILTER_SETPASS(ND_ROUTER_SOLICIT, &filter);
+	ICMP6_FILTER_SETPASS(ND_ROUTER_ADVERT, &filter);
 
-	err = setsockopt(sock, IPPROTO_ICMPV6, ICMPV6_FILTER, &filter,
-			 sizeof(struct icmpv6_filter));
+	err = setsockopt(sock, IPPROTO_ICMPV6, ICMP6_FILTER, &filter,
+			 sizeof(struct icmp6_filter));
 	if (err < 0)
 	{
 		log(LOG_ERR, "setsockopt(ICMPV6_FILTER): %s", strerror(errno));

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.3 1998/03/03 14:54:22 lf Exp $
+ *   $Id: device-linux.c,v 1.4 1999/06/15 21:42:00 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -160,7 +160,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	struct ipv6_mreq mreq;                  
 	
 	memset(&mreq, 0, sizeof(mreq));                  
-	mreq.ipv6mr_ifindex = iface->if_index;
+	mreq.ipv6mr_interface = iface->if_index;
 	
 	/* ipv6-allrouters: ff02::2 */
 	mreq.ipv6mr_multiaddr.s6_addr32[0] = htonl(0xFF020000);                                          
