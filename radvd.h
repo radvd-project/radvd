@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.11 2005/02/15 07:44:06 psavola Exp $
+ *   $Id: radvd.h,v 1.12 2005/02/15 08:32:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -140,6 +140,9 @@ int yyparse(void);
 
 /* scanner.l */
 int yylex(void);
+
+/* radvd.c */
+int check_ip6_forwarding();
 
 /* timer.c */
 void set_timer(struct timer_lst *tm, double);
