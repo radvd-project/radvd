@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: util.c,v 1.2 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -28,10 +28,10 @@ mdelay(int msecs)
 	select(0,(fd_set *)NULL,(fd_set *)NULL,(fd_set *)NULL, &tv);
 }
 
-int
-rand_between(int lower, int upper)
+double
+rand_between(double lower, double upper)
 {
-	return  (lower+(int)((double)(upper-lower+1)*rand()/(RAND_MAX+1.0)));
+	return ((upper - lower) / (RAND_MAX + 1.0) * rand() + lower);
 }
 
 void

@@ -1,11 +1,11 @@
 /*
- *   $Id: scanner.l,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: scanner.l,v 1.2 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
  *    Lars Fenneberg		<lf@elemental.net>	 
  *
- *   This software is Copyright 1996 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s), 
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -19,13 +19,14 @@
 #include <radvd.h>
 #include <y.tab.h>
 
-extern conf_file;
+extern char *conf_file;
 
 int num_lines = 1;
 %}
 
 digit		[0-9]
 number		({digit})+
+decimal		({number}"."{number})
 hexdigit	([a-f]|[A-F]|[0-9])
 addr1		{hexdigit}{1,4}":"({hexdigit}{1,4}":")*(":"{hexdigit}{1,4})+
 addr2		({hexdigit}{1,4}":"){7}{hexdigit}
@@ -58,6 +59,14 @@ AdvAutonomous		{ return T_AdvAutonomous; }
 AdvValidLifetime	{ return T_AdvValidLifetime; }
 AdvPreferredLifetime	{ return T_AdvPreferredLifetime; }
 
+AdvRouterAddr		{ return T_AdvRouterAddr; }
+AdvHomeAgentFlag	{ return T_AdvHomeAgentFlag; }
+AdvIntervalOpt		{ return T_AdvIntervalOpt; }
+AdvHomeAgentInfo	{ return T_AdvHomeAgentInfo; }
+
+HomeAgentPreference	{ return T_HomeAgentPreference; }
+HomeAgentLifetime	{ return T_HomeAgentLifetime; }
+
 {addr}		{
 			static struct in6_addr addr;
 			int i;
@@ -82,6 +91,8 @@ AdvPreferredLifetime	{ return T_AdvPreferredLifetime; }
 		}
 
 {number}	{ yylval.num = atoi(yytext); return NUMBER; }
+
+{decimal}	{ yylval.dec = atof(yytext); return DECIMAL; }
 
 infinity	{ return INFINITY; }
 

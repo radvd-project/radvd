@@ -1,4 +1,16 @@
-$Id: CHANGES,v 1.6 1999/06/15 21:43:14 lf Exp $
+$Id: CHANGES,v 1.7 2000/11/26 22:17:10 lf Exp $
+
+11/19/2000	integrated the last two change entries into the main source
+		(patches by Marko Myllynen), fixed bug in log.c, fixed file
+		description leak in readin_config, rewrote code in timer.c,
+		updated man pages again (from Marko Myllynen, too), PID
+		file support (patch from Marko Myllynen, based on a patch
+		from Tommi.Komulainen@iki.fi)
+
+15/08/2000	RFC 2461 updates, Mobile IPv6 extensions added
+
+14/07/2000 	added RA interval option and modified some default values
+		for timers
 
 06/15/99	changed to run with glibc 2.1 on RedHat 6.0.
 
@@ -8,10 +20,10 @@ $Id: CHANGES,v 1.6 1999/06/15 21:43:14 lf Exp $
 10/23/97	radvd will now accept any prefix length in its config
 		file but will warn about unusual ones
 
-10/19/97	Removed backwards compatibility code in recv.c.
+10/19/97	removed backwards compatibility code in recv.c.
 		IPV6_HOPLIMIT support is now assumed to exist.
 
-10/19/97	Fixed alignment problems in recv.c and send.c.
+10/19/97	fixed alignment problems in recv.c and send.c.
 
 10/16/97	the Makefile install target now uses mkinstalldirs.
 

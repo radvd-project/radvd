@@ -1,23 +1,27 @@
 interface eth0
 {
-        AdvSendAdvert on;
+	AdvSendAdvert on;
+	MinRtrAdvInterval 3;
+	MaxRtrAdvInterval 10;
+	AdvHomeAgentFlag off;
 
 #
 # new EUI-64 prefixes
 #
-        prefix 3ffe:0302:0011:0002::0/64
+	prefix 3ffe:0302:0011:0002::0/64
 	{
-                AdvOnLink on;
-                AdvAutonomous on;
-        };
+		AdvOnLink on;
+		AdvAutonomous on;
+		AdvRouterAddr off;
+	};
 
 #
-# old 80-bit prefixes 
+# old 80-bit prefixes
 #
 #	prefix 5f04:f900:c2dd:1400:8000::0/80
 #	{
-#                AdvOnLink on;
-#                AdvAutonomous on;
-#       };
+#		AdvOnLink on;
+#		AdvAutonomous on;
+#	};
 
 };

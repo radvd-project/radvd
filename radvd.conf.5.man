@@ -1,10 +1,11 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.1 1997/10/14 17:17:40 lf Exp $
+.\"   $Id: radvd.conf.5.man,v 1.2 2000/11/26 22:17:12 lf Exp $
 .\"
 .\"   Authors:
-.\"    Lars Fenneberg		<lf@elemental.net>	 
+.\"    Lars Fenneberg		<lf@elemental.net>
+.\"    Marko Myllynen           <myllynen@lut.fi>	 
 .\"
-.\"   This software is Copyright 1996 by the above mentioned author(s), 
+.\"   This software is Copyright 1996-2000 by the above mentioned author(s), 
 .\"   All Rights Reserved.
 .\"
 .\"   The license which is distributed with this software in the file COPYRIGHT
@@ -13,7 +14,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "15 Mar 1997" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "17 Nov 2000" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 radvd
@@ -30,8 +31,9 @@ The file contains one or more interface definitions of the form:
 .B };
 .fi
 
-All the possible interface specific options are detailed below. Each
+All the possible interface specific options are detailed below.  Each
 option has to be terminated by a semicolon.
+
 Prefix definitions are of the form:
 
 .nf
@@ -40,8 +42,16 @@ Prefix definitions are of the form:
 .B };
 .fi
 
-All the possible prefix specific options are described below. Each
+Prefix can be network prefix or the address of the inferface.
+The address of interface should be used when using Mobile IPv6
+extensions.
+
+All the possible prefix specific options are described below.  Each
 option has to be terminated by a semicolon.
+
+Decimal values are allowed only for MaxRtrAdvInterval and
+MinRtrAdvInterval.  Decimal values should be used only when using
+Mobile IPv6 extensions.
 
 .SH INTERFACE SPECIFIC OPTIONS
 
@@ -62,6 +72,8 @@ router advertisements from the interface, in seconds.
 
 Must be no less than 4 seconds and no greater than 1800 seconds.
 
+Minimum when using Mobile IPv6 extensions: 1.5.
+
 Default: 600 seconds	
 
 .TP
@@ -73,6 +85,8 @@ router advertisements from the interface, in seconds.
 Must be no less than 3 seconds and no greater than 0.75 *
 MaxRtrAdvInterval.
 
+Minimum when using Mobile IPv6 extensions: 0.5.
+
 Default: 0.33 * MaxRtrAdvInterval
 
 .TP
@@ -81,7 +95,7 @@ Default: 0.33 * MaxRtrAdvInterval
 When set, hosts use the administered (stateful) protocol for address
 autoconfiguration in addition to any addresses autoconfigured using
 stateless address autoconfiguration.  The use of this flag is
-described in RFC 1971.
+described in RFC 2462.
 
 Default: off
 
@@ -90,7 +104,7 @@ Default: off
 
 When set, hosts use the administered (stateful) protocol for
 autoconfiguration of other (non-address) information.  The use of
-this flag is described in RFC 1971.
+this flag is described in RFC 2462.
 
 Default: off
 
@@ -103,7 +117,7 @@ the link MTU is not well known.
 
 If specified, i.e. not 0, must be geater than 576 and not be greater
 than the maximum MTU allowed for this link (e.g. ethernet has
-a maximum MTU of 1500. See RFC 1972).
+a maximum MTU of 1500. See RFC 2464).
 
 Default: 0
 
@@ -113,7 +127,7 @@ Default: 0
 The time, in milliseconds, that a node assumes a neighbor is
 reachable after having received a reachability confirmation.  Used
 by the Neighbor Unreachability Detection algorithm (see Section
-7.3 of RFC 1970).  A value of zero means unspecified (by this router).
+7.3 of RFC 2461).  A value of zero means unspecified (by this router).
 
 Must be no greater than 3,600,000 milliseconds (1 hour).
 
@@ -124,7 +138,7 @@ Default: 0
 
 The time, in milliseconds, between retransmitted Neighbor
 Solicitation messages.  Used by address resolution and the Neighbor
-Unreachability Detection algorithm (see Sections 7.2 and 7.3 of RFC 1970).
+Unreachability Detection algorithm (see Sections 7.2 and 7.3 of RFC 2461).
 A value of zero means unspecified (by this router).
 
 Default: 0
@@ -163,11 +177,66 @@ included in the RA.
 
 Default: on
 
+.TP
+.BR AdvHomeAgentFlag " " on | off
+
+When set, indicates that sending router is able to serve as Mobile
+IPv6 Home Agent.  When set, minimum limits specified by Mobile IPv6
+are used for MinRtrAdvInterval and MaxRtrAdvInterval.
+
+Default: off
+
+.TP
+.BR AdvHomeAgentInfo " " on | off
+
+When set, Home Agent Information Option (specified by Mobile IPv6)
+is included in Router Advertisements.  AdvHomeAgentFlag must also
+be set when using this option.
+
+Default: off
+
+.TP
+.BR "HomeAgentLifetime " seconds
+
+The length of time in seconds (relative to the time the packet is
+sent) that the router is offering Mobile IPv6 Home Agent services.  
+A value 0 must not be used.  The maximum lifetime is 65520 seconds 
+(18.2 hours).  This option is ignored, if AdvHomeAgentInfo is not
+set.
+
+If both HomeAgentLifetime and HomeAgentPreference are set to their
+default values, Home Agent Information Option will not be sent.
+
+Default: AdvDefaultLifetime
+
+.TP
+.BR "HomeAgentPreference " integer
+
+The preference for the Home Agent sending this Router Advertisement.  
+Values greater than 0 indicate more preferable Home Agent, values
+less than 0 indicate less preferable Home Agent.  This option is
+ignored, if AdvHomeAgentInfo is not set.
+
+If both HomeAgentLifetime and HomeAgentPreference are set to their
+default values, Home Agent Information Option will not be sent.
+
+Default: 0
+
+.TP
+.BR AdvIntervalOpt " " on | off
+
+When set, Advertisement Interval Option (specified by Mobile IPv6)
+is included in Router Advertisements.  When set, minimum limits
+specified by Mobile IPv6 are used for MinRtrAdvInterval and
+MaxRtrAdvInterval.
+
+Default: off
+
 .SH PREFIX SPECIFIC OPTIONS
 
 .TP
 .BR AdvOnLink " " on | off
-	
+
 When set, indicates that this prefix can be used for on-link
 determination.  When not set the advertisement makes no statement
 about on-link or off-link properties of the prefix.  For instance,
@@ -181,9 +250,19 @@ Default: on
 .BR AdvAutonomous " " on | off
 
 When set, indicates that this prefix can be used for autonomous
-address configuration as specified in RFC 1971.
+address configuration as specified in RFC 2462.
 
 Default: on
+
+.TP
+.BR AdvRouterAddr " " on | off
+
+When set, indicates that the address of interface is sent instead of
+network prefix, as is required by Mobile IPv6.  When set, minimum
+limits specified by Mobile IPv6 are used for MinRtrAdvInterval and
+MaxRtrAdvInterval.
+
+Default: off
 
 .TP
 .BR "AdvValidLifetime " seconds "" | infinity
@@ -193,7 +272,7 @@ sent) that the prefix is valid for the purpose of on-link
 determination.  The symbolic value
 .B infinity
 represents infinity (i.e. a value of all one bits (0xffffffff)).
-The valid lifetime is also used by RFC 1971.
+The valid lifetime is also used by RFC 2462.
 
 Default: infinity
 
@@ -206,16 +285,17 @@ autoconfiguration remain preferred.
 The symbolic value
 .B infinity
 represents infinity (i.e. a value of all one bits (0xffffffff)).
-See RFC 1971.
+See RFC 2462.
 
 Default: 604800 seconds (7 days)
-.SH EXAMPLE
+
+.SH EXAMPLES
 
 .nf
 interface eth0
 {
 	AdvSendAdvert on;
-	prefix 5f04:f900:c2dd:1400:8000::0/80
+	prefix fec0:0:0:1::0/64
 	{
                 AdvOnLink on;
                 AdvAutonomous on;
@@ -223,40 +303,58 @@ interface eth0
 };
 .fi
 
-It says that router advertisement daemon should advertise (AdvSendAdvert
-on;) the prefix 5f04:f900:c2dd:1400:8000::0 which has a lenght of 80 on the
-interface eth0. Also the prefix should be marked as autonomous
-(AdvAutonomous on;) and as on-link (AdvOnLink on;). All the other options
-are left on their default values.
+It says that router advertisement daemon should advertise
+(AdvSendAdvert on;) the prefix fec0:0:0:1::0 which has a lenght of 64
+on the interface eth0.  Also the prefix should be marked as autonomous
+(AdvAutonomous on;) and as on-link (AdvOnLink on;).  All the other
+options are left on their default values.
+
+To support movement detection of Mobile IPv6 Mobile Nodes, the
+address of interface should be used instead of network prefix:
+
+.nf
+interface eth0
+{
+	AdvSendAdvert on;
+	prefix fec0:0:0:1::4/64
+	{
+                AdvOnLink on;
+                AdvAutonomous on;
+                AdvRouterAddr on;
+	};
+};
+.fi
 
 .SH FILES
 
 .nf
 @sbindir@/radvd
 @PATH_RADVD_CONF@
+@PATH_RADVD_PID@
 @PATH_RADVD_LOG@
 .fi
 
 .SH CREDIT
 The description of the different flags and variables is in large
-parts taken from RFC 1970.
+parts taken from RFC 2461.
 
 .SH RFCS
 Narten, T., E. Nordmark, W. Simpson, "Neighbor Discovery for IP
-Version 6 (IPv6)", RFC 1970, August 1996
+Version 6 (IPv6)", RFC 2461, December 1998
 .PP
-Thomson, S., and T. Narten, "IPv6 Address Autoconfiguration", 
-RFC 1971, August 1996.
+Thomson, S., and T. Narten, "IPv6 Stateless Address Autoconfiguration", 
+RFC 2462, December 1998.
 .PP
 Deering, S., and R. Hinden, Editors, "IP Version 6 Addressing
-Architecture", RFC 1884, January 1996.
+Architecture", RFC 2373, July 1998.
 .PP	
 Conta, A., and S. Deering, "Internet Control Message Protocol (ICMPv6)
-for the Internet Protocol Version 6 (IPv6)", RFC 1885, January 1996.
+for the Internet Protocol Version 6 (IPv6)", RFC 2463, December 1998.
 .PP
-Crawford, M., "A Method for the Transmission of IPv6 Packets over
-Ethernet Networks", RFC 1972, August 1996.	
+Crawford, M., "Transmission of IPv6 Packets over Ethernet Networks",
+RFC 2464, December 1998.	
 
 .SH "SEE ALSO"
 
-.BR radvd (8)
+.BR radvd (8),
+.BR radvdump (8)

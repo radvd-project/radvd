@@ -1,7 +1,6 @@
 
 /*  A Bison parser, made from gram.y
- by  GNU Bison version 1.27
-  */
+    by GNU Bison version 1.28  */
 
 #define YYBISON 1  /* Identify Bison output.  */
 
@@ -9,25 +8,32 @@
 #define	T_PREFIX	258
 #define	STRING	259
 #define	NUMBER	260
-#define	SWITCH	261
-#define	IPV6ADDR	262
-#define	INFINITY	263
-#define	T_AdvSendAdvert	264
-#define	T_MaxRtrAdvInterval	265
-#define	T_MinRtrAdvInterval	266
-#define	T_AdvManagedFlag	267
-#define	T_AdvOtherConfigFlag	268
-#define	T_AdvLinkMTU	269
-#define	T_AdvReachableTime	270
-#define	T_AdvRetransTimer	271
-#define	T_AdvCurHopLimit	272
-#define	T_AdvDefaultLifetime	273
-#define	T_AdvSourceLLAddress	274
-#define	T_AdvOnLink	275
-#define	T_AdvAutonomous	276
-#define	T_AdvValidLifetime	277
-#define	T_AdvPreferredLifetime	278
-#define	T_BAD_TOKEN	279
+#define	DECIMAL	261
+#define	SWITCH	262
+#define	IPV6ADDR	263
+#define	INFINITY	264
+#define	T_AdvSendAdvert	265
+#define	T_MaxRtrAdvInterval	266
+#define	T_MinRtrAdvInterval	267
+#define	T_AdvManagedFlag	268
+#define	T_AdvOtherConfigFlag	269
+#define	T_AdvLinkMTU	270
+#define	T_AdvReachableTime	271
+#define	T_AdvRetransTimer	272
+#define	T_AdvCurHopLimit	273
+#define	T_AdvDefaultLifetime	274
+#define	T_AdvSourceLLAddress	275
+#define	T_AdvOnLink	276
+#define	T_AdvAutonomous	277
+#define	T_AdvValidLifetime	278
+#define	T_AdvPreferredLifetime	279
+#define	T_AdvRouterAddr	280
+#define	T_AdvHomeAgentFlag	281
+#define	T_AdvIntervalOpt	282
+#define	T_AdvHomeAgentInfo	283
+#define	T_HomeAgentPreference	284
+#define	T_HomeAgentLifetime	285
+#define	T_BAD_TOKEN	286
 
 #line 16 "gram.y"
 
@@ -53,9 +59,10 @@ static void yyerror(char *msg);
 #define ABORT	do { cleanup(); YYABORT; } while (0);
 
 
-#line 72 "gram.y"
+#line 81 "gram.y"
 typedef union {
 	int			num;
+	double			dec;
 	int			bool;
 	struct in6_addr		*addr;
 	char			*str;
@@ -71,26 +78,26 @@ typedef union {
 
 
 
-#define	YYFINAL		78
+#define	YYFINAL		100
 #define	YYFLAG		-32768
-#define	YYNTBASE	30
+#define	YYNTBASE	37
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 279 ? yytranslate[x] : 44)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 286 ? yytranslate[x] : 51)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-     2,     2,     2,     2,     2,     2,    29,     2,     2,     2,
-     2,     2,     2,     2,     2,     2,     2,     2,    28,     2,
+     2,     2,     2,     2,     2,     2,    36,     2,     2,     2,
+     2,     2,     2,     2,     2,     2,     2,     2,    35,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-     2,     2,    26,     2,    27,     2,     2,     2,     2,     2,
+     2,     2,    33,     2,    34,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -105,40 +112,46 @@ static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     1,     3,     4,     5,     6,
      7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
-    17,    18,    19,    20,    21,    22,    23,    24,    25
+    17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+    27,    28,    29,    30,    31,    32
 };
 
 #if YYDEBUG != 0
 static const short yyprhs[] = {     0,
      0,     3,     5,    12,    14,    18,    19,    21,    24,    26,
     30,    34,    38,    42,    46,    50,    54,    58,    62,    66,
-    70,    72,    75,    84,    85,    87,    90,    92,    96,   100,
-   104,   108,   110
+    70,    74,    78,    82,    86,    90,    94,    98,   100,   103,
+   112,   113,   115,   118,   120,   124,   128,   132,   136,   140,
+   142
 };
 
-static const short yyrhs[] = {    30,
-    31,     0,    31,     0,     3,    32,    26,    33,    27,    28,
-     0,     5,     0,    36,    34,    38,     0,     0,    35,     0,
-    35,    37,     0,    37,     0,    10,     7,    28,     0,    12,
-     6,    28,     0,    11,     6,    28,     0,    13,     7,    28,
-     0,    14,     7,    28,     0,    15,     6,    28,     0,    16,
-     6,    28,     0,    17,     6,    28,     0,    19,     6,    28,
-     0,    18,     6,    28,     0,    20,     7,    28,     0,    39,
-     0,    38,    39,     0,     4,     8,    29,     6,    26,    40,
-    27,    28,     0,     0,    41,     0,    41,    42,     0,    42,
-     0,    21,     7,    28,     0,    22,     7,    28,     0,    23,
-    43,    28,     0,    24,    43,    28,     0,     6,     0,     9,
-     0
+static const short yyrhs[] = {    37,
+    38,     0,    38,     0,     3,    39,    33,    40,    34,    35,
+     0,     5,     0,    43,    41,    45,     0,     0,    42,     0,
+    42,    44,     0,    44,     0,    11,     8,    35,     0,    13,
+     6,    35,     0,    12,     6,    35,     0,    13,     7,    35,
+     0,    12,     7,    35,     0,    14,     8,    35,     0,    15,
+     8,    35,     0,    16,     6,    35,     0,    17,     6,    35,
+     0,    18,     6,    35,     0,    20,     6,    35,     0,    19,
+     6,    35,     0,    21,     8,    35,     0,    28,     8,    35,
+     0,    29,     8,    35,     0,    27,     8,    35,     0,    30,
+     6,    35,     0,    31,     6,    35,     0,    46,     0,    45,
+    46,     0,     4,     9,    36,     6,    33,    47,    34,    35,
+     0,     0,    48,     0,    48,    49,     0,    49,     0,    22,
+     8,    35,     0,    23,     8,    35,     0,    26,     8,    35,
+     0,    24,    50,    35,     0,    25,    50,    35,     0,     6,
+     0,    10,     0
 };
 
 #endif
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-    82,    83,    86,   124,   131,   137,   138,   141,   142,   145,
-   158,   162,   166,   170,   174,   178,   182,   186,   190,   194,
-   200,   204,   211,   241,   242,   244,   245,   248,   255,   262,
-   269,   278,   282
+    92,    93,    96,   134,   141,   147,   148,   151,   152,   155,
+   168,   172,   176,   180,   184,   188,   192,   196,   200,   204,
+   208,   212,   216,   220,   224,   228,   232,   238,   242,   249,
+   279,   280,   282,   283,   286,   293,   300,   307,   314,   323,
+   327
 };
 #endif
 
@@ -146,91 +159,102 @@ static const short yyrline[] = { 0,
 #if YYDEBUG != 0 || defined (YYERROR_VERBOSE)
 
 static const char * const yytname[] = {   "$","error","$undefined.","T_INTERFACE",
-"T_PREFIX","STRING","NUMBER","SWITCH","IPV6ADDR","INFINITY","T_AdvSendAdvert",
+"T_PREFIX","STRING","NUMBER","DECIMAL","SWITCH","IPV6ADDR","INFINITY","T_AdvSendAdvert",
 "T_MaxRtrAdvInterval","T_MinRtrAdvInterval","T_AdvManagedFlag","T_AdvOtherConfigFlag",
 "T_AdvLinkMTU","T_AdvReachableTime","T_AdvRetransTimer","T_AdvCurHopLimit","T_AdvDefaultLifetime",
 "T_AdvSourceLLAddress","T_AdvOnLink","T_AdvAutonomous","T_AdvValidLifetime",
-"T_AdvPreferredLifetime","T_BAD_TOKEN","'{'","'}'","';'","'/'","grammar","ifacedef",
-"name","ifaceparams","optional_ifacevlist","ifacevlist","iface_advt","ifaceval",
-"prefixlist","prefixdef","optional_prefixplist","prefixplist","prefixparms",
-"number_or_infinity", NULL
+"T_AdvPreferredLifetime","T_AdvRouterAddr","T_AdvHomeAgentFlag","T_AdvIntervalOpt",
+"T_AdvHomeAgentInfo","T_HomeAgentPreference","T_HomeAgentLifetime","T_BAD_TOKEN",
+"'{'","'}'","';'","'/'","grammar","ifacedef","name","ifaceparams","optional_ifacevlist",
+"ifacevlist","iface_advt","ifaceval","prefixlist","prefixdef","optional_prefixplist",
+"prefixplist","prefixparms","number_or_infinity", NULL
 };
 #endif
 
 static const short yyr1[] = {     0,
-    30,    30,    31,    32,    33,    34,    34,    35,    35,    36,
-    37,    37,    37,    37,    37,    37,    37,    37,    37,    37,
-    38,    38,    39,    40,    40,    41,    41,    42,    42,    42,
-    42,    43,    43
+    37,    37,    38,    39,    40,    41,    41,    42,    42,    43,
+    44,    44,    44,    44,    44,    44,    44,    44,    44,    44,
+    44,    44,    44,    44,    44,    44,    44,    45,    45,    46,
+    47,    47,    48,    48,    49,    49,    49,    49,    49,    50,
+    50
 };
 
 static const short yyr2[] = {     0,
      2,     1,     6,     1,     3,     0,     1,     2,     1,     3,
      3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-     1,     2,     8,     0,     1,     2,     1,     3,     3,     3,
-     3,     1,     1
+     3,     3,     3,     3,     3,     3,     3,     1,     2,     8,
+     0,     1,     2,     1,     3,     3,     3,     3,     3,     1,
+     1
 };
 
 static const short yydefact[] = {     0,
      0,     0,     2,     4,     0,     1,     0,     0,     0,     6,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     7,     9,    10,     3,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0,     5,    21,
-     8,    12,    11,    13,    14,    15,    16,    17,    19,    18,
-    20,     0,    22,     0,     0,    24,     0,     0,     0,     0,
-     0,    25,    27,     0,     0,    32,    33,     0,     0,     0,
-    26,    28,    29,    30,    31,    23,     0,     0
+     0,     0,     0,     0,     0,     0,     0,     0,     7,     9,
+    10,     3,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     5,    28,     8,    12,    14,    11,    13,    15,    16,    17,
+    18,    19,    21,    20,    22,    25,    23,    24,    26,    27,
+     0,    29,     0,     0,    31,     0,     0,     0,     0,     0,
+     0,    32,    34,     0,     0,    40,    41,     0,     0,     0,
+     0,    33,    35,    36,    38,    39,    37,    30,     0,     0
 };
 
 static const short yydefgoto[] = {     2,
-     3,     5,     9,    23,    24,    10,    25,    39,    40,    61,
-    62,    63,    68
+     3,     5,     9,    28,    29,    10,    30,    51,    52,    81,
+    82,    83,    88
 };
 
-static const short yypact[] = {     7,
-    12,    15,-32768,-32768,    -6,-32768,    11,    16,    -5,   -11,
-    -4,    -3,    20,    21,    22,    23,    25,    26,    27,    28,
-    29,    30,    24,   -11,-32768,-32768,-32768,     8,    13,    14,
-    17,    18,    19,    31,    32,    33,    34,    35,    24,-32768,
+static const short yypact[] = {    10,
+    24,    25,-32768,-32768,    -3,-32768,    21,    23,    -1,   -12,
+     0,     1,     5,    20,    26,    29,    32,    33,    34,    35,
+    36,    37,    38,    39,    40,    43,    44,    47,   -12,-32768,
+-32768,-32768,     8,     9,    17,    18,    19,    22,    27,    28,
+    30,    31,    41,    42,    45,    46,    48,    49,    50,    51,
+    47,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
--32768,     9,-32768,    38,    37,   -10,    41,    42,    10,    10,
-    39,   -10,-32768,    36,    40,-32768,-32768,    43,    44,    45,
--32768,-32768,-32768,-32768,-32768,-32768,    50,-32768
+    52,-32768,    53,    54,    -2,    56,    59,     4,     4,    60,
+    55,    -2,-32768,    57,    58,-32768,-32768,    61,    62,    63,
+    64,-32768,-32768,-32768,-32768,-32768,-32768,-32768,    69,-32768
 };
 
 static const short yypgoto[] = {-32768,
-    49,-32768,-32768,-32768,-32768,-32768,    46,-32768,     0,-32768,
--32768,   -22,    -8
+    68,-32768,-32768,-32768,-32768,-32768,    65,-32768,     7,-32768,
+-32768,   -27,   -23
 };
 
 
-#define	YYLAST		73
+#define	YYLAST		99
 
 
 static const short yytable[] = {    13,
-    14,    15,    16,    17,    18,    19,    20,    21,    22,     1,
-    57,    58,    59,    60,    77,    66,     4,     1,    67,     7,
-     8,    12,    11,    26,    27,    28,    29,    38,    30,    31,
-    32,    33,    34,    35,    36,    42,    37,    54,    53,    71,
-    43,    44,    52,    55,    45,    46,    47,    64,    65,    78,
-     6,    69,     0,     0,     0,     0,     0,     0,    48,    49,
-    50,    51,    56,    72,     0,    70,     0,    73,     0,    41,
-    74,    75,    76
+    14,    15,    16,    17,    18,    19,    20,    21,    22,    86,
+    33,    34,     1,    87,    23,    24,    25,    26,    27,    76,
+    77,    78,    79,    80,    99,    35,    36,     1,     4,     7,
+    11,     8,    12,    37,    31,    32,    38,    39,    40,    41,
+    42,    43,    54,    55,    44,    45,    46,    47,    48,    49,
+    50,    56,    57,    58,    92,    89,    59,    72,    74,    71,
+     0,    60,    61,    84,    62,    63,    85,    90,   100,     6,
+     0,     0,     0,     0,     0,    64,    65,     0,     0,    66,
+    67,     0,    68,    69,    70,     0,    75,    73,    91,     0,
+     0,    93,    94,    53,     0,    95,    96,    97,    98
 };
 
-static const short yycheck[] = {    11,
-    12,    13,    14,    15,    16,    17,    18,    19,    20,     3,
-    21,    22,    23,    24,     0,     6,     5,     3,     9,    26,
-    10,    27,     7,    28,    28,     6,     6,     4,     7,     7,
-     6,     6,     6,     6,     6,    28,     7,    29,    39,    62,
-    28,    28,     8,     6,    28,    28,    28,     7,     7,     0,
-     2,    60,    -1,    -1,    -1,    -1,    -1,    -1,    28,    28,
-    28,    28,    26,    28,    -1,    27,    -1,    28,    -1,    24,
-    28,    28,    28
+static const short yycheck[] = {    12,
+    13,    14,    15,    16,    17,    18,    19,    20,    21,     6,
+     6,     7,     3,    10,    27,    28,    29,    30,    31,    22,
+    23,    24,    25,    26,     0,     6,     7,     3,     5,    33,
+     8,    11,    34,     8,    35,    35,     8,     6,     6,     6,
+     6,     6,    35,    35,     8,     8,     8,     8,     6,     6,
+     4,    35,    35,    35,    82,    79,    35,    51,     6,     9,
+    -1,    35,    35,     8,    35,    35,     8,     8,     0,     2,
+    -1,    -1,    -1,    -1,    -1,    35,    35,    -1,    -1,    35,
+    35,    -1,    35,    35,    35,    -1,    33,    36,    34,    -1,
+    -1,    35,    35,    29,    -1,    35,    35,    35,    35
 };
 /* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
 #line 3 "/usr/lib/bison.simple"
-/* This file comes from bison-1.27.  */
+/* This file comes from bison-1.28.  */
 
 /* Skeleton output parser for bison,
    Copyright (C) 1984, 1989, 1990 Free Software Foundation, Inc.
@@ -443,7 +467,7 @@ __yy_memcpy (char *to, char *from, unsigned int count)
 #endif
 #endif
 
-#line 216 "/usr/lib/bison.simple"
+#line 217 "/usr/lib/bison.simple"
 
 /* The user can define YYPARSE_PARAM as the name of an argument to be passed
    into yyparse.  The argument should have type void *.
@@ -772,7 +796,7 @@ yyreduce:
   switch (yyn) {
 
 case 3:
-#line 87 "gram.y"
+#line 97 "gram.y"
 {
 			struct Interface *iface2;
 
@@ -811,20 +835,20 @@ case 3:
 		;
     break;}
 case 4:
-#line 125 "gram.y"
+#line 135 "gram.y"
 {
 			/* check vality */
 			yyval.str = yyvsp[0].str;
 		;
     break;}
 case 5:
-#line 132 "gram.y"
+#line 142 "gram.y"
 {
 			iface->AdvPrefixList = yyvsp[0].pinfo;
 		;
     break;}
 case 10:
-#line 146 "gram.y"
+#line 156 "gram.y"
 {
 			iface = malloc(sizeof(struct Interface));
 
@@ -838,80 +862,122 @@ case 10:
 		;
     break;}
 case 11:
-#line 159 "gram.y"
+#line 169 "gram.y"
 {
 			iface->MinRtrAdvInterval = yyvsp[-1].num;
 		;
     break;}
 case 12:
-#line 163 "gram.y"
+#line 173 "gram.y"
 {
 			iface->MaxRtrAdvInterval = yyvsp[-1].num;
 		;
     break;}
 case 13:
-#line 167 "gram.y"
+#line 177 "gram.y"
+{
+			iface->MinRtrAdvInterval = yyvsp[-1].dec;
+		;
+    break;}
+case 14:
+#line 181 "gram.y"
+{
+			iface->MaxRtrAdvInterval = yyvsp[-1].dec;
+		;
+    break;}
+case 15:
+#line 185 "gram.y"
 {
 			iface->AdvManagedFlag = yyvsp[-1].bool;
 		;
     break;}
-case 14:
-#line 171 "gram.y"
+case 16:
+#line 189 "gram.y"
 {
 			iface->AdvOtherConfigFlag = yyvsp[-1].bool;
 		;
     break;}
-case 15:
-#line 175 "gram.y"
+case 17:
+#line 193 "gram.y"
 {
 			iface->AdvLinkMTU = yyvsp[-1].num;
 		;
     break;}
-case 16:
-#line 179 "gram.y"
+case 18:
+#line 197 "gram.y"
 {
 			iface->AdvReachableTime = yyvsp[-1].num;
 		;
     break;}
-case 17:
-#line 183 "gram.y"
+case 19:
+#line 201 "gram.y"
 {
 			iface->AdvRetransTimer = yyvsp[-1].num;
 		;
     break;}
-case 18:
-#line 187 "gram.y"
+case 20:
+#line 205 "gram.y"
 {
 			iface->AdvDefaultLifetime = yyvsp[-1].num;
 		;
     break;}
-case 19:
-#line 191 "gram.y"
+case 21:
+#line 209 "gram.y"
 {
 			iface->AdvCurHopLimit = yyvsp[-1].num;
 		;
     break;}
-case 20:
-#line 195 "gram.y"
+case 22:
+#line 213 "gram.y"
 {
 			iface->AdvSourceLLAddress = yyvsp[-1].bool;
 		;
     break;}
-case 21:
-#line 201 "gram.y"
+case 23:
+#line 217 "gram.y"
+{
+			iface->AdvIntervalOpt = yyvsp[-1].bool;
+		;
+    break;}
+case 24:
+#line 221 "gram.y"
+{
+			iface->AdvHomeAgentInfo = yyvsp[-1].bool;
+		;
+    break;}
+case 25:
+#line 225 "gram.y"
+{
+			iface->AdvHomeAgentFlag = yyvsp[-1].bool;
+		;
+    break;}
+case 26:
+#line 229 "gram.y"
+{
+			iface->HomeAgentPreference = yyvsp[-1].num;
+		;
+    break;}
+case 27:
+#line 233 "gram.y"
+{
+			iface->HomeAgentLifetime = yyvsp[-1].num;
+		;
+    break;}
+case 28:
+#line 239 "gram.y"
 {
 			yyval.pinfo = yyvsp[0].pinfo;
 		;
     break;}
-case 22:
-#line 205 "gram.y"
+case 29:
+#line 243 "gram.y"
 {
 			yyvsp[0].pinfo->next = yyvsp[-1].pinfo;
 			yyval.pinfo = yyvsp[0].pinfo;
 		;
     break;}
-case 23:
-#line 212 "gram.y"
+case 30:
+#line 250 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -940,8 +1006,8 @@ case 23:
 			prefix = NULL;
 		;
     break;}
-case 28:
-#line 249 "gram.y"
+case 35:
+#line 287 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -949,8 +1015,8 @@ case 28:
 			prefix->AdvOnLinkFlag = yyvsp[-1].bool;
 		;
     break;}
-case 29:
-#line 256 "gram.y"
+case 36:
+#line 294 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -958,8 +1024,17 @@ case 29:
 			prefix->AdvAutonomousFlag = yyvsp[-1].bool;
 		;
     break;}
-case 30:
-#line 263 "gram.y"
+case 37:
+#line 301 "gram.y"
+{
+			if (palloc_check() < 0)
+				ABORT;
+
+			prefix->AdvRouterAddr = yyvsp[-1].bool;
+		;
+    break;}
+case 38:
+#line 308 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -967,8 +1042,8 @@ case 30:
 			prefix->AdvValidLifetime = yyvsp[-1].num;
 		;
     break;}
-case 31:
-#line 270 "gram.y"
+case 39:
+#line 315 "gram.y"
 {
 			if (palloc_check() < 0)
 				ABORT;
@@ -976,21 +1051,21 @@ case 31:
 			prefix->AdvPreferredLifetime = yyvsp[-1].num;
 		;
     break;}
-case 32:
-#line 279 "gram.y"
+case 40:
+#line 324 "gram.y"
 {
                                 yyval.num = yyvsp[0].num; 
                         ;
     break;}
-case 33:
-#line 283 "gram.y"
+case 41:
+#line 328 "gram.y"
 {
                                 yyval.num = (uint32_t)~0;
                         ;
     break;}
 }
    /* the action file gets copied in in place of this dollarsign */
-#line 542 "/usr/lib/bison.simple"
+#line 543 "/usr/lib/bison.simple"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1210,7 +1285,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 288 "gram.y"
+#line 333 "gram.y"
 
 
 static

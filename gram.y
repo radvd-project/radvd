@@ -1,11 +1,11 @@
 /*
- *   $Id: gram.y,v 1.3 1998/03/03 14:54:22 lf Exp $
+ *   $Id: gram.y,v 1.4 2000/11/26 22:17:11 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
  *    Lars Fenneberg		<lf@elemental.net>	 
  *
- *   This software is Copyright 1996 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s), 
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -42,6 +42,7 @@ static void yyerror(char *msg);
 
 %token	<str>	STRING
 %token	<num>	NUMBER
+%token	<dec>	DECIMAL
 %token	<bool>	SWITCH
 %token	<addr>	IPV6ADDR
 %token 		INFINITY
@@ -63,6 +64,14 @@ static void yyerror(char *msg);
 %token		T_AdvValidLifetime
 %token		T_AdvPreferredLifetime
 
+%token		T_AdvRouterAddr
+%token		T_AdvHomeAgentFlag
+%token		T_AdvIntervalOpt
+%token		T_AdvHomeAgentInfo
+
+%token		T_HomeAgentPreference
+%token		T_HomeAgentLifetime
+
 %token		T_BAD_TOKEN
 
 %type	<str>	name
@@ -71,6 +80,7 @@ static void yyerror(char *msg);
 
 %union {
 	int			num;
+	double			dec;
 	int			bool;
 	struct in6_addr		*addr;
 	char			*str;
@@ -163,6 +173,14 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
 			iface->MaxRtrAdvInterval = $2;
 		}
+		| T_MinRtrAdvInterval DECIMAL ';'
+		{
+			iface->MinRtrAdvInterval = $2;
+		}
+		| T_MaxRtrAdvInterval DECIMAL ';'
+		{
+			iface->MaxRtrAdvInterval = $2;
+		}
 		| T_AdvManagedFlag SWITCH ';'
 		{
 			iface->AdvManagedFlag = $2;
@@ -194,6 +212,26 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_AdvSourceLLAddress SWITCH ';'
 		{
 			iface->AdvSourceLLAddress = $2;
+		}
+		| T_AdvIntervalOpt SWITCH ';'
+		{
+			iface->AdvIntervalOpt = $2;
+		}
+		| T_AdvHomeAgentInfo SWITCH ';'
+		{
+			iface->AdvHomeAgentInfo = $2;
+		}
+		| T_AdvHomeAgentFlag SWITCH ';'
+		{
+			iface->AdvHomeAgentFlag = $2;
+		}
+		| T_HomeAgentPreference NUMBER ';'
+		{
+			iface->HomeAgentPreference = $2;
+		}
+		| T_HomeAgentLifetime NUMBER ';'
+		{
+			iface->HomeAgentLifetime = $2;
 		}
 		;
 		
@@ -258,6 +296,13 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 				ABORT;
 
 			prefix->AdvAutonomousFlag = $2;
+		}
+		| T_AdvRouterAddr SWITCH ';'
+		{
+			if (palloc_check() < 0)
+				ABORT;
+
+			prefix->AdvRouterAddr = $2;
 		}
 		| T_AdvValidLifetime number_or_infinity ';'
 		{

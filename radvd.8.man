@@ -1,10 +1,10 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.2 1998/08/05 21:25:53 lf Exp $
+.\"   $Id: radvd.8.man,v 1.3 2000/11/26 22:17:12 lf Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
 .\"
-.\"   This software is Copyright 1996 by the above mentioned author(s), 
+.\"   This software is Copyright 1996-2000 by the above mentioned author(s), 
 .\"   All Rights Reserved.
 .\"
 .\"   The license which is distributed with this software in the file COPYRIGHT
@@ -13,7 +13,7 @@
 .\"
 .\"
 .\"
-.TH RADVD 8 "8 Dec 1996" "radvd @VERSION@" ""
+.TH RADVD 8 "17 Nov 2000" "radvd @VERSION@" ""
 .SH NAME
 radvd \- router advertisement daemon for IPv6
 .SH SYNOPSIS
@@ -21,6 +21,7 @@ radvd \- router advertisement daemon for IPv6
 .B "[ \-vh ]"
 .BI "[ \-d " debuglevel " ]"
 .BI "[ \-C " configfile " ]"
+.BI "[ \-p " pidfile " ]"
 .BI "[ \-m " method " ]"
 .BI "[ \-l " logfile " ]"
 .BI "[ \-f " facility " ]"
@@ -29,10 +30,10 @@ radvd \- router advertisement daemon for IPv6
 .B radvd
 is the router advertisement daemon for IPv6. It listens to router
 solicitations and sends router advertisements as described in
-"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 1970). With this
-advertisements hosts can automatically configure there addresses and
-some other parameters. They also can choose a default router based
-on these advertisements.
+"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 2461).
+With these advertisements hosts can automatically configure their
+addresses and some other parameters. They also can choose a default
+router based on these advertisements.
 
 .SH OPTIONS
 
@@ -61,6 +62,11 @@ Specifies an alternate config file. Normally the compiled in default
 .I @PATH_RADVD_CONF@
 is used.
 .TP
+.BR "\-p " pidfile, " \-\-pidfile " pidfile
+Specifies an alternate pidfile. Normally the compiled in default
+.I @PATH_RADVD_PID@
+is used.
+.TP
 .BR "\-m " method, " \-\-method " method
 Specifies the logging method to use. Possibly values are:
 .RS
@@ -78,7 +84,7 @@ a compiled in default is used (see next option).
 Logs to standard error.
 .TP
 .B syslog
-logs to syslog (default method).
+Logs to syslog (default method).
 .RE
 .PP
 .TP
@@ -96,6 +102,7 @@ is @LOG_FACILITY@.
 .nf
 @sbindir@/radvd
 @PATH_RADVD_CONF@
+@PATH_RADVD_PID@
 @PATH_RADVD_LOG@
 .fi
 .SH BUGS
@@ -105,11 +112,13 @@ suggestions please contact Lars Fennberg <lf@elemental.net>.
 
 .SH "SEE ALSO"
 
-.BR radvd.conf (5)
+.BR radvd.conf (5),
+.BR radvdump (8)
 .SH AUTHORS
 
 .nf
-Pedro Roque	<roque@di.fc.ul.pt> - wrote first version for Linux
-Lars Fenneberg	<lf@elemental.net>  - current maintainer
-Craig Metz	<cmetz@inner.net>   - port to NRL's IPv6 code for BSD4.4
+Pedro Roque	<roque@di.fc.ul.pt>	- wrote first version for Linux
+Lars Fenneberg	<lf@elemental.net>	- current maintainer
+Craig Metz	<cmetz@inner.net>	- port to NRL's IPv6 code for BSD4.4
+Marko Myllynen	<myllynen@lut.fi>	- RFC 2461 updates, Mobile IPv6 support
 .fi

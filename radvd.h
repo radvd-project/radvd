@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.5 1998/03/03 14:54:23 lf Exp $
+ *   $Id: radvd.h,v 1.6 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -19,15 +19,9 @@
 
 #include <config.h>
 #include <includes.h>
+#include <defaults.h>
 
 #define CONTACT_EMAIL	"Lars Fenneberg <lf@elemental.net>"
-
-/* protocol constants as specified by RFC 1970 */
-#define MAX_INITIAL_RTR_ADVERT_INTERVAL	       16 /* seconds */
-#define MAX_INITIAL_RTR_ADVERTISEMENTS		3 /* transmissions */
-#define MAX_FINAL_RTR_ADVERTISEMENTS      	3 /* transmissions */
-#define MAX_RA_DELAY_TIME                   500.0 /* milliseconds */
-#define MIN_DELAY_BETWEEN_RAS			3 /* seconds */
 
 /* for log.c */
 #define	L_NONE		0
@@ -37,11 +31,8 @@
 
 #define LOG_TIME_FORMAT "%b %d %H:%M:%S"
 
-/* maximum message size for incoming and outgoing RSs and RAs */
-#define MSG_SIZE	4096
-
 struct timer_lst {
-	unsigned long		expires;
+	struct timeval		expires;
 	void			(*handler)(void *);
 	void *			data;
 	struct timer_lst	*next;
@@ -64,8 +55,8 @@ struct Interface {
 	int			if_maxmtu;
 
 	int			AdvSendAdvert;
-	int			MaxRtrAdvInterval;
-	int			MinRtrAdvInterval;
+	double			MaxRtrAdvInterval;
+	double			MinRtrAdvInterval;
 	int			AdvManagedFlag;
 	int			AdvOtherConfigFlag;
 	int			AdvLinkMTU;
@@ -75,10 +66,18 @@ struct Interface {
 	int			AdvDefaultLifetime;
 	int			AdvSourceLLAddress;
 
+	/* Mobile IPv6 extensions */
+	int			AdvIntervalOpt;
+	int			AdvHomeAgentInfo;
+	int			AdvHomeAgentFlag;
+	int16_t			HomeAgentPreference;
+	uint16_t		HomeAgentLifetime;
+
 	struct AdvPrefix	*AdvPrefixList;
 	struct timer_lst	tm;
 	unsigned long		last_multicast;
 	struct Interface	*next;
+
 };
 
 struct AdvPrefix {
@@ -90,8 +89,30 @@ struct AdvPrefix {
 	uint32_t		AdvValidLifetime;
 	uint32_t		AdvPreferredLifetime;
 
+	/* Mobile IPv6 extensions */
+        int                     AdvRouterAddr;
+
+
 	struct AdvPrefix	*next;
 };
+
+/* Mobile IPv6 extensions */
+
+struct AdvInterval {
+	uint8_t			type;
+	uint8_t			length;
+	uint16_t		reserved;
+	uint32_t		adv_ival;
+};
+
+struct HomeAgentInfo {
+	uint8_t			type;
+	uint8_t			length;
+	uint16_t		reserved;
+	int16_t			preference;
+	uint16_t		lifetime;
+};	
+
 
 /* gram.y */
 int yyparse(void);
@@ -100,8 +121,8 @@ int yyparse(void);
 int yylex(void);
 
 /* timer.c */
-void set_timer(struct timer_lst *tm, int secs);
-unsigned long clear_timer(struct timer_lst *tm);
+void set_timer(struct timer_lst *tm, double);
+void clear_timer(struct timer_lst *tm);
 void init_timer(struct timer_lst *, void (*)(void *), void *); 
 
 /* log.c */
@@ -139,7 +160,7 @@ int recv_rs_ra(int, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo *
 
 /* util.c */
 void mdelay(int);
-int rand_between(int, int);
+double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
 
 #endif
