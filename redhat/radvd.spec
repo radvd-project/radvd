@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.2 2001/11/20 20:46:18 psavola Exp $
+# $Id: radvd.spec,v 1.3 2001/12/28 13:01:54 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -10,7 +10,7 @@ Summary: A Router Advertisement daemon
 Name: radvd
 Version: 0.7.0
 Release: 1
-License: BSD
+License: BSD-style
 Group: System Environment/Daemons
 Packager: Pekka Savola <pekkas@netcore.fi>
 Source0: http://v6web.litech.org/radvd/radvd-%{version}.tar.gz
@@ -82,6 +82,10 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Fri Dec 28 2001 Pekka Savola <pekkas@netcore.fi>
+- License unfortunately is BSD *with* advertising clause, so to be pedantic,
+  change License: to 'BSD-style'.
+
 * Wed Nov 14 2001 Pekka Savola <pekkas@netcore.fi>
 - spec file cleanups
 - update to 0.7.0.
