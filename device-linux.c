@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: device-linux.c,v 1.2 1997/10/23 20:52:03 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -99,7 +99,6 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		{
 			log(LOG_WARNING, "prefix length should be %d for %s",
 				iface->if_prefix_len, iface->Name);
- 			return (-1);
  		}
  			
  		prefix = prefix->next;

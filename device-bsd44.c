@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.5 1997/10/16 22:18:56 lf Exp $
+ *   $Id: device-bsd44.c,v 1.6 1997/10/23 20:52:03 lf Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -123,7 +123,6 @@ setup_deviceinfo(int sock, struct Interface *iface)
 				{
 					log(LOG_WARNING, "prefix length should be %d for %s",
 						iface->if_prefix_len, iface->Name);
- 					return (-1);
  				}
  			
  				prefix = prefix->next;

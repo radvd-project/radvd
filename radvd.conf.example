@@ -3,8 +3,7 @@ interface eth0
         AdvSendAdvert on;
 
 #
-# new EUI-64 prefixes (valid when radvd is compiled with --enable-eui-64 (which
-# is the default))
+# new EUI-64 prefixes
 #
         prefix 3ffe:0302:0011:0002::0/64
 	{
@@ -13,7 +12,7 @@ interface eth0
         };
 
 #
-# old 80-bit prefixes (valid when radvd is compiled with --disable-eui-64)
+# old 80-bit prefixes 
 #
 #	prefix 5f04:f900:c2dd:1400:8000::0/80
 #	{
