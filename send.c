@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.13 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: send.c,v 1.14 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -193,7 +193,15 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	if(iface->AdvIntervalOpt)
 	{
 		struct AdvInterval a_ival;
-		uint32_t ival = (iface->MaxRtrAdvInterval * 1000);
+                uint32_t ival;
+                if(iface->MaxRtrAdvInterval < Cautious_MaxRtrAdvInterval){
+                       ival  = ((iface->MaxRtrAdvInterval +
+                                 Cautious_MaxRtrAdvInterval_Leeway ) * 1000);
+
+                }
+                else {
+                       ival  = (iface->MaxRtrAdvInterval * 1000);
+                }
  		a_ival.type	= ND_OPT_RTR_ADV_INTERVAL;
 		a_ival.length	= 1;
 		a_ival.reserved	= 0;

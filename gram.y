@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.8 2004/08/20 07:17:53 psavola Exp $
+ *   $Id: gram.y,v 1.9 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -61,6 +61,7 @@ static void yyerror(char *msg);
 %token		T_AdvSendAdvert
 %token		T_MaxRtrAdvInterval
 %token		T_MinRtrAdvInterval
+%token		T_MinDelayBetweenRAs
 %token		T_AdvManagedFlag
 %token		T_AdvOtherConfigFlag
 %token		T_AdvLinkMTU
@@ -216,6 +217,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
 			iface->MaxRtrAdvInterval = $2;
 		}
+		| T_MinDelayBetweenRAs NUMBER ';'
+		{
+			iface->MinDelayBetweenRAs = $2;
+		}
 		| T_MinRtrAdvInterval DECIMAL ';'
 		{
 			iface->MinRtrAdvInterval = $2;
@@ -223,6 +228,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_MaxRtrAdvInterval DECIMAL ';'
 		{
 			iface->MaxRtrAdvInterval = $2;
+		}
+		| T_MinDelayBetweenRAs DECIMAL ';'
+		{
+			iface->MinDelayBetweenRAs = $2;
 		}
 		| T_IgnoreIfMissing SWITCH ';'
 		{
