@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.8 2002/10/28 16:50:15 psavola Exp $
+# $Id: radvd.spec,v 1.9 2004/08/20 06:41:15 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -71,7 +71,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc README CHANGES INTRO.html TODO
+%doc COPYRIGHT README CHANGES INTRO.html TODO
 %config(noreplace) %{_sysconfdir}/radvd.conf
 %config(noreplace) /etc/sysconfig/radvd
 %config %{initdir}/radvd
