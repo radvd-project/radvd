@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.11 2002/06/09 14:03:58 psavola Exp $
+ *   $Id: includes.h,v 1.12 2002/06/15 10:25:04 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -36,12 +36,15 @@
 # include <inttypes.h>
 #endif
 
-#ifdef HAVE_MACHINE_PARAM_H
-# include <machine/param.h>
-#endif
-
-#ifdef HAVE_MACHINE_LIMITS_H
-# include <machine/limits.h>
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#else
+# ifdef HAVE_MACHINE_PARAM_H
+#  include <machine/param.h>
+# endif
+# ifdef HAVE_MACHINE_LIMITS_H
+#  include <machine/limits.h>
+# endif
 #endif
 
 #if TIME_WITH_SYS_TIME
