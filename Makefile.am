@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.1 2001/11/14 19:58:10 lutchann Exp $
+#   $Id: Makefile.am,v 1.2 2004/08/20 07:25:59 psavola Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -14,11 +14,11 @@
 
 AUTOMAKE_OPTIONS = 1.2 foreign
 
-DEFS+=  -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" \
+DEFS=  -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" \
 	-DPATH_RADVD_LOG=\"$(PATH_RADVD_LOG)\" -DLOG_FACILITY=$(LOG_FACILITY) \
 	-DPATH_RADVD_PID=\"$(PATH_RADVD_PID)\" \
 	-DVERSION=\"$(VERSION)\" -DINET6=1
-INCLUDES+=-I$(srcdir) -I.
+INCLUDES=-I$(srcdir) -I.
 
 ########################################################################
 
