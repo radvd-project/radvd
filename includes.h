@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.8 2000/12/23 22:47:16 lf Exp $
+ *   $Id: includes.h,v 1.9 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <netdb.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <sys/types.h>
 #ifdef HAVE_INTTYPES_H
@@ -36,6 +38,10 @@
 
 #ifdef HAVE_MACHINE_PARAM_H
 # include <machine/param.h>
+#endif
+
+#ifdef HAVE_MACHINE_LIMITS_H
+# include <machine/limits.h>
 #endif
 
 #if TIME_WITH_SYS_TIME

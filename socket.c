@@ -1,5 +1,5 @@
 /*
- *   $Id: socket.c,v 1.2 1999/06/15 21:42:04 lf Exp $
+ *   $Id: socket.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 

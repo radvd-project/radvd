@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.4 2000/11/26 22:17:11 lf Exp $
+ *   $Id: gram.y,v 1.5 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 %{
@@ -28,10 +28,17 @@ extern int num_lines;
 extern char *yytext;
 extern int sock;
 
-static int palloc_check(void);
-
 static void cleanup(void);
 static void yyerror(char *msg);
+
+#if 0 /* no longer necessary? */
+#ifndef HAVE_IN6_ADDR_S6_ADDR
+# ifdef __FreeBSD__
+#  define s6_addr32 __u6_addr.__u6_addr32
+#  define s6_addr16 __u6_addr.__u6_addr16
+# endif
+#endif
+#endif
 
 #define ABORT	do { cleanup(); YYABORT; } while (0);
 
@@ -42,6 +49,7 @@ static void yyerror(char *msg);
 
 %token	<str>	STRING
 %token	<num>	NUMBER
+%token	<snum>	SIGNEDNUMBER
 %token	<dec>	DECIMAL
 %token	<bool>	SWITCH
 %token	<addr>	IPV6ADDR
@@ -69,6 +77,9 @@ static void yyerror(char *msg);
 %token		T_AdvIntervalOpt
 %token		T_AdvHomeAgentInfo
 
+%token		T_Base6to4Interface
+%token		T_UnicastOnly
+
 %token		T_HomeAgentPreference
 %token		T_HomeAgentLifetime
 
@@ -80,6 +91,7 @@ static void yyerror(char *msg);
 
 %union {
 	int			num;
+	int			snum;
 	double			dec;
 	int			bool;
 	struct in6_addr		*addr;
@@ -93,11 +105,9 @@ grammar		: grammar ifacedef
 		| ifacedef
 		;
 
-ifacedef	: T_INTERFACE name '{' ifaceparams  '}' ';'
+ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 		{
 			struct Interface *iface2;
-
-			strcpy(iface->Name, $2);
 
 			iface2 = IfaceList;
 			while (iface2)
@@ -130,6 +140,20 @@ ifacedef	: T_INTERFACE name '{' ifaceparams  '}' ';'
 
 			iface = NULL;
 		};
+
+ifacehead	: T_INTERFACE name
+		{
+			iface = malloc(sizeof(struct Interface));
+
+			if (iface == NULL) {
+				log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			iface_init_defaults(iface);
+			strncpy(iface->Name, $2, IFNAMSIZ-1);
+		}
+		;
 	
 name		: STRING
 		{
@@ -138,9 +162,9 @@ name		: STRING
 		}
 		;
 
-ifaceparams	: iface_advt optional_ifacevlist prefixlist
+ifaceparams	: optional_ifacevlist prefixlist
 		{
-			iface->AdvPrefixList = $3;
+			iface->AdvPrefixList = $2;
 		}
 		;
 
@@ -151,19 +175,6 @@ optional_ifacevlist: /* empty */
 ifacevlist	: ifacevlist ifaceval
 		| ifaceval
 		;
-
-iface_advt	: T_AdvSendAdvert SWITCH ';'
-		{
-			iface = malloc(sizeof(struct Interface));
-
-			if (iface == NULL) {
-				log(LOG_CRIT, "malloc failed: %s", strerror(errno));
-				ABORT;
-			}
-
-			iface_init_defaults(iface);
-			iface->AdvSendAdvert = $2;
-		}
 
 ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
@@ -180,6 +191,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_MaxRtrAdvInterval DECIMAL ';'
 		{
 			iface->MaxRtrAdvInterval = $2;
+		}
+		| T_AdvSendAdvert SWITCH ';'
+		{
+			iface->AdvSendAdvert = $2;
 		}
 		| T_AdvManagedFlag SWITCH ';'
 		{
@@ -229,9 +244,17 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
 			iface->HomeAgentPreference = $2;
 		}
+		| T_HomeAgentPreference SIGNEDNUMBER ';'
+		{
+			iface->HomeAgentPreference = $2;
+		}
 		| T_HomeAgentLifetime NUMBER ';'
 		{
 			iface->HomeAgentLifetime = $2;
+		}
+		| T_UnicastOnly SWITCH ';'
+		{
+			iface->UnicastOnly = $2;
 		}
 		;
 		
@@ -246,19 +269,9 @@ prefixlist	: prefixdef
 		}
 		;
 
-prefixdef	: T_PREFIX IPV6ADDR '/' NUMBER '{' optional_prefixplist '}' ';'
+prefixdef	: prefixhead '{' optional_prefixplist '}' ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
-			if ($4 > MAX_PrefixLen)
-			{
-				log(LOG_ERR, "invalid prefix length in %s, line %d", conf_file, num_lines);
-				ABORT;
-			}
-			
-
-			prefix->PrefixLen = $4;
+			unsigned int dst;
 
 			if (prefix->AdvPreferredLifetime >
 			    prefix->AdvValidLifetime)
@@ -269,10 +282,44 @@ prefixdef	: T_PREFIX IPV6ADDR '/' NUMBER '{' optional_prefixplist '}' ';'
 				ABORT;
 			}
 
-			memcpy(&prefix->Prefix, $2, sizeof(struct in6_addr));
-			
+			if( prefix->if6to4[0] )
+			{
+				if (get_v4addr(prefix->if6to4, &dst) < 0)
+				{
+					log(LOG_ERR, "interface %s has no IPv4 addresses, disabling 6to4 prefix", prefix->if6to4 );
+					prefix->enabled = 0;
+				} else
+				{
+					*((uint32_t *)(prefix->Prefix.s6_addr)) = htons(0x2002);
+					memcpy( prefix->Prefix.s6_addr + 2, &dst, sizeof( dst ) );
+				}
+			}
+
 			$$ = prefix;
 			prefix = NULL;
+		}
+		;
+
+prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
+		{
+			prefix = malloc(sizeof(struct AdvPrefix));
+			
+			if (prefix == NULL) {
+				log(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			prefix_init_defaults(prefix);
+
+			if ($4 > MAX_PrefixLen)
+			{
+				log(LOG_ERR, "invalid prefix length in %s, line %d", conf_file, num_lines);
+				ABORT;
+			}
+
+			prefix->PrefixLen = $4;
+
+			memcpy(&prefix->Prefix, $2, sizeof(struct in6_addr));
 		}
 		;
 
@@ -285,38 +332,28 @@ prefixplist	: prefixplist prefixparms
 
 prefixparms	: T_AdvOnLink SWITCH ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
 			prefix->AdvOnLinkFlag = $2;
 		}
 		| T_AdvAutonomous SWITCH ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
 			prefix->AdvAutonomousFlag = $2;
 		}
 		| T_AdvRouterAddr SWITCH ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
 			prefix->AdvRouterAddr = $2;
 		}
 		| T_AdvValidLifetime number_or_infinity ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
 			prefix->AdvValidLifetime = $2;
 		}
 		| T_AdvPreferredLifetime number_or_infinity ';'
 		{
-			if (palloc_check() < 0)
-				ABORT;
-
 			prefix->AdvPreferredLifetime = $2;
+		}
+		| T_Base6to4Interface name ';'
+		{
+			dlog(LOG_DEBUG, 4, "using interface %s for 6to4", $2);
+			strncpy(prefix->if6to4, $2, IFNAMSIZ-1);
 		}
 		;
 
@@ -347,22 +384,4 @@ yyerror(char *msg)
 {
 	cleanup();
 	log(LOG_ERR, "%s in %s, line %d: %s", msg, conf_file, num_lines, yytext);
-}
-
-static int
-palloc_check(void)
-{
-	if (prefix == NULL)
-	{
-		prefix = malloc(sizeof(struct AdvPrefix));
-		
-		if (prefix == NULL) {
-			log(LOG_CRIT, "malloc failed: %s", strerror(errno));
-			return (-1);
-		}
-
-		prefix_init_defaults(prefix);
-	}
-
-	return 0;
 }

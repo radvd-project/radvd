@@ -1,4 +1,44 @@
-$Id: CHANGES,v 1.9 2001/02/01 16:46:15 lf Exp $
+$Id: CHANGES,v 1.10 2001/11/14 19:58:10 lutchann Exp $
+
+11/14/2001	Maintainership of radvd transferred from Lars Fenneberg
+		to Pekka Savola and Nathan Lutchansky.  Lars' CVS
+		repository adopted, and changes merged from the -pX
+		branch.  Version bumped to 0.7.0.
+
+08/29/2001	Minor change for NetBSD 1.5.1 compatibility.
+		(Nathan Lutchansky)
+
+07/20/2001	Support for non-multicast links, like ISATAP.
+		(Nathan Lutchansky)
+
+07/03/2001	Minimum MTU has been changed to 1280 in the latest RFC's.
+		(Pekka Savola)
+
+06/30/2001	Check for possible buffer overflows; replace strcpy with
+		strncpy.  No fatals found.  Remove redunant radvd -t check.
+		(Pekka Savola)
+
+06/24/2001	Fix 1-byte overflow in /proc/net/igmp6 handling,
+                clean out possible memory garbage when sending RA's
+		(patch from <yoshfuji@linux-ipv6.org>).
+
+06/19/2001	When dropping root, also set up supplementary groups
+		properly.  On Linux, when sending RA's, check that the
+		interface has joined all-routers multicast group.  Add a few
+		RFC2461 MUST sanity checks when receiving datagrams.  Clean
+		out non-EUI64 addressing scheme and other minor bits.
+		(Pekka Savola)
+
+04/28/2001	Misc cleanup and bugfixes, automake support.
+
+03/28/2001	Grammar cleanup. Integrated 6to4 support through
+		"Base6to4Interface" option in prefix configuration. Signal
+		handling fixed by blocking on select() rather than recvmsg()
+		so SIGTERM/HUP take effect immediately now. (Nathan Lutchansky)
+
+03/27/2001	Security fixes: close stdin/out and chdir("/") via
+		daemon() to prevent possible exploits, and a flag to allow
+		radvd to set[ug]id to an unprivileged user (from Pekka Savola).
 
 02/01/2001	scope_id is not supported in glibc2.1. So it is now
 		compiled conditionally.

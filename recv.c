@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.4 1997/10/19 18:39:14 lf Exp $
+ *   $Id: recv.c,v 1.5 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -25,10 +25,29 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	struct msghdr mhdr;
 	struct cmsghdr *cmsg;
 	struct iovec iov;
-	static unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + \
-				  CMSG_SPACE(sizeof(int))];
+	static unsigned char *chdr = NULL;
+	static int chdrlen = 0;
 	int len;
-	
+	fd_set rfds;
+
+	if( ! chdr )
+	{
+		chdrlen = CMSG_SPACE(sizeof(struct in6_pktinfo)) +
+				CMSG_SPACE(sizeof(int));
+		chdr = malloc( chdrlen );
+	}
+
+	FD_ZERO( &rfds );
+	FD_SET( sock, &rfds );
+
+	if( select( sock+1, &rfds, NULL, NULL, NULL ) < 0 )
+	{
+		if (errno != EINTR)
+			log(LOG_ERR, "select: %s", strerror(errno));
+			
+		return -1;
+	}
+
 	iov.iov_len = MSG_SIZE;
 	iov.iov_base = (caddr_t) msg;
 
@@ -37,7 +56,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *)chdr;
-	mhdr.msg_controllen = sizeof(chdr);
+	mhdr.msg_controllen = chdrlen;
 
 	len = recvmsg(sock, &mhdr, 0);
 

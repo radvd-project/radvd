@@ -1,6 +1,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
- *   $Id: config.h.in,v 1.7 2001/02/01 16:40:42 lf Exp $
+ *   $Id: config.h.in,v 1.9 2001/11/14 19:58:10 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -24,11 +24,14 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #undef TIME_WITH_SYS_TIME
 
-/* Do we want EUI-64 support ? */
-#undef EUI_64_SUPPORT
+/* Define if lex declares yytext as a char * by default, not a char[].  */
+#undef YYTEXT_POINTER
 
 /* Whether struct sockaddr_in6 has sin6_scope_id */
 #undef HAVE_SIN6_SCOPE_ID
+
+/* Whether struct in6_addr has u6_addrXX and s6_addrXX is defined */
+#undef HAVE_IN6_ADDR_S6_ADDR
 
 /* Define if you have the getopt_long function.  */
 #undef HAVE_GETOPT_LONG
@@ -38,6 +41,9 @@
 
 /* Define if you have the <inttypes.h> header file.  */
 #undef HAVE_INTTYPES_H
+
+/* Define if you have the <machine/limits.h> header file.  */
+#undef HAVE_MACHINE_LIMITS_H
 
 /* Define if you have the <machine/param.h> header file.  */
 #undef HAVE_MACHINE_PARAM_H

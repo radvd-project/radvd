@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.5 2001/01/31 19:29:05 lf Exp $
+ *   $Id: device-linux.c,v 1.6 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -34,7 +34,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	struct ifreq	ifr;
 	struct AdvPrefix *prefix;
 	
-	strcpy(ifr.ifr_name, iface->Name);
+	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
 	{
@@ -50,21 +50,13 @@ setup_deviceinfo(int sock, struct Interface *iface)
         {
 	case ARPHRD_ETHER:
 		iface->if_hwaddr_len = 48;
-#ifdef EUI_64_SUPPORT
 		iface->if_prefix_len = 64;
-#else
-		iface->if_prefix_len = 80;
-#endif
 		iface->if_maxmtu = 1500;
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
 		iface->if_hwaddr_len = 48;
-#ifdef EUI_64_SUPPORT
 		iface->if_prefix_len = 64;
-#else
-		iface->if_prefix_len = 80;
-#endif
 		iface->if_maxmtu = 4352;
 		break;
 #endif /* ARPHDR_FDDI */
@@ -115,7 +107,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 {
 	FILE *fp;
 	char str_addr[40];
-	int plen, scope, dad_status, if_idx;
+	unsigned int plen, scope, dad_status, if_idx;
 	char devname[IFNAMSIZ];
 
 	if ((fp = fopen(PATH_PROC_NET_IF_INET6, "r")) == NULL)
@@ -125,7 +117,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 		return (-1);	
 	}
 	
-	while (fscanf(fp, "%32s %02x %02x %02x %02x %s\n",
+	while (fscanf(fp, "%32s %02x %02x %02x %02x %15s\n",
 		      str_addr, &if_idx, &plen, &scope, &dad_status,
 		      devname) != EOF)
 	{
@@ -173,4 +165,77 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	}
 
 	return (0);
+}
+
+int check_allrouters_membership(int sock, struct Interface *iface)
+{
+	#define ALL_ROUTERS_MCAST "ff020000000000000000000000000002"
+	
+	FILE *fp;
+	unsigned int if_idx, allrouters_ok=0;
+	char addr[32+1];
+	int ret=0;
+
+	if ((fp = fopen(PATH_PROC_NET_IGMP6, "r")) == NULL)
+	{
+		log(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IGMP6,
+			strerror(errno));
+		return (-1);	
+	}
+	
+	while ( (ret=fscanf(fp, "%4u %*s %32[0-9A-Fa-f] %*x %*x %*x\n", &if_idx, addr)) != EOF) {
+		if (ret == 2) {
+			if (iface->if_index == if_idx) {
+				if (strncmp(addr, ALL_ROUTERS_MCAST, sizeof(addr)) == 0)
+					allrouters_ok = 1;
+			}
+		}
+	}
+
+	fclose(fp);
+
+	if (!allrouters_ok) {
+		log(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
+		setup_allrouters_membership(sock, iface);
+	}	
+
+	return(0);
+}		
+
+int
+get_v4addr(const char *ifn, unsigned int *dst)
+{
+	struct ifreq	ifr;
+	struct sockaddr_in *addr;
+	int fd;
+
+	if( ( fd = socket(AF_INET,SOCK_DGRAM,0) ) < 0 )
+	{
+		log(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
+			ifn, strerror(errno));
+		return (-1);
+	}
+	
+	memset( &ifr, 0, sizeof( struct ifreq ) );
+	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
+	ifr.ifr_addr.sa_family = AF_INET;
+	
+	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
+	{
+		log(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
+			ifn, strerror(errno));
+		close( fd );
+		return (-1);
+	}
+
+	addr = (struct sockaddr_in *)(&ifr.ifr_addr);
+
+	dlog(LOG_DEBUG, 3, "IPv4 address for %s is %s", ifn,
+		inet_ntoa( addr->sin_addr ) ); 
+
+	*dst = addr->sin_addr.s_addr;
+
+	close( fd );
+
+	return 0;
 }

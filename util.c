@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.2 2000/11/26 22:17:12 lf Exp $
+ *   $Id: util.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -39,6 +39,7 @@ print_addr(struct in6_addr *addr, char *str)
 {
 	const char *res;
 
+	/* XXX: overflows 'str' if it isn't big enough */
 	res = inet_ntop(AF_INET6, (void *)addr, str, INET6_ADDRSTRLEN);
 	
 	if (res == NULL) 

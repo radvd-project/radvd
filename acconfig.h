@@ -1,5 +1,5 @@
 /*
- *   $Id: acconfig.h,v 1.2 2001/02/01 16:40:41 lf Exp $
+ *   $Id: acconfig.h,v 1.3 2001/11/14 19:58:10 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,15 +9,14 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
 @TOP@
 
-/* Do we want EUI-64 support ? */
-#undef EUI_64_SUPPORT
-
 /* Whether struct sockaddr_in6 has sin6_scope_id */
 #undef HAVE_SIN6_SCOPE_ID
 
+/* Whether struct in6_addr has u6_addrXX and s6_addrXX is defined */
+#undef HAVE_IN6_ADDR_S6_ADDR

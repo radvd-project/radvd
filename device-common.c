@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: device-common.c,v 1.2 2001/11/14 19:58:11 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lf@elemental.net>.
+ *   may request it from <lutchann@litech.org>.
  *
  */
 
@@ -23,7 +23,7 @@ check_device(int sock, struct Interface *iface)
 {
 	struct ifreq	ifr;
 	
-	strcpy(ifr.ifr_name, iface->Name);
+	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0)
 	{
@@ -38,16 +38,18 @@ check_device(int sock, struct Interface *iface)
 		return (-1);
 	}
 	
-	if (!(ifr.ifr_flags & IFF_MULTICAST))
+	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST))
 	{
 		log(LOG_WARNING, "interface %s does not support multicast",
 			iface->Name);
+		log(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
 	}
 
-	if (!(ifr.ifr_flags & IFF_BROADCAST))
+	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_BROADCAST))
 	{
 		log(LOG_WARNING, "interface %s does not support broadcast",
 			iface->Name);
+		log(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
 	}
 
 	return 0;
