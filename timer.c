@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.3 1999/07/30 11:29:04 lf Exp $
+ *   $Id: timer.c,v 1.4 1999/07/30 19:01:46 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -27,7 +27,7 @@ static struct timer_lst timers_head = {
 static void alarm_handler(int sig);
 
 static void
-schedule_timer(struct timer_lst *tm, struct timeval tv *tv)
+schedule_timer(struct timer_lst *tm, struct timeval *tv)
 {
 	if (tm != &timers_head)
 	{
@@ -63,9 +63,6 @@ set_timer(struct timer_lst *tm, int secs)
 
 	gettimeofday(&tv, NULL);
 
-	if (secs <= 0)
-		secs = 1;
-
 	tm->expires = tv.tv_sec + secs;
 	
 	lst = &timers_head;
@@ -79,6 +76,7 @@ set_timer(struct timer_lst *tm, int secs)
 	lst->prev = tm;
 	tm->prev->next = tm;
 
+	dlog(LOG_DEBUG, 4, "calling schedule_time from set_timer");
 	schedule_timer(timers_head.next, &tv);
 
 	sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -108,6 +106,7 @@ clear_timer(struct timer_lst *tm)
 
 	gettimeofday(&tv, NULL);
 
+	dlog(LOG_DEBUG, 4, "calling schedule_time from clear_timer");
 	schedule_timer(tm, &tv);
 
 	sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -138,6 +137,7 @@ alarm_handler(int sig)
 
 	tm = timers_head.next;
 
+	dlog(LOG_DEBUG, 4, "calling schedule_time from alarm_handler");
 	schedule_timer(tm, &tv);
 }
 
