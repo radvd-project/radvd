@@ -1,5 +1,5 @@
 /*
- *   $Id: socket.c,v 1.3 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: socket.c,v 1.4 2002/06/22 18:56:40 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,6 +18,15 @@
 #include <includes.h>
 #include <radvd.h>
 
+/* Note: these are applicable to receiving sockopts only */
+#if defined IPV6_HOPLIMIT && !defined IPV6_RECVHOPLIMIT
+# define IPV6_RECVHOPLIMIT IPV6_HOPLIMIT
+#endif
+
+#if defined IPV6_PKTINFO && !defined IPV6_RECVPKTINFO
+# define IPV6_RECVPKTINFO IPV6_PKTINFO
+#endif
+
 int
 open_icmpv6_socket(void)
 {
@@ -33,10 +42,10 @@ open_icmpv6_socket(void)
 	}
 
 	val = 1;
-	err = setsockopt(sock, IPPROTO_IPV6, IPV6_PKTINFO, &val, sizeof(int));
+	err = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &val, sizeof(int));
 	if (err < 0)
 	{
-		log(LOG_ERR, "setsockopt(IPV6_PKTINFO): %s", strerror(errno));
+		log(LOG_ERR, "setsockopt(IPV6_RECVPKTINFO): %s", strerror(errno));
 		return (-1);
 	}
 
@@ -68,12 +77,12 @@ open_icmpv6_socket(void)
 		return (-1);
 	}
 
-#ifdef IPV6_HOPLIMIT
+#ifdef IPV6_RECVHOPLIMIT
 	val = 1;
-	err = setsockopt(sock, IPPROTO_IPV6, IPV6_HOPLIMIT, &val, sizeof(int));
+	err = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVHOPLIMIT, &val, sizeof(int));
 	if (err < 0)
 	{
-		log(LOG_ERR, "setsockopt(IPV6_HOPLIMIT): %s", strerror(errno));
+		log(LOG_ERR, "setsockopt(IPV6_RECVHOPLIMIT): %s", strerror(errno));
 		return (-1);
 	}
 #endif
