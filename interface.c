@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.9 2005/03/29 13:40:55 psavola Exp $
+ *   $Id: interface.c,v 1.10 2005/03/29 15:15:20 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -130,7 +130,7 @@ check_iface(struct Interface *iface)
 	   ((iface->AdvLinkMTU < MIN_AdvLinkMTU) || 
 	   (iface->if_maxmtu != -1 && (iface->AdvLinkMTU > iface->if_maxmtu))))
 	{
-		flog(LOG_ERR,  "AdvLinkMTU for %s (%u) must be zero or between %d and %d",
+		flog(LOG_ERR,  "AdvLinkMTU for %s (%u) must be zero or between %u and %u",
 		iface->Name, iface->AdvLinkMTU, MIN_AdvLinkMTU, iface->if_maxmtu);
 		res = -1;
 	}
@@ -138,7 +138,7 @@ check_iface(struct Interface *iface)
 	if (iface->AdvReachableTime >  MAX_AdvReachableTime)
 	{
 		flog(LOG_ERR, 
-			"AdvReachableTime for %s (%d) must not be greater than %d",
+			"AdvReachableTime for %s (%u) must not be greater than %u",
 			iface->Name, iface->AdvReachableTime, MAX_AdvReachableTime);
 		res = -1;
 	}
@@ -166,7 +166,7 @@ check_iface(struct Interface *iface)
 	    (iface->AdvDefaultLifetime < MIN_AdvDefaultLifetime(iface))))
 	{
 		flog(LOG_ERR, 
-			"AdvDefaultLifetime for %s (.0f) must be zero or between %.0f and %.0f",
+			"AdvDefaultLifetime for %s (%u) must be zero or between %u and %u",
 			iface->Name, iface->AdvDefaultLifetime, MIN_AdvDefaultLifetime(iface),
 			MAX_AdvDefaultLifetime);
 		res = -1;
@@ -179,7 +179,7 @@ check_iface(struct Interface *iface)
 			(iface->HomeAgentLifetime < MIN_HomeAgentLifetime))
 		{
 			flog(LOG_ERR, 
-				"HomeAgentLifetime for %s (%d) must be between %d and %d",
+				"HomeAgentLifetime for %s (%u) must be between %u and %u",
 				iface->Name, iface->HomeAgentLifetime,
 				MIN_HomeAgentLifetime, MAX_HomeAgentLifetime);
 			res = -1;
