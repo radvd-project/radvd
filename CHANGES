@@ -1,7 +1,9 @@
-$Id: CHANGES,v 1.14 2001/12/28 07:38:44 psavola Exp $
+$Id: CHANGES,v 1.15 2001/12/28 08:38:18 psavola Exp $
 
 12/28/2001	Small cleanups.  AdvSendAdvert is implicitly off by
-		default.  By Marko Myllynen.
+		default.  Check configuration file permissions; must
+		not be writable by others, and if non-root,
+		not by self/own group.  By Marko Myllynen.
 
 12/21/2001	Check via sysctl that IPv6 forwarding is enabled;
 		exit unless debugging is enabled.  Triggered by

@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.5 2001/12/28 07:25:11 psavola Exp $
+.\"   $Id: radvd.8.man,v 1.6 2001/12/28 08:38:18 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -45,6 +45,9 @@ controlled via sysctl(8),
 on Linux or
 .B net.inet6.ip6.forwarding
 on BSD.
+
+Similarly, the configuration file must not be writable by others, and if
+non-root operation is requested, not even by self/own group.
 
 .SH OPTIONS
 
