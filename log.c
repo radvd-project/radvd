@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *	$Id: log.c,v 1.2 2000/11/26 22:17:11 lf Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -45,17 +45,18 @@ log_open(int method, char *ident, char *log, int facility)
 		case L_LOGFILE:
 			if (!log)
 			{
-				fprintf(stderr, "%s: no logfile specified\n", ident);
+				fprintf(stderr, "%s: no logfile specified\n", log_ident);
 				return (-1);				
 			}
-			if ((log_file_fd = fopen(log, "a")) == NULL)
+			log_file = log;
+			if ((log_file_fd = fopen(log_file, "a")) == NULL)
 			{
-				fprintf(stderr, "%s: can't open %s: %s\n", ident, log, strerror(errno));
+				fprintf(stderr, "%s: can't open %s: %s\n", log_ident, log_file, strerror(errno));
 				return (-1);				
 			}
 			break;
 		default:
-			fprintf(stderr, "%s: unknown logging method: %d\n", ident, log_method);
+			fprintf(stderr, "%s: unknown logging method: %d\n", log_ident, log_method);
 			log_method = L_NONE;
 			return (-1);				
 	}

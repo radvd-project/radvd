@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.3 1999/06/15 21:42:04 lf Exp $
+ *   $Id: process.c,v 1.4 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -104,13 +104,14 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 static void
 process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 {
-	int delay, next;
+	int delay;
+	double next;
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
 
 	delay = (int) (MAX_RA_DELAY_TIME*rand()/(RAND_MAX+1.0));
-	dlog(LOG_DEBUG, 3, "random delay for %s: %d", iface->Name, delay);
+	dlog(LOG_DEBUG, 3, "random mdelay for %s: %d", iface->Name, delay);
 	mdelay(delay);
  	
 	if (tv.tv_sec - iface->last_multicast < MIN_DELAY_BETWEEN_RAS)
@@ -127,7 +128,7 @@ process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 		 *	multicast reply
 		 */
 
-		(void) clear_timer(&iface->tm);
+		clear_timer(&iface->tm);
 		send_ra(sock, iface, NULL);
 		
 		next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
@@ -136,7 +137,7 @@ process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 }
 
 /*
- * check router advertisements according to RFC 1970, 6.2.7
+ * check router advertisements according to RFC 2461, 6.2.7
  */
 static void
 process_ra(struct Interface *iface, unsigned char *msg, int len, 
@@ -277,6 +278,11 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		case ND_OPT_REDIRECTED_HEADER:
 			log(LOG_ERR, "invalid option %d in RA on %s from %s",
 				(int)*opt_str, iface->Name, addr_str);
+			break;
+		/* Mobile IPv6 extensions */
+		case ND_OPT_RTR_ADV_INTERVAL:
+		case ND_OPT_HOME_AGENT_INFO:
+			/* not checked */
 			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA on %s from %s",

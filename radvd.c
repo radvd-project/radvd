@@ -1,11 +1,11 @@
 /*
- *   $Id: radvd.c,v 1.3 1997/10/16 23:02:28 lf Exp $
+ *   $Id: radvd.c,v 1.4 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
  *    Lars Fenneberg		<lf@elemental.net>	 
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s), 
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -29,6 +29,7 @@ char usage_str[] =
 struct option prog_opt[] = {
 	{"debug", 1, 0, 'd'},
 	{"config", 1, 0, 'C'},
+	{"pidfile", 1, 0, 'p'},
 	{"logfile", 1, 0, 'l'},
 	{"logmethod", 1, 0, 'm'},
 	{"facility", 1, 0, 'f'},
@@ -43,8 +44,10 @@ extern FILE *yyin;
 char *conf_file = NULL;
 char *pname;
 int sock = -1;
+char *pidfile = NULL;
 
 void sighup_handler(int sig);
+void sigterm_handler(int sig);
 void timer_handler(void *data);
 int readin_config(char *);
 void version(void);
@@ -58,6 +61,7 @@ main(int argc, char *argv[])
 	int c, log_method;
 	char *logfile;
 	int facility;
+	FILE *f = NULL;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
@@ -70,12 +74,13 @@ main(int argc, char *argv[])
 	logfile = PATH_RADVD_LOG;
 	conf_file = PATH_RADVD_CONF;
 	facility = LOG_FACILITY;
+	pidfile = PATH_RADVD_PID;
 
 	/* parse args */
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt_long(argc, argv, "d:C:l:m:vh", prog_opt, &opt_idx)) > 0)
+	while ((c = getopt_long(argc, argv, "d:C:l:m:p:vh", prog_opt, &opt_idx)) > 0)
 #else
-	while ((c = getopt(argc, argv, "d:C:l:m:vh")) > 0)
+	while ((c = getopt(argc, argv, "d:C:l:m:p:vh")) > 0)
 #endif
 	{
 		switch (c) {
@@ -90,6 +95,9 @@ main(int argc, char *argv[])
 			break;
 		case 'l':
 			logfile = optarg;
+			break;
+		case 'p':
+			pidfile = optarg;
 			break;
 		case 'm':
 			if (!strcmp(optarg, "syslog"))
@@ -182,6 +190,16 @@ main(int argc, char *argv[])
 	 */
 
 	signal(SIGHUP, sighup_handler);
+	signal(SIGTERM, sigterm_handler);
+
+	/*
+	*      save PID
+	*/
+	f = fopen(pidfile, "w");
+	if (f) {
+		fprintf(f, "%d\n", getpid());
+		fclose(f);  
+	}
 
 	/*
 	 *	send initial advertisement and set timers
@@ -219,7 +237,7 @@ void
 timer_handler(void *data)
 {
 	struct Interface *iface = (struct Interface *) data;
-	int next;
+	double next;
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
@@ -295,6 +313,13 @@ sighup_handler(int sig)
 	log(LOG_INFO, "resuming normal operation");
 }
 
+void
+sigterm_handler(int sig)
+{
+	unlink(pidfile);
+	exit(0);
+}
+
 int
 readin_config(char *fname)
 {
@@ -305,8 +330,12 @@ readin_config(char *fname)
 	}
 
 	if (yyparse() != 0)
+	{
+		log(LOG_ERR, "syntax error in config file: %s", fname);
 		return (-1);
-
+	}
+	
+	fclose(yyin);
 	return 0;
 }
 
@@ -316,6 +345,7 @@ version(void)
 	fprintf(stderr, "Version: %s\n\n", VERSION);
 	fprintf(stderr, "Compiled in settings:\n");
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
+	fprintf(stderr, "  default pidfile              \"%s\"\n", PATH_RADVD_PID);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
 	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
 #ifdef EUI_64_SUPPORT
@@ -332,6 +362,9 @@ version(void)
 void
 usage(void)
 {
-	fprintf(stderr,"usage: %s %s\n", pname, usage_str);
+	fprintf(stderr, "usage: %s %s\n", pname, usage_str);
 	exit(1);	
 }
+
+
+

@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.6 1999/06/15 21:42:04 lf Exp $
+ *   $Id: send.c,v 1.7 2000/11/26 22:17:12 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -61,6 +61,10 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		(iface->AdvManagedFlag)?ND_RA_FLAG_MANAGED:0;
 	radvert->nd_ra_flags_reserved	|= 
 		(iface->AdvOtherConfigFlag)?ND_RA_FLAG_OTHER:0;
+	/* Mobile IPv6 ext */
+	radvert->nd_ra_flags_reserved   |=
+		(iface->AdvHomeAgentFlag)?ND_RA_FLAG_HOME_AGENT:0;
+	
 	radvert->nd_ra_router_lifetime	= htons(iface->AdvDefaultLifetime);
 
 	radvert->nd_ra_reachable  = htonl(iface->AdvReachableTime);
@@ -88,7 +92,10 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
 		pinfo->nd_opt_pi_flags_reserved	|=
 			(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
-			
+		/* Mobile IPv6 ext */
+		pinfo->nd_opt_pi_flags_reserved |=
+			(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
+
 		pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
 		pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
 		pinfo->nd_opt_pi_reserved2	= 0;
@@ -139,6 +146,43 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		len += i;
 	}
 
+	/*
+	 * Mobile IPv6 ext: Advertisement Interval Option to support
+	 * movement detection of mobile nodes
+	 */
+
+	if(iface->AdvIntervalOpt)
+	{
+		struct AdvInterval a_ival;
+		uint32_t ival = (iface->MaxRtrAdvInterval * 1000);
+ 		a_ival.type	= ND_OPT_RTR_ADV_INTERVAL;
+		a_ival.length	= 1;
+		a_ival.reserved	= 0;
+		a_ival.adv_ival	= htonl(ival);
+
+		memcpy(buff + len, &a_ival, sizeof(struct AdvInterval));
+		len += sizeof(struct AdvInterval);
+	}
+
+	/*
+	 * Mobile IPv6 ext: Home Agent Information Option to support
+	 * Dynamic Home Agent Address Discovery
+	 */
+
+	if(iface->AdvHomeAgentInfo && (iface->HomeAgentPreference != 0 ||
+		iface->HomeAgentLifetime != iface->AdvDefaultLifetime))
+	{
+		struct HomeAgentInfo ha_info;
+ 		ha_info.type		= ND_OPT_HOME_AGENT_INFO;
+		ha_info.length		= 1;
+		ha_info.reserved	= 0;
+		ha_info.preference	= htons(iface->HomeAgentPreference);
+		ha_info.lifetime	= htons(iface->HomeAgentLifetime);
+
+		memcpy(buff + len, &ha_info, sizeof(struct HomeAgentInfo));
+		len += sizeof(struct HomeAgentInfo);
+	}
+	
 	iov.iov_len  = len;
 	iov.iov_base = (caddr_t) buff;
 	
