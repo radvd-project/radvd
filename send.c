@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.8 2001/01/31 19:29:05 lf Exp $
+ *   $Id: send.c,v 1.9 2001/02/01 16:40:42 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -197,9 +197,11 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	pkt_info->ipi6_ifindex = iface->if_index;
 	memcpy(&pkt_info->ipi6_addr, &iface->if_addr, sizeof(struct in6_addr));
 
+#ifdef HAVE_SIN6_SCOPE_ID
 	if (IN6_IS_ADDR_LINKLOCAL(&addr.sin6_addr) ||
 		IN6_IS_ADDR_MC_LINKLOCAL(&addr.sin6_addr))
 			addr.sin6_scope_id = iface->if_index;
+#endif
 
 	mhdr.msg_name = (caddr_t)&addr;
 	mhdr.msg_namelen = sizeof(struct sockaddr_in6);

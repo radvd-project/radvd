@@ -1,5 +1,5 @@
 /*
- *   $Id: acconfig.h,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: acconfig.h,v 1.2 2001/02/01 16:40:41 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -17,3 +17,7 @@
 
 /* Do we want EUI-64 support ? */
 #undef EUI_64_SUPPORT
+
+/* Whether struct sockaddr_in6 has sin6_scope_id */
+#undef HAVE_SIN6_SCOPE_ID
+
