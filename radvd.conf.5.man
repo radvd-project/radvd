@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.6 2001/12/28 07:38:44 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.7 2002/06/21 11:57:15 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -398,7 +398,7 @@ interface eth0
                 Base6to4Interface ppp0;
 
                 # Very short lifetimes for dynamic addresses
-                AdvDefaultLifetime 300;
+                AdvValidLifetime 300;
                 AdvPreferredLifetime 120;
         };
 };
