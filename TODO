@@ -1,4 +1,4 @@
-$Id: TODO,v 1.13 2005/02/11 16:58:23 psavola Exp $
+$Id: TODO,v 1.14 2005/02/15 08:11:02 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -37,8 +37,6 @@ The following parts of RFC2461(bis) are not implemented:
  - section 6.2.5: when AdvSendAdvertisements changes to FALSE, we don't send 
    a final RA with zero Router Lifetime (we just send it when shutting down).
    (SHOULD)
- - section 6.2.5: if system management disables IP forwarding, subsequent
-   RAs MUST set the Router Lifetime to zero (MUST)
  - section 6.2.8: if the link-local address of the router changes, it should
    multicast a few RAs from the old address with zero router lifetime, and a
    few from the new address. (SHOULD).
