@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.9 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: gram.y,v 1.10 2005/03/22 10:29:13 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -126,7 +126,6 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				{
 					flog(LOG_ERR, "duplicate interface "
 						"definition for %s", iface->Name);
-
 					ABORT;
 				}
 				iface2 = iface2->next;
@@ -137,8 +136,10 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
 					goto skip_interface;
 				}
-				else
+				else {
+					flog(LOG_ERR, "interface %s does not exist", iface->Name);
 					ABORT;
+				}
 			}
 			if (setup_deviceinfo(sock, iface) < 0)
 				ABORT;

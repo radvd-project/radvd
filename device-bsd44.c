@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.13 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: device-bsd44.c,v 1.14 2005/03/22 10:29:13 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -132,7 +132,7 @@ ret:
 	iface->if_hwaddr_len = -1;
 	iface->if_prefix_len = -1;
 	free(ifconf.ifc_buf);
-	return 0;
+	return -1;
 }
 
 int setup_linklocal_addr(int sock, struct Interface *iface)
