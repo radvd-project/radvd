@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.8 2002/07/02 06:49:20 psavola Exp $
+ *   $Id: device-linux.c,v 1.9 2003/09/11 19:06:54 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -33,6 +33,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 {
 	struct ifreq	ifr;
 	struct AdvPrefix *prefix;
+	char zero[HWADDR_MAX];
 	
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
@@ -81,8 +82,14 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name,
 		iface->if_prefix_len);
 
-	if (iface->if_hwaddr_len != -1)
+	if (iface->if_hwaddr_len != -1) {
 		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, (iface->if_hwaddr_len + 7) >> 3);
+
+		memset(zero, 0, (iface->if_hwaddr_len + 7) >> 3);
+		if (!memcmp(iface->if_hwaddr, zero, (iface->if_hwaddr_len + 7) >> 3))
+			log(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
+				iface->Name);
+	}
 
 	prefix = iface->AdvPrefixList;
 	while (prefix)
