@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.9 2004/08/20 06:41:15 psavola Exp $
+# $Id: radvd.spec,v 1.10 2005/02/15 08:57:31 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -12,7 +12,7 @@ Release: 1
 License: BSD-style
 Group: System Environment/Daemons
 Packager: Pekka Savola <pekkas@netcore.fi>
-Source0: http://v6web.litech.org/radvd/radvd-%{version}.tar.gz
+Source0: http://www.litech.org/radvd/radvd-%{version}.tar.gz
 Source1: radvd.init
 Source2: radvd.sysconfig
 PreReq: chkconfig, /usr/sbin/useradd, /sbin/service, initscripts
@@ -34,7 +34,7 @@ services.
 
 %build
 CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" %configure --with-pidfile=/var/run/radvd/radvd.pid
-make
+make %{?_smp_mflags}
 
 %install
 [ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
