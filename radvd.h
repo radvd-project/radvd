@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.3 1997/10/16 22:18:59 lf Exp $
+ *   $Id: radvd.h,v 1.4 1997/10/19 18:39:14 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -58,7 +58,7 @@ struct Interface {
 	struct in6_addr		if_addr;
 	int			if_index;
 
-	uint8_t		if_hwaddr[HWADDR_MAX];
+	uint8_t			if_hwaddr[HWADDR_MAX];
 	int			if_hwaddr_len;
 	int			if_prefix_len;
 	int			if_maxmtu;

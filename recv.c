@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.3 1997/10/18 20:35:03 lf Exp $
+ *   $Id: recv.c,v 1.4 1997/10/19 18:39:14 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,13 +18,6 @@
 #include <includes.h>
 #include <radvd.h>
 
-#ifdef IPV6_HOPLIMIT
-#define CMSG_SIZE_MAX (CMSG_SPACE(sizeof(struct in6_pktinfo)) + \
-		       CMSG_SPACE(sizeof(int)))
-#else
-#define CMSG_SIZE_MAX CMSG_SPACE(sizeof(struct in6_pktinfo))
-#endif
-
 int
 recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
                  struct in6_pktinfo **pkt_info, int *hoplimit)
@@ -32,7 +25,8 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	struct msghdr mhdr;
 	struct cmsghdr *cmsg;
 	struct iovec iov;
-	static unsigned char chdr[CMSG_SIZE_MAX];
+	static unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + \
+				  CMSG_SPACE(sizeof(int))];
 	int len;
 	
 	iov.iov_len = MSG_SIZE;
@@ -43,7 +37,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *)chdr;
-	mhdr.msg_controllen = CMSG_SIZE_MAX;
+	mhdr.msg_controllen = sizeof(chdr);
 
 	len = recvmsg(sock, &mhdr, 0);
 

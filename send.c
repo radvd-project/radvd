@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.4 1997/10/18 20:35:04 lf Exp $
+ *   $Id: send.c,v 1.5 1997/10/19 18:39:14 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -140,7 +140,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	iov.iov_len  = len;
 	iov.iov_base = (caddr_t) buff;
 	
-	memset(chdr, 0, CMSG_SPACE(sizeof(struct in6_pktinfo)));
+	memset(chdr, 0, sizeof(chdr));
 	cmsg = (struct cmsghdr *) chdr;
 	
 	cmsg->cmsg_len   = CMSG_LEN(sizeof(struct in6_pktinfo));
@@ -156,7 +156,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *) cmsg;
-	mhdr.msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
+	mhdr.msg_controllen = sizeof(chdr);
 
 	err = sendmsg(sock, &mhdr, 0);
 	

@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.3 1997/10/16 22:18:57 lf Exp $
+ *   $Id: includes.h,v 1.4 1997/10/19 18:39:13 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -32,6 +32,12 @@
 #include <sys/types.h>
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
+
+#ifdef USE_OLD_TYPES
+#define uint8_t u_int8_t
+#define uint16_t u_int16_t
+#define uint32_t u_int32_t             
 #endif
 
 #include <sys/ioctl.h>
