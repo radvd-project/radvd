@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.6 2002/05/06 21:09:58 psavola Exp $
+# $Id: radvd.spec,v 1.7 2002/05/06 21:11:49 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -81,7 +81,7 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
-* Tye May  7 2002 Pekka Savola <pekkas@netcore.fi>
+* Tue May  7 2002 Pekka Savola <pekkas@netcore.fi>
 - remove '-g %%{RADVD_GID}' when creating the user, which may be problematic
   if the user didn't exist before.
 
