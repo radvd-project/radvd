@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.11 2002/07/02 06:49:20 psavola Exp $
+ *   $Id: send.c,v 1.12 2002/10/28 17:28:37 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -110,7 +110,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 			       sizeof(struct in6_addr));
 
-			len += sizeof(pinfo);
+			len += sizeof(*pinfo);
 		}
 
 		prefix = prefix->next;
@@ -130,7 +130,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		mtu->nd_opt_mtu_reserved = 0; 
 		mtu->nd_opt_mtu_mtu      = htonl(iface->AdvLinkMTU);
 
-		len += sizeof(mtu);
+		len += sizeof(*mtu);
 	}
 
 	/*
