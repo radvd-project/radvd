@@ -1,18 +1,17 @@
-$Id: README,v 1.4 1997/10/23 20:52:01 lf Exp $
+$Id: README,v 1.5 2000/11/26 22:17:10 lf Exp $
 
 Installation:
 =============
 
 Run configure, e.g.
 
-CPPFLAGS="-I/usr/inet6/include" LDFLAGS="-s -L/usr/inet6/lib"  ./configure \
-	--prefix=/usr/inet6
+./configure --prefix=/usr/local --sysconfdir=/etc --mandir=/usr/share/man
 
 The configure script will now try to guess where your IPv6 libraries and
 include files are if you don't specify them explicitly via LDFLAGS or
 CPPFLAGS respectively. Currently it will search in /usr/inet6/(include|lib)
 and /usr/ipv6/(include|lib). You still have to use the --prefix option
-to specify the install tree though.
+to specify the install tree though. The default prefix is /usr/local.
 
 Be aware that --enable-eui-64 is the default, use --disable-eui-64 to
 disable EUI-64 support.
@@ -20,25 +19,3 @@ disable EUI-64 support.
 See configure --help for additional command line arguments.
 
 Run make and make install. 
-
-
-Notes
-=====
-
-radvdump is a small program which dumps all received RAs in a human
-readable form.
-
-Starting with version pre0.4.1-2 I changed all usages of u_int*_t to
-uint*_t. The new code will not compile on older Linux systems. If you're
-desperate try defining translations for the new types in includes.h
-(e.g. #define uint8_t u_int8_t).
-
-Philip Blundell emailed me that there is a problem with struct cmsghdr with
-some combinations of glibc and the kernel. So if you experience problems
-with radvd it might be due to this problem. It's not fully known which
-versions of glibc and the kernel are affected and there's no fix
-available (10/23/97).
-
-For bug reports, fixes and suggestions contact me at lf@elemental.net.
-
-Lars Fenneberg, 10/23/97

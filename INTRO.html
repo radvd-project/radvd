@@ -1,4 +1,4 @@
-<!-- $Id: INTRO.html,v 1.1 1997/10/14 17:17:41 lf Exp $ -->
+<!-- $Id: INTRO.html,v 1.2 2000/11/26 22:17:10 lf Exp $ -->
 <html> <head> <title>RADVD introduction</title> </head>
 <body>
 
@@ -56,13 +56,13 @@ which use this prefix are reachable via the interface on which the host
 received this RA.
 <p>
 The prefix wasn't choosen randomly for this example, but was determined
-according to the rules outlined in RFC 1897 (IPv6 Testing Address
+according to the rules outlined in RFC 2471 (IPv6 Testing Address
 Allocation). Furthermore the prefix length is also not freely choosen but is
 determined by the network media used.
 For ethernet the prefix lenght is 80 because the prefix combined with the
 ethernet hardware address, which is 48 bit long, yields a full 128 bit IPv6
-address. See RFC 1971 (IPv6 Stateless Address Autoconfiguration) and RFC 
-1972 (A Method for the Transmission of IPv6 Packets over Ethernet Networks)
+address. See RFC 2462 (IPv6 Stateless Address Autoconfiguration) and RFC 
+2464 (Transmission of IPv6 Packets over Ethernet Networks)
 for details.
 <p>
 For more information on configuring radvd please look at the documentation

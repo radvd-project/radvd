@@ -1,10 +1,10 @@
 dnl
-dnl  $Id: configure.in,v 1.3 1997/10/16 22:18:56 lf Exp $
+dnl  $Id: configure.in,v 1.4 2000/11/26 22:17:11 lf Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
 dnl
-dnl   This software is Copyright 1996,1997 by the above mentioned author(s), 
+dnl   This software is Copyright 1996-2000 by the above mentioned author(s), 
 dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
@@ -13,7 +13,7 @@ dnl   may request it from <lf@elemental.net>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.3 1997/10/16 22:18:56 lf Exp $)
+AC_REVISION ($Id: configure.in,v 1.4 2000/11/26 22:17:11 lf Exp $)
 AC_INIT(radvd.c)
 
 VERSION=`cat VERSION | grep -v '^#' | tr -d '\012'`
@@ -59,47 +59,36 @@ AC_PATH_PROG(TAR, tar)
 AC_PATH_PROG(GZIP, gzip)
 
 dnl Check where to put the logfile
-echo $ac_n "using the following logfile""... $ac_c" 1>&6
+AC_MSG_CHECKING(where to put logfile)
 AC_ARG_WITH(logfile,
-[  --with-logfile          Path to the radvd logfile],
-[
-	AC_MSG_RESULT($withval)
-	PATH_RADVD_LOG=$withval
-],
-[
-	AC_MSG_RESULT(/var/log/radvd.log)
-	PATH_RADVD_LOG=/var/log/radvd.log
-]
-)
+[  --with-logfile          Path to the radvd logfile [/var/log/radvd.log]],
+	PATH_RADVD_LOG=$withval,
+	PATH_RADVD_LOG=/var/log/radvd.log)
+AC_MSG_RESULT($PATH_RADVD_LOG)
+
+dnl Check where to put the pidfile
+AC_MSG_CHECKING(where to put pidfile)
+AC_ARG_WITH(pidfile,
+[  --with-pidfile          Path to the radvd pidfile [/var/run/radvd.pid]],
+	PATH_RADVD_PID=$withval,
+	PATH_RADVD_PID=/var/run/radvd.pid)
+AC_MSG_RESULT($PATH_RADVD_PID)
 
 dnl Check where to put the configfile
-echo $ac_n "using the following configfile""... $ac_c" 1>&6
+AC_MSG_CHECKING(where to find configfile)
 AC_ARG_WITH(configfile,
-[  --with-configfile       Path to the radvd config file],
-[
-	AC_MSG_RESULT($withval)
-	PATH_RADVD_CONF=$withval
-],
-[
-	AC_MSG_RESULT(${sysconfdir}/radvd.conf)
-	PATH_RADVD_CONF=${sysconfdir}/radvd.conf
-]
-)
+[  --with-configfile       Path to the radvd config file [SYSCONF/radvd.conf]],
+	PATH_RADVD_CONF=$withval,
+	PATH_RADVD_CONF=${sysconfdir}/radvd.conf)
+AC_MSG_RESULT($PATH_RADVD_CONF)
 
 dnl Checking which syslog facility to use
 AC_MSG_CHECKING(which syslog facility to use)
 AC_ARG_WITH(facility,
 [  --with-facility         Syslog facility to use when using syslog logging],
-[
-	AC_MSG_RESULT($withval)
-	LOG_FACILITY=$withval
-],
-[
-	AC_MSG_RESULT(LOG_DAEMON)
-	LOG_FACILITY=LOG_DAEMON
-]
-)
-
+	LOG_FACILITY=$withval,
+	LOG_FACILITY=LOG_DAEMON)
+AC_MSG_RESULT($LOG_FACILITY)
 
 AC_MSG_CHECKING(whether to enable EUI-64 support)
 AC_ARG_ENABLE(eui-64,
@@ -147,6 +136,8 @@ unset ac_cv_lib_inet6_inet_ntop
 
 dnl Checks for header files.
 AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/time.h)
+AC_HEADER_TIME
 
 AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes,
  AC_CHECK_HEADER(netinet/ip6.h, hdrfound=yes, hdrfound=no)
@@ -180,6 +171,7 @@ unset hdrfound
 
 AC_CHECK_HEADERS(sys/sockio.h getopt.h inttypes.h)
 AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)
+AC_CHECK_HEADERS(machine/param.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -191,6 +183,7 @@ AC_LINK_FILES(device-${arch}.c, device.c)
 
 AC_SUBST(VERSION)
 AC_SUBST(PATH_RADVD_CONF)
+AC_SUBST(PATH_RADVD_PID)
 AC_SUBST(PATH_RADVD_LOG)
 AC_SUBST(LOG_FACILITY)
 

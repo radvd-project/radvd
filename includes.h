@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.6 1999/06/15 21:42:03 lf Exp $
+ *   $Id: includes.h,v 1.7 2000/11/26 22:17:11 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -31,7 +31,22 @@
 
 #include <sys/types.h>
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
+# include <inttypes.h>
+#endif
+
+#ifdef HAVE_MACHINE_PARAM_H
+# include <machine/param.h>
+#endif
+
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
 #endif
 
 #include <sys/ioctl.h>
@@ -49,21 +64,21 @@
 #include <net/if.h>
 
 #ifdef HAVE_NET_IF_DL_H
-#include <net/if_dl.h>
+# include <net/if_dl.h>
 #endif
 #ifdef HAVE_NET_IF_TYPES_H
-#include <net/if_types.h>
+# include <net/if_types.h>
 #endif
 #if defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER)
-#include <net/if_arp.h>
+# include <net/if_arp.h>
 #endif /* defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER) */
 
 #ifdef HAVE_SYS_SOCKIO_H
-#include <sys/sockio.h>
+# include <sys/sockio.h>
 #endif
 
 #ifdef HAVE_GETOPT_H
-#include <getopt.h>
+# include <getopt.h>
 #endif
 
 #endif /* INCLUDES_H */

@@ -1,6 +1,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
- *   $Id: config.h.in,v 1.5 1999/06/15 21:48:07 lf Exp $
+ *   $Id: config.h.in,v 1.6 2000/11/26 22:17:10 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -21,6 +21,9 @@
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS
 
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#undef TIME_WITH_SYS_TIME
+
 /* Do we want EUI-64 support ? */
 #undef EUI_64_SUPPORT
 
@@ -33,6 +36,9 @@
 /* Define if you have the <inttypes.h> header file.  */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have the <machine/param.h> header file.  */
+#undef HAVE_MACHINE_PARAM_H
+
 /* Define if you have the <net/if_arp.h> header file.  */
 #undef HAVE_NET_IF_ARP_H
 
@@ -44,6 +50,9 @@
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H
+
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
 
 /* Define if you have the c library (-lc).  */
 #undef HAVE_LIBC

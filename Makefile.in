@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.in,v 1.6 1998/03/03 14:54:21 lf Exp $
+#   $Id: Makefile.in,v 1.7 2000/11/26 22:17:10 lf Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -43,6 +43,7 @@ ALL_CFLAGS=$(CFLAGS)
 CPPFLAGS=@CPPFLAGS@
 ALL_CPPFLAGS=$(CPPFLAGS) -I$(srcdir) -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" \
 	-DPATH_RADVD_LOG=\"$(PATH_RADVD_LOG)\" -DLOG_FACILITY=$(LOG_FACILITY) \
+	-DPATH_RADVD_PID=\"$(PATH_RADVD_PID)\" \
 	-DVERSION=\"$(VERSION)\" -DINET6=1
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
@@ -50,6 +51,7 @@ LEXLIB=@LEXLIB@
 
 VERSION=@VERSION@
 PATH_RADVD_CONF=@PATH_RADVD_CONF@
+PATH_RADVD_PID=@PATH_RADVD_PID@
 PATH_RADVD_LOG=@PATH_RADVD_LOG@
 LOG_FACILITY=@LOG_FACILITY@
 
@@ -65,8 +67,8 @@ RADVD_OBJS=radvd.o timer.o log.o device.o socket.o send.o \
 
 RADVDUMP_OBJS=radvdump.o log.o socket.o recv.o util.o
 
-MANS_IN=radvd.8.man radvd.conf.5.man
-MANS=radvd.8 radvd.conf.5
+MANS_IN=radvd.8.man radvdump.8.man radvd.conf.5.man
+MANS=radvd.8 radvdump.8 radvd.conf.5
 
 all: radvd radvdump $(MANS)
 
@@ -80,6 +82,7 @@ all: radvd radvdump $(MANS)
 	$(SED) 	-e 's,@''VERSION''@,$(VERSION),g' \
 		-e 's,@''sbindir''@,$(sbindir),g' \
 		-e 's,@''PATH_RADVD_CONF''@,$(PATH_RADVD_CONF),g' \
+		-e 's,@''PATH_RADVD_PID''@,$(PATH_RADVD_PID),g' \
 		-e 's,@''PATH_RADVD_LOG''@,$(PATH_RADVD_LOG),g' \
 		-e 's,@''LOG_FACILITY''@,$(LOG_FACILITY),g' \
 		$< > $@
@@ -106,6 +109,7 @@ install: all
 	$(INSTALL_PROGRAM) radvd $(sbindir)/radvd
 	$(INSTALL_PROGRAM) radvdump $(sbindir)/radvdump
 	$(INSTALL_DATA) radvd.8 $(mandir)/man8/radvd.8
+	$(INSTALL_DATA) radvdump.8 $(mandir)/man8/radvdump.8
 	$(INSTALL_DATA) radvd.conf.5 $(mandir)/man5/radvd.conf.5
 
 dist:   y.tab.c y.tab.h lex.yy.c distclean
