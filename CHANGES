@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.5 1998/03/03 14:54:20 lf Exp $
+$Id: CHANGES,v 1.6 1999/06/15 21:43:14 lf Exp $
+
+06/15/99	changed to run with glibc 2.1 on RedHat 6.0.
 
 03/03/98	radvd now joins ipv6-allrouters on Linux.  Fix contributed
 		by A.N.Kuznetsov <kuznet@ms2.inr.ac.ru>.
