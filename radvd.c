@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.14 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: radvd.c,v 1.15 2004/08/20 07:22:09 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -485,8 +485,21 @@ check_ip6_forwarding(void)
 	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
 	int value;
 	size_t size = sizeof(value);
+	FILE *fp = NULL;
 
-	if (sysctl(forw_sysctl, sizeof(forw_sysctl)/sizeof(forw_sysctl[0]),
+#ifdef __linux__
+	fp = fopen(PROC_SYS_IP6_FORWARDING, "r");
+	if (fp) {
+		fscanf(fp, "%d", &value);
+		fclose(fp);
+	}
+	else
+		log(LOG_DEBUG, "Correct IPv6 forwarding procfs entry not found, "
+	                       "perhaps the procfs is disabled, "
+	                        "or the kernel interface has changed?");
+#endif /* __linux__ */
+
+	if (!fp && sysctl(forw_sysctl, sizeof(forw_sysctl)/sizeof(forw_sysctl[0]),
 	    &value, &size, NULL, 0) < 0) {
 		flog(LOG_DEBUG, "Correct IPv6 forwarding sysctl branch not found, "
 			"perhaps the kernel interface has changed?");
