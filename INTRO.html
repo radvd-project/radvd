@@ -1,179 +1,140 @@
-<!-- $Id: INTRO.html,v 1.2 2000/11/26 22:17:10 lf Exp $ -->
-<html> <head> <title>RADVD introduction</title> </head>
-<body>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<!-- $Id: INTRO.html,v 1.3 2002/01/12 17:48:43 psavola Exp $ -->
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>RADVD Introduction</title>
+</head>
 
+<body>
 <h1>RADVD Introduction</h1>
-<h2>by <a href="mailto:lf@elemental.net">Lars Fennberg</a> </h2>
-IPv6 has a lot more support for autoconfiguration than IPv4. But
-for this autoconfiguration to work on the hosts of a network, the
-routers of the local network have to run a program which answers
-the autoconfiguration requests of the hosts.
+
 <p>
-On Linux this program is called radvd, which stands for Router
-ADVertisement Daemon. This daemon listens to router solicitations (RS) 
-and answers with router advertisement (RA). Furthermore unsolicited
+by <a href="mailto:lf@elemental.net">Lars Fenneberg</a> et al. Updated
+2002-01-12.
+</p>
+
+<p>
+<a href="http://www.ietf.org/rfc/rfc2460.txt">IPv6</a> has a lot more
+support for autoconfiguration than
+<a href="http://www.ietf.org/rfc/rfc791.txt">IPv4</a>. But for this
+autoconfiguration to work on the hosts of a network, the <em>routers</em>
+of the local network have to run a program which answers the
+autoconfiguration requests of the hosts.
+</p>
+
+<p>
+On Linux this program is called
+<a href="http://v6web.litech.org/radvd/">radvd</a>, which stands for
+Router ADVertisement Daemon. This daemon listens to Router Solicitations
+(RS) and answers with Router Advertisement (RA). Furthermore unsolicited
 RAs are also send from time to time.
+<a href="http://www.ietf.org/rfc/rfc2461.txt">RFC 2461</a> defines most
+functions of radvd.
+</p>
+
 <p>
-These RAs contain information, which is used by hosts to configure
-their interfaces. This information includes address prefixes, the MTU of 
-the link and information about default routers.
+Router Advertisements contain information, which is used by hosts to
+configure their interfaces. This information includes address prefixes,
+the MTU of the link and information about default routers.
+</p>
+
 <p>
-Of course the routers can't autoconfigure themself, so the information
+Of course the routers can't autoconfigure themselves, so the information
 on the routers has to be provided by the administrator of the system.
 This is done by manually configuring the interfaces and routes and by
 configuring the router advertisement daemon.
-<p>
-A small and simple configuration file for radvd might look like this:
+</p>
 
 <p>
-<center>
-<table width=90% border=0>
-<tr>
-<td>
+A small and simple configuration file for radvd might look like this:
+</p>
+
+<p>
 <pre>
-interface eth0 {
+
+interface eth0
+{
         AdvSendAdvert on;
-        prefix 5f15:9100:c2dd:1400:8000::0/80
-	{
+        prefix fec0:0:0:1::/64
+        {
                 AdvOnLink on;
                 AdvAutonomous on;
         };
 };
-</pre>
-</td>
-</tr>
-</table>
-</center>
 
+</pre>
+
+<p>
 It says that radvd should advertise (AdvSendAdvert on) the prefix
-5f04:f900:c2dd:1400:8000::0 which has a lenght of 80 on the interface eth0.
+fec0:0:0:1:: which has a lenght of 64 on the interface eth0.
 Also the prefix is marked as autonomous (AdvAutonomous on) and as on-link
-(AdvOnLink on). All the other options are left on their default values.
+(AdvOnLink on). The both currently default to enabled but are included
+here for introductory purposes; it isn't necessary to define them.
+All the other options are left on their default values.
+</p>
+
 <p>
 Autonomous means that the prefix can be used for automatic address
 configuration and on-link means that the hosts can assume that all the hosts
 which use this prefix are reachable via the interface on which the host
 received this RA.
-<p>
-The prefix wasn't choosen randomly for this example, but was determined
-according to the rules outlined in RFC 2471 (IPv6 Testing Address
-Allocation). Furthermore the prefix length is also not freely choosen but is
-determined by the network media used.
-For ethernet the prefix lenght is 80 because the prefix combined with the
-ethernet hardware address, which is 48 bit long, yields a full 128 bit IPv6
-address. See RFC 2462 (IPv6 Stateless Address Autoconfiguration) and RFC 
-2464 (Transmission of IPv6 Packets over Ethernet Networks)
-for details.
-<p>
-For more information on configuring radvd please look at the documentation
-which is included in the radvd distribution.
-<p>
-So when an interface on a hosts is UPed and a RA is received, the host 
-can configure an address on the interface by using the prefix and 
-appending the ethernet hardware address (also called link-layer token),
-for example:
+</p>
 
 <p>
-<center>
-<table width=90%>
-<tr>
-<td>
- <table width=60% border=1>
- <tr>
-   <td>Announced prefix</td>
-   <td align=right>5f15:9100:c2dd:1400:8000:0000:0000:0000</td>
- </tr>
- <tr>
-   <td>Link-layer token</td>
-   <td align=right>0800:0040:1726</td>
- </tr>
- <tr>
-   <td>Configured address</td>
-   <td align=right>5f15:9100:c2dd:1400:8000:0800:0040:1726</td>
- </tr>
- </table>
-</td>
-</tr>
-</table>
-</center>
-<p>
+The prefix must be 64 bits long (apart from very few exceptions), as dictated by
+<a href="http://www.ietf.org/rfc/rfc2464.txt">RFC 2464</a> and other
+standards for different link-layer technologies. For more
+details, see <a href="http://www.ietf.org/rfc/rfc2462.txt">RFC 2462</a>
+(IPv6 Stateless Address Autoconfiguration) and
+<a href="http://www.ietf.org/rfc/rfc2464.txt">RFC 2464</a>
+(Transmission of IPv6 Packets over Ethernet Networks). For more information
+on configuring radvd please look at the manual pages which are included in
+the radvd distribution.
+</p>
 
+<p>
+So, when an interface on a hosts is UPed and a RA is received, the host
+can configure an address on the interface by using the prefix and
+appending the EUI-64 identifier derived from the hardware address
+(also called link-layer token). The EUI-64 identifier is simply appended
+after the prefix. For example:
+</p>
+
+<p>
+<pre>
+
+   Announced prefix:    fec0:0:0:1::
+
+   EUI-64 identifier:   a4:c2:b2:32
+
+   Configured address:  fec0:0:0:1:a4:c2:b2:32
+
+</pre>
+
+<p>
 The host can also choose a default router by examining the RA.
-This means that an IPv6-only host merely has to UP its interfaces and
 the rest works automatically.
+</p>
+
 <p>
 So now we've configured radvd, but we still need to configure the interfaces
-and set the routes (on the router). For simplicities sake we'll assume
-that there's only one interface and that the router communicates via
-tunnels with the "outer world".
+and set the routes (on the router).  There's a lot of good material on
+setting up IPv6, and the reader is encouraged to have a look
+at it; for example:
+</p>
+
 <p>
-Below is an example shell script which sets up IPv6 on a router. It's
-actually identical to the file I use on my router... :)
-<p>
-As you can see it adds the address and the route manually and also
-configures a IPv6-over-IPv4 tunnel. 
-<p>
-/etc/init.d/functions is a small collection of helper functions and is only
-needed for the killproc function which kills radvd on "stop". The
-directory /usr/ipv6/sbin is where I've installed the new IPv6 capable
-net-tools and radvd. It is added to the beginning of the PATH, so that the
-IPv6 capable tools are found before the old ones.
-<p>
-The script assumes that the "normal" interfaces (e.g. eth0) are already
-configured and UP (most certainly for IPv4). 
+<ul>
+<li><a href="http://www.bieringer.de/linux/IPv6/IPv6-HOWTO/IPv6-HOWTO.html">http://www.bieringer.de/linux/IPv6/IPv6-HOWTO/IPv6-HOWTO.html</a></li>
+<li><a href="http://people.debian.org/~csmall/ipv6/setup.html">http://people.debian.org/~csmall/ipv6/setup.html</a> (for non-Debian too)</li>
+</ul>
 
-<pre>
----8&lt;-------------------------------------------------------------------- 
-#! /bin/sh
-
-. /etc/init.d/functions
-
-PATH=/usr/ipv6/sbin:/usr/ipv6/bin:/bin:/usr/bin:/sbin:/usr/sbin
-export PATH
-
-case "$1" in
-  start)
-	# enable forwarding
-	echo 1 >/proc/sys/net/ipv6/ipv6_forwarding 
-
-        # get IPv6-over-IPv4 tunnels up (enables automatic tunneling to 0::0/96)
-	ifconfig sit0 up
-
-	# configure the local interface
-	ifconfig eth0  add 5f15:9100:c2dd:1400:8000:0080:ad1c:22ca/80
-	route -A inet6 add 5f15:9100:c2dd:1400:8000::0/80 dev eth0
-
-	# if you're on the 6bone you can setup tunnels like shown below.
-	# every ifconfig sit0 tunnel 0::&lt;other-tunnel-endpoint-ip&gt;
-	# creates a new sit interface. they're named sequentially (sit1,
-	# sit2, sit3 and so on)
-
-	# setup a tunnel to NRL
-	ifconfig sit0 tunnel 0::132.250.90.5
-	ifconfig sit1 up
-	route -A inet6 add 5f00::0/8 gw fe80::132.250.90.5 dev sit1
-
-	# setup a tunnel to G6
-	ifconfig sit0 tunnel 0::129.88.26.1
-	ifconfig sit2 up
-	route -A inet6 add 5f06:b500::/32 gw fe80::129.88.26.1 dev sit2
-
-	# start router advertisement daemon
-	radvd
-    ;;
-  stop)
-	killproc radvd
-	ifconfig sit0 down
-    ;;
-  *)
-    echo "Usage: /etc/init.d/ipv6 {start|stop}"
-    exit 1
-esac
-
-exit 0
----8&lt;-------------------------------------------------------------------- 
-</pre>
 <hr>
-Last changed: Sat Mar  1 19:17:33 MET 1997<br>
-Copyright &copy;1997 <a href="mailto:lf@elemental.net">Lars Fennberg</a><br>
-</body></html>
+
+<p>
+Copyright &copy; 1997 <a href="mailto:lf@elemental.net">Lars Fenneberg</a>
+</p>
+
+</body>
+</html>
