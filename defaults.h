@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.9 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: defaults.h,v 1.10 2005/03/29 12:59:41 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -69,7 +69,7 @@
 #define MAX_INITIAL_RTR_ADVERT_INTERVAL	16
 #define MAX_INITIAL_RTR_ADVERTISEMENTS	3
 #define MAX_FINAL_RTR_ADVERTISEMENTS	3
-#define MIN_DELAY_BETWEEN_RAS		3
+#define MIN_DELAY_BETWEEN_RAS		3.0
 #define MIN_DELAY_BETWEEN_RAS_MIPv6     (30.0/1000.0)
 #define MAX_RA_DELAY_TIME		(1000.0/2.0) /* milliseconds */
 

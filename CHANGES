@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.37 2005/03/22 10:29:13 psavola Exp $
+$Id: CHANGES,v 1.38 2005/03/29 12:59:41 psavola Exp $
+
+03/29/2005	Merge a part of MIPv6/non-MIPv6 code, make printing
+		error messages nicer.
 
 03/22/2005	Be a bit more informative about config file parsing
 		errors.
