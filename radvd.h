@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.10 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: radvd.h,v 1.11 2005/02/15 07:44:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -80,7 +80,8 @@ struct Interface {
 	struct AdvPrefix	*AdvPrefixList;
 	struct AdvRoute		*AdvRouteList;
 	struct timer_lst	tm;
-	unsigned long		last_multicast;
+	time_t                  last_multicast_sec;
+	suseconds_t             last_multicast_usec;
 	struct Interface	*next;
 
 };

@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.9 2005/02/15 07:19:52 psavola Exp $
+ *   $Id: process.c,v 1.10 2005/02/15 07:44:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -157,23 +157,21 @@ process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 
 	delay = MAX_RA_DELAY_TIME*rand()/(RAND_MAX+1.0);
 	dlog(LOG_DEBUG, 3, "random mdelay for %s: %.2f", iface->Name, delay);
-	mdelay(delay);
  	
-	if (iface->UnicastOnly
-		|| tv.tv_sec - iface->last_multicast < iface->MinDelayBetweenRAs)
-	{
-		/*
-		 *	unicast reply
-		 */
-
+	if (iface->UnicastOnly) {
+		mdelay(delay);
 		send_ra(sock, iface, &addr->sin6_addr);
 	}
-	else
-	{
-		/*
-		 *	multicast reply
-		 */
-
+	else if ((tv.tv_sec + tv.tv_usec / 1000000.0) - (iface->last_multicast_sec +
+	          iface->last_multicast_usec / 1000000.0) < iface->MinDelayBetweenRAs) {
+		/* last RA was sent only a few moments ago, don't send another immediately */
+		clear_timer(&iface->tm);
+		next = iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) +
+		       (iface->last_multicast_sec + iface->last_multicast_usec / 1000000.0) + delay/1000.0;
+		set_timer(&iface->tm, next);
+	}
+	else {
+		/* no RA sent in a while, send an immediate multicast reply */
 		clear_timer(&iface->tm);
 		send_ra(sock, iface, NULL);
 		
