@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.4 2000/11/26 22:17:12 lf Exp $
+ *   $Id: radvd.c,v 1.5 2000/12/23 22:47:16 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -44,11 +44,15 @@ extern FILE *yyin;
 char *conf_file = NULL;
 char *pname;
 int sock = -1;
-char *pidfile = NULL;
+
+volatile int sighup_received = 0;
+volatile int sigterm_received = 0;
+volatile int sigint_received = 0;
 
 void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void timer_handler(void *data);
+void reload_config(void);
 int readin_config(char *);
 void version(void);
 void usage(void);
@@ -56,12 +60,11 @@ void usage(void);
 int
 main(int argc, char *argv[])
 {
-	unsigned char msg[MSG_SIZE];
+	unsigned char msg[MSG_SIZE], pidstr[16];
 	struct Interface *iface;
 	int c, log_method;
-	char *logfile;
-	int facility;
-	FILE *f = NULL;
+	char *logfile, *pidfile;
+	int facility, fd;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
@@ -191,15 +194,20 @@ main(int argc, char *argv[])
 
 	signal(SIGHUP, sighup_handler);
 	signal(SIGTERM, sigterm_handler);
+	signal(SIGINT, sigint_handler);
 
-	/*
-	*      save PID
-	*/
-	f = fopen(pidfile, "w");
-	if (f) {
-		fprintf(f, "%d\n", getpid());
-		fclose(f);  
+	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
+	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
+	{
+		log(LOG_ERR, "another radvd seems to be already running, terminating");
+		exit(1);
 	}
+	
+	snprintf(pidstr, sizeof(pidstr), "%d\n", getpid());
+	
+	write(fd, pidstr, strlen(pidstr));
+	
+	close(fd);
 
 	/*
 	 *	send initial advertisement and set timers
@@ -230,7 +238,19 @@ main(int argc, char *argv[])
 		if (len > 0)
 			process(sock, IfaceList, msg, len, 
 				&rcv_addr, pkt_info, hoplimit);
+
+		if (sigterm_received || sigint_received)
+			break;
+
+		if (sighup_received)
+		{
+			reload_config();		
+			sighup_received = 0;
+		}
 	}
+	
+	unlink(pidfile);
+	exit(0);
 }
 
 void
@@ -247,13 +267,9 @@ timer_handler(void *data)
 	set_timer(&iface->tm, next);
 }
 
-void
-sighup_handler(int sig)
+void reload_config(void)
 {
 	struct Interface *iface;
-
-	/* Linux has "one-shot" signals, reinstall the signal handler */
-	signal(SIGHUP, sighup_handler);
 
 	log(LOG_INFO, "attempting to reread config file");
 
@@ -314,10 +330,30 @@ sighup_handler(int sig)
 }
 
 void
+sighup_handler(int sig)
+{
+	/* Linux has "one-shot" signals, reinstall the signal handler */
+	signal(SIGHUP, sighup_handler);
+
+	sighup_received = 1;
+}
+
+void
 sigterm_handler(int sig)
 {
-	unlink(pidfile);
-	exit(0);
+	/* Linux has "one-shot" signals, reinstall the signal handler */
+	signal(SIGTERM, sigterm_handler);
+
+	sigterm_received = 1;
+}
+
+void
+sigint_handler(int sig)
+{
+	/* Linux has "one-shot" signals, reinstall the signal handler */
+	signal(SIGINT, sigint_handler);
+
+	sigint_received = 1;
 }
 
 int
