@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.4 1999/06/15 21:42:00 lf Exp $
+ *   $Id: device-linux.c,v 1.5 2001/01/31 19:29:05 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -166,7 +166,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	mreq.ipv6mr_multiaddr.s6_addr32[0] = htonl(0xFF020000);                                          
 	mreq.ipv6mr_multiaddr.s6_addr32[3] = htonl(0x2);     
 
-	if (setsockopt(sock, SOL_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(&mreq)) < 0)
+	if (setsockopt(sock, SOL_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
 	{
 		log(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
 		return (-1);

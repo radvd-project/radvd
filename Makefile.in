@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.in,v 1.7 2000/11/26 22:17:10 lf Exp $
+#   $Id: Makefile.in,v 1.8 2001/01/31 19:29:04 lf Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -16,6 +16,7 @@ VERSION=@VERSION@
 
 SHELL = /bin/sh
 
+CC=@CC@
 LEX=@LEX@
 YACC=@YACC@
 TAR=@TAR@
@@ -37,6 +38,7 @@ libdir=@libdir@
 sbindir=@sbindir@
 sysconfdir=@sysconfdir@
 mandir=@mandir@
+DESTDIR=
 
 CFLAGS=@CFLAGS@ 
 ALL_CFLAGS=$(CFLAGS)
@@ -105,12 +107,12 @@ realclean: distclean
 	$(RM) -f lex.yy.c y.tab.c y.tab.h configure config.h.in
 
 install: all
-	$(srcdir)/mkinstalldirs $(sbindir) $(mandir)/man8 $(mandir)/man5
-	$(INSTALL_PROGRAM) radvd $(sbindir)/radvd
-	$(INSTALL_PROGRAM) radvdump $(sbindir)/radvdump
-	$(INSTALL_DATA) radvd.8 $(mandir)/man8/radvd.8
-	$(INSTALL_DATA) radvdump.8 $(mandir)/man8/radvdump.8
-	$(INSTALL_DATA) radvd.conf.5 $(mandir)/man5/radvd.conf.5
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir) $(DESTDIR)$(mandir)/man8 $(DESTDIR)$(mandir)/man5
+	$(INSTALL_PROGRAM) radvd $(DESTDIR)$(sbindir)/radvd
+	$(INSTALL_PROGRAM) radvdump $(DESTDIR)$(sbindir)/radvdump
+	$(INSTALL_DATA) radvd.8 $(DESTDIR)$(mandir)/man8/radvd.8
+	$(INSTALL_DATA) radvdump.8 $(DESTDIR)$(mandir)/man8/radvdump.8
+	$(INSTALL_DATA) radvd.conf.5 $(DESTDIR)$(mandir)/man5/radvd.conf.5
 
 dist:   y.tab.c y.tab.h lex.yy.c distclean
 	cd ..;\
