@@ -1,4 +1,4 @@
-$Id: README,v 1.1 1997/10/14 17:17:40 lf Exp $
+$Id: README,v 1.2 1997/10/14 19:49:34 lf Exp $
 
 radvdump
 ========
@@ -14,10 +14,18 @@ Run configure, e.g.
 CPPFLAGS="-I/usr/ipv6/include" LDFLAGS="-s -L/usr/ipv6/lib"  ./configure \
 	--prefix=/usr/ipv6
 
+The configure script will now try to guess where your IPv6 libraries and
+include files are if you don't specify them explicitly via LDFLAGS or
+CPPFLAGS respectively. Currently it will search in /usr/inet6/(include|lib)
+and /usr/ipv6/(include|lib).
+
+Be aware that --enable-eui-64 is the default, use --disable-eui-64 to
+disable EUI-64 support.
+
 See configure --help for additional command line arguments.
 
 Run make and make install. 
 
 For bug reports, fixes and suggestions contact me at lf@elemental.net.
 
-Lars Fenneberg, 09/14/97
+Lars Fenneberg, 10/14/97

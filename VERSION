@@ -1,3 +1,6 @@
+#
+# $Id: VERSION,v 1.2 1997/10/14 19:49:34 lf Exp $
+#
 # this file is automatically processed by configure
-pre0.4.1
-
+#
+pre0.4.1-1

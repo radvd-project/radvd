@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.1 1997/10/14 17:17:41 lf Exp $
+dnl  $Id: configure.in,v 1.2 1997/10/14 19:49:36 lf Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,10 +13,10 @@ dnl   may request it from <lf@elemental.net>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.1 1997/10/14 17:17:41 lf Exp $)
+AC_REVISION ($Id: configure.in,v 1.2 1997/10/14 19:49:36 lf Exp $)
 AC_INIT(radvd.c)
 
-VERSION=`cat VERSION | grep -v ^#`
+VERSION=`cat VERSION | grep -v '^#' | tr -d '\012'`
 
 AC_CANONICAL_SYSTEM
 echo $ac_n "building for architecture""... $ac_c" 1>&6
@@ -55,8 +55,6 @@ dnl Not needed
 AC_PATH_PROG(LN, ln)
 AC_PROG_YACC
 AC_PROG_LEX
-AC_PATH_PROG(CO, co)
-AC_PATH_PROG(CI, ci)
 AC_PATH_PROG(TAR, tar)
 AC_PATH_PROG(GZIP, gzip)
 
@@ -125,12 +123,60 @@ AC_CHECK_LIB(c, inet_ntop,,
  AC_CHECK_LIB(inet6, inet_ntop,
   LIBS="$LIBS -linet6"
   ,
-  AC_MSG_ERROR(can't continue without libinet6.a library - check your LDFLAGS)
+  unset ac_cv_lib_inet6_inet_ntop
+  oldldflags=$LDFLAGS
+  LDFLAGS="$LDFLAGS -L/usr/inet6/lib"
+  echo $ac_n "with -L/usr/inet6/lib: $ac_c" 1>&6
+  AC_CHECK_LIB(inet6, inet_ntop,
+   LIBS="$LIBS -linet6"
+   ,
+   unset ac_cv_lib_inet6_inet_ntop
+   LDFLAGS=$oldldflags
+   LDFLAGS="$LDFLAGS -L/usr/ipv6/lib"
+   echo $ac_n "with -L/usr/ipv6/lib: $ac_c" 1>&6
+   AC_CHECK_LIB(inet6, inet_ntop,
+    LIBS="$LIBS -linet6"
+    ,
+    AC_MSG_ERROR(can't continue without libinet6.a library - check your LDFLAGS)
+   )
+  )
  )
 )
+# prevent caching
+unset ac_cv_lib_inet6_inet_ntop
 
 dnl Checks for header files.
 AC_HEADER_STDC
+
+AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes,
+ AC_CHECK_HEADER(netinet/ip6.h, hdrfound=yes, hdrfound=no)
+)
+if test "$hdrfound" = no
+then
+ AC_MSG_CHECKING(for netinet/ip6.h or ipv6.h in /usr/inet6/include)
+ if test -f /usr/inet6/include/netinet/ipv6.h
+ then
+  AC_MSG_RESULT([yes (netinet/ipv6.h)])
+  CPPFLAGS="$CPPFLAGS -I/usr/inet6/include"
+ elif test -f /usr/inet6/include/netinet/ip6.h
+ then
+  AC_MSG_RESULT([yes (netinet/ip6.h)])
+  CPPFLAGS="$CPPFLAGS -I/usr/inet6/include"
+ else
+  AC_MSG_RESULT(no)
+  AC_MSG_CHECKING(for netinet/ip6.h or ipv6.h in /usr/ipv6/include)
+  if test -f /usr/ipv6/include/netinet/ipv6.h
+  then
+   AC_MSG_RESULT([yes (netinet/ipv6.h)])
+   CPPFLAGS="$CPPFLAGS -I/usr/ipv6/include"
+  elif test -f /usr/ipv6/include/netinet/ip6.h
+  then
+   AC_MSG_RESULT([yes (netinet/ip6.h)])
+   CPPFLAGS="$CPPFLAGS -I/usr/ipv6/include"
+  fi
+ fi
+fi
+unset hdrfound
 
 AC_CHECK_HEADERS(sys/sockio.h getopt.h)
 AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)

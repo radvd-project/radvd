@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: send.c,v 1.2 1997/10/14 19:49:38 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -138,7 +138,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	}
 
 	iov.iov_len  = len;
-	iov.iov_base = buff;
+	iov.iov_base = (caddr_t) buff;
 	
 	cmsg = (struct cmsghdr *) chdr;
 	

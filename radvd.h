@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: radvd.h,v 1.2 1997/10/14 19:49:38 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -134,7 +134,7 @@ void process(int sock, struct Interface *, unsigned char *, int,
 	struct sockaddr_in6 *, struct in6_pktinfo *, int);
 
 /* recv.c */
-int recv_rs_ra(int, char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+int recv_rs_ra(int, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
 
 /* util.c */
 void mdelay(int);

@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: recv.c,v 1.2 1997/10/14 19:49:38 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -27,7 +27,7 @@
 #endif
 
 int
-recv_rs_ra(int sock, char *msg, struct sockaddr_in6 *addr,
+recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
                  struct in6_pktinfo **pkt_info, int *hoplimit)
 {                 
 	struct msghdr mhdr;
@@ -37,7 +37,7 @@ recv_rs_ra(int sock, char *msg, struct sockaddr_in6 *addr,
 	int len;
 	
 	iov.iov_len = MSG_SIZE;
-	iov.iov_base = msg;
+	iov.iov_base = (caddr_t) msg;
 
 	mhdr.msg_name = (caddr_t)addr;
 	mhdr.msg_namelen = sizeof(struct sockaddr_in6);

@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: includes.h,v 1.2 1997/10/14 19:49:37 lf Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -37,11 +37,19 @@
 
 #include <netinet/in.h>
 
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
+#include <netinet/ip6.h>
+#include <netinet/icmp6.h>
+#define nd_router_advert nd6_router_advert
+#else
 #include <netinet/ipv6.h>
 #include <netinet/nd6_protocol.h>
 #include <netinet/icmpv6.h>
+#endif
 
 #include <arpa/inet.h>
+
+#include <net/if.h>
 
 #ifdef HAVE_NET_IF_DL_H
 #include <net/if_dl.h>
@@ -49,9 +57,9 @@
 #ifdef HAVE_NET_IF_TYPES_H
 #include <net/if_types.h>
 #endif
-#ifdef HAVE_NET_IF_ARP_H
+#if defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER)
 #include <net/if_arp.h>
-#endif
+#endif /* defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER) */
 
 #ifdef HAVE_SYS_SOCKIO_H
 #include <sys/sockio.h>
