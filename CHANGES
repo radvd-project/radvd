@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.21 2002/10/28 16:53:49 psavola Exp $
+$Id: CHANGES,v 1.22 2003/03/08 16:03:44 psavola Exp $
+
+03/08/2003	Add patch from MAEDA Naoaki <maeda.naoaki@jp.fujitsu.com>
+		to discard RS's from the unspecied source address with
+		link-layer address option, as required by RFC2461.
 
 10/28/2002	Release 0.7.2:
 		 - add support for VLANs (from USAGI)

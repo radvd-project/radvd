@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.5 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: process.c,v 1.6 2003/03/08 16:03:44 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -23,6 +23,7 @@ static void process_ra(struct Interface *, unsigned char *msg, int len,
 	struct sockaddr_in6 *);
 static int  addr_match(struct in6_addr *a1, struct in6_addr *a2,
 	int prefixlen);
+static int rs_has_srclladdr(unsigned char *, int);
 
 void
 process(int sock, struct Interface *ifacel, unsigned char *msg, int len, 
@@ -84,10 +85,13 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 			return;
 		}
 		
-		/* 
-		 * XXX: RFC2461 6.1.1: if RS src addr is the unspecified address,
-		 *	and there is a lladdr option, the packet MUST be dropped
-		 */
+		if (IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr) &&
+		    rs_has_srclladdr(msg, len))
+		{
+			log(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option"); 
+			return;
+		}
+				
 	}			
 
 	if (icmph->icmp6_code != 0)
@@ -368,4 +372,54 @@ addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 	}
 
 	return 1;
+}
+
+static int
+rs_has_srclladdr(unsigned char *msg, int len)
+{
+	uint8_t *opt_str;
+	int	has_lladdr = 0;
+
+	len -= sizeof(struct nd_router_solicit);
+
+	if (len == 0)
+	{		/* no option */
+		return 0;
+	}
+
+	opt_str = (uint8_t *)(msg + sizeof(struct nd_router_solicit));
+
+	while (len > 0)
+	{
+		int optlen;
+
+		if (len < 2)
+		{
+			log(LOG_WARNING, "trailing garbage in RS");
+			break;
+		}
+
+		optlen = (opt_str[1] << 3);
+
+		if (optlen == 0)
+		{
+			log(LOG_WARNING, "zero length option in RS");
+			break;
+		}
+		else if (optlen > len)
+		{
+			log(LOG_WARNING, "option length greater than total length in RS");
+			break;
+		}
+
+		if (*opt_str == ND_OPT_SOURCE_LINKADDR)
+		{
+			has_lladdr = 1;
+		}
+
+		len -= optlen;
+		opt_str += optlen;
+	}
+
+	return has_lladdr;
 }
