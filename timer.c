@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: timer.c,v 1.2 1997/10/14 20:35:18 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -19,7 +19,7 @@
 #include <radvd.h>
 
 static struct timer_lst timers_head = {
-	~0,
+	~0UL,
 	NULL, NULL,
 	&timers_head, &timers_head
 };

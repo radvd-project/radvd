@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.1 1997/10/14 17:17:40 lf Exp $
+ *   $Id: radvd.c,v 1.2 1997/10/14 20:35:18 lf Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 
 	pname = ((pname=strrchr(argv[0],'/')) != NULL)?pname+1:argv[0];
 
-	srand((int)time(NULL));
+	srand((unsigned int)time(NULL));
 
 	log_method = L_SYSLOG;
 	logfile = PATH_RADVD_LOG;
@@ -314,7 +314,7 @@ void
 version(void)
 {
 	fprintf(stderr, "Version: %s\n\n", VERSION);
-	fprintf(stderr, "Compiled in settings:\n", pname);
+	fprintf(stderr, "Compiled in settings:\n");
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
 	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
