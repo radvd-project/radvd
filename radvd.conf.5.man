@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.9 2004/08/20 06:53:16 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.10 2004/08/20 07:00:51 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -310,7 +310,7 @@ determination.  The symbolic value
 represents infinity (i.e. a value of all one bits (0xffffffff)).
 The valid lifetime is also used by RFC 2462.
 
-Default: infinity
+Default: 2592000 seconds (30 days)
 
 .TP
 .BR "AdvPreferredLifetime " seconds "" | infinity
