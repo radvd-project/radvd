@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.17 2004/12/15 06:54:38 psavola Exp $
+ *   $Id: radvd.c,v 1.18 2005/02/15 08:32:05 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -62,7 +62,6 @@ void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
-int check_ip6_forwarding();
 int check_conffile_perm(const char *, const char *);
 
 int

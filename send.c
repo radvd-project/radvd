@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.16 2005/02/15 08:11:02 psavola Exp $
+ *   $Id: send.c,v 1.17 2005/02/15 08:32:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -73,7 +73,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		(iface->AdvHomeAgentFlag)?ND_RA_FLAG_HOME_AGENT:0;
 
 	/* if forwarding is disabled, send zero router lifetime */
-	radvert->nd_ra_router_lifetime	 =  !check_ip6_forwarding ? htons(iface->AdvDefaultLifetime) : 0;
+	radvert->nd_ra_router_lifetime	 =  !check_ip6_forwarding() ? htons(iface->AdvDefaultLifetime) : 0;
 	radvert->nd_ra_flags_reserved   |=
 		(iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
 
