@@ -1,15 +1,14 @@
-# $Id: radvd.spec,v 1.5 2002/01/15 16:50:51 lutchann Exp $
+# $Id: radvd.spec,v 1.6 2002/05/06 21:09:58 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
 
 %define RADVD_UID 75
-%define RADVD_GID 75
 
 Summary: A Router Advertisement daemon
 Name: radvd
 Version: 0.7.1
-Release: 1
+Release: 2
 License: BSD-style
 Group: System Environment/Daemons
 Packager: Pekka Savola <pekkas@netcore.fi>
@@ -68,7 +67,7 @@ fi
 
 %pre
 
-/usr/sbin/useradd -c "radvd user" -r -M -s /sbin/nologin -u %{RADVD_UID} -g %{RADVD_GID} -d / radvd 2>/dev/null || :
+/usr/sbin/useradd -c "radvd user" -r -M -s /sbin/nologin -u %{RADVD_UID} -d / radvd 2>/dev/null || :
 
 %files
 %defattr(-,root,root)
@@ -82,6 +81,10 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Tye May  7 2002 Pekka Savola <pekkas@netcore.fi>
+- remove '-g %%{RADVD_GID}' when creating the user, which may be problematic
+  if the user didn't exist before.
+
 * Wed Jan 14 2002 Pekka Savola <pekkas@netcore.fi>
 - 0.7.1.
 
