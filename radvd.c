@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.16 2004/08/20 08:09:03 psavola Exp $
+ *   $Id: radvd.c,v 1.17 2004/12/15 06:54:38 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -56,6 +56,7 @@ void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void timer_handler(void *data);
 void kickoff_adverts(void);
+void stop_adverts(void);
 void reload_config(void);
 void version(void);
 void usage(void);
@@ -269,8 +270,10 @@ main(int argc, char *argv[])
 			process(sock, IfaceList, msg, len, 
 				&rcv_addr, pkt_info, hoplimit);
 
-		if (sigterm_received || sigint_received)
+		if (sigterm_received || sigint_received) {
+			stop_adverts();
 			break;
+		}
 
 		if (sighup_received)
 		{
@@ -317,6 +320,26 @@ kickoff_adverts(void)
 				send_ra(sock, iface, NULL);
 
 				set_timer(&iface->tm, iface->MaxRtrAdvInterval);
+			}
+		}
+	}
+}
+
+void
+stop_adverts(void)
+{
+	struct Interface *iface;
+
+	/*
+	 *	send final RA (a SHOULD in RFC2461 section 6.2.5)
+	 */
+
+	for (iface=IfaceList; iface; iface=iface->next) {
+		if( ! iface->UnicastOnly ) {
+			if (iface->AdvSendAdvert) {
+				/* send a final advertisement with zero Router Lifetime */
+				iface->AdvDefaultLifetime = 0;
+				send_ra(sock, iface, NULL);
 			}
 		}
 	}
