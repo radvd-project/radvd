@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.in,v 1.2 1997/10/14 19:49:34 lf Exp $
+#   $Id: Makefile.in,v 1.3 1997/10/14 19:59:46 lf Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -119,7 +119,7 @@ install: all
 dist:   y.tab.c y.tab.h lex.yy.c distclean
 	cd ..;\
 	$(LN) -s radvd radvd-$(VERSION);\
-	$(TAR) --exclude RCS --exclude expr \
+	$(TAR) \
 	 -chvvf radvd-$(VERSION).tar radvd-$(VERSION);\
 	$(GZIP) -9 radvd-$(VERSION).tar;\
 	$(RM) -f radvd-$(VERSION)
