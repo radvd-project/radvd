@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.6 2004/08/20 07:17:53 psavola Exp $
+ *   $Id: interface.c,v 1.7 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -35,6 +35,7 @@ iface_init_defaults(struct Interface *iface)
 	iface->AdvHomeAgentInfo	  = DFLT_AdvHomeAgentInfo;
 	iface->AdvHomeAgentFlag	  = DFLT_AdvHomeAgentFlag;
 	iface->HomeAgentPreference = DFLT_HomeAgentPreference;
+	iface->MinDelayBetweenRAs   = DFLT_MinDelayBetweenRAs;
 
 	iface->MinRtrAdvInterval  = -1;
 	iface->AdvDefaultLifetime = -1;
@@ -104,13 +105,10 @@ check_iface(struct Interface *iface)
 		if ((iface->MinRtrAdvInterval < MIN_MinRtrAdvInterval_MIPv6) || 
 		    (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface)))
 		{
-			double limit = (double) MAX_MinRtrAdvInterval(iface);
-			if (limit < MIN_MinRtrAdvInterval_MIPv6)
-				limit = MIN_MinRtrAdvInterval_MIPv6;
 			flog(LOG_ERR, 
 				"MinRtrAdvInterval for %s must be between %.2f and %.2f",
 				iface->Name, MIN_MinRtrAdvInterval_MIPv6,
-				limit);
+				MAX2(MIN_MinRtrAdvInterval_MIPv6, MIN_MinRtrAdvInterval_MIPv6));
 			res = -1;
 		}
 	}
@@ -120,9 +118,9 @@ check_iface(struct Interface *iface)
 		    (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface)))
 		{
 			flog(LOG_ERR, 
-				"MinRtrAdvInterval must be between %d and %d for %s",
-				MIN_MinRtrAdvInterval, MAX_MinRtrAdvInterval(iface),
-				iface->Name);
+				"MinRtrAdvInterval for %s must be between %d and %d",
+				iface->Name, (int)MIN_MinRtrAdvInterval,
+				(int)MAX_MinRtrAdvInterval(iface));
 			res = -1;
 		}
 	}
@@ -148,6 +146,28 @@ check_iface(struct Interface *iface)
 			flog(LOG_ERR, 
 				"MaxRtrAdvInterval must be between %d and %d for %s",
 				MIN_MaxRtrAdvInterval, MAX_MaxRtrAdvInterval, iface->Name);
+			res = -1;
+		}
+	}
+
+	/* Mobile IPv6 ext */
+	if (MIPv6)
+	{
+		if (iface->MinDelayBetweenRAs < MIN_DELAY_BETWEEN_RAS_MIPv6) 
+		{
+			flog(LOG_ERR, 
+				"MinDelayBetweenRAs for %s must be greater than %.2f",
+				iface->Name, MIN_DELAY_BETWEEN_RAS_MIPv6);
+			res = -1;
+		}
+	}
+	else
+	{
+		if (iface->MinDelayBetweenRAs < MIN_DELAY_BETWEEN_RAS)
+		{
+			flog(LOG_ERR, 
+				"MinDelayBetweenRAs for %s must be greater than %.2f",
+				iface->Name, (double) MIN_DELAY_BETWEEN_RAS);
 			res = -1;
 		}
 	}

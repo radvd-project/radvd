@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.8 2004/08/20 07:17:53 psavola Exp $
+ *   $Id: defaults.h,v 1.9 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -24,6 +24,8 @@
 
 #define MSG_SIZE			4096
 
+#define MAX2(X,Y) ( (( X ) >=  ( Y )) ? ( X ) : ( Y ))
+
 
 /* Router Configuration Variables: */
 
@@ -32,7 +34,7 @@
 #define DFLT_IgnoreIfMissing		0
 #define DFLT_AdvSendAdv			0
 #define DFLT_MaxRtrAdvInterval		600
-#define DFLT_MinRtrAdvInterval(iface)	((int)(0.33 * (double)(iface)->MaxRtrAdvInterval))
+#define DFLT_MinRtrAdvInterval(iface)	(0.33 * (iface)->MaxRtrAdvInterval)
 #define DFLT_AdvManagedFlag		0
 #define DFLT_AdvOtherConfigFlag		0
 #define DFLT_AdvLinkMTU			0
@@ -40,7 +42,8 @@
 #define DFLT_AdvRetransTimer		0
 #define DFLT_AdvCurHopLimit		64	/* as per RFC 1700 or the 
 						   next incarnation of it :) */
-#define	DFLT_AdvDefaultLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
+#define DFLT_AdvDefaultLifetime(iface)	MAX2(1, (int)(3.0 * (iface)->MaxRtrAdvInterval))
+#define DFLT_MinDelayBetweenRAs		MIN_DELAY_BETWEEN_RAS
 #define DFLT_AdvDefaultPreference	0
 
 /* Options sent with RA */
@@ -67,6 +70,7 @@
 #define MAX_INITIAL_RTR_ADVERTISEMENTS	3
 #define MAX_FINAL_RTR_ADVERTISEMENTS	3
 #define MIN_DELAY_BETWEEN_RAS		3
+#define MIN_DELAY_BETWEEN_RAS_MIPv6     (30.0/1000.0)
 #define MAX_RA_DELAY_TIME		(1000.0/2.0) /* milliseconds */
 
 /* Host constants: */
@@ -93,9 +97,9 @@
 #define MAX_MaxRtrAdvInterval		1800
 
 #define MIN_MinRtrAdvInterval		3
-#define MAX_MinRtrAdvInterval(iface)	((int)(0.75 * (double)(iface)->MaxRtrAdvInterval))
+#define MAX_MinRtrAdvInterval(iface)	(0.75 * (iface)->MaxRtrAdvInterval)
 
-#define MIN_AdvDefaultLifetime(iface)	((iface)->MaxRtrAdvInterval)
+#define MIN_AdvDefaultLifetime(iface)	(MAX2(1,(iface)->MaxRtrAdvInterval))
 #define MAX_AdvDefaultLifetime		9000
 
 #define	MIN_AdvLinkMTU			1280
@@ -164,9 +168,12 @@ struct nd_opt_route_info_local     /* route information */
 
 #define AdvertisementInterval(iface)	((iface)->MaxRtrAdvInterval))
 
-#define MIN_MinRtrAdvInterval_MIPv6	(1.0/20.0)
-#define MIN_MaxRtrAdvInterval_MIPv6	(3.0/2.0)
+#define MIN_MinRtrAdvInterval_MIPv6	(3.0/100.0)
+#define MIN_MaxRtrAdvInterval_MIPv6	(7.0/100.0)
 #define RTR_SOLICITATION_INTERVAL_MIPv6	1 /* Recommended value by MIPv6 */
+
+#define Cautious_MaxRtrAdvInterval      (2.0/10.0)
+#define Cautious_MaxRtrAdvInterval_Leeway      (2.0/100.0)
 
 #define MIN_HomeAgentLifetime		1 /* 0 must NOT be used */
 #define MAX_HomeAgentLifetime		65520 /* 18.2 hours in secs */

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.9 2004/08/20 07:17:53 psavola Exp $
+ *   $Id: radvd.h,v 1.10 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -58,6 +58,7 @@ struct Interface {
 	int			AdvSendAdvert;
 	double			MaxRtrAdvInterval;
 	double			MinRtrAdvInterval;
+	double			MinDelayBetweenRAs;
 	int			AdvManagedFlag;
 	int			AdvOtherConfigFlag;
 	int			AdvLinkMTU;

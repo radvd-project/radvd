@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.11 2004/08/20 07:17:53 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.12 2004/10/26 05:30:34 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -50,9 +50,9 @@ extensions.
 All the possible prefix specific options are described below.  Each
 option has to be terminated by a semicolon.
 
-Decimal values are allowed only for MaxRtrAdvInterval and
-MinRtrAdvInterval.  Decimal values should be used only when using
-Mobile IPv6 extensions.
+Decimal values are allowed only for MinDelayBetweenRAs,
+MaxRtrAdvInterval and MinRtrAdvInterval.  Decimal values should
+be used only when using Mobile IPv6 extensions.
 
 Route definitions are of the form:
 
@@ -111,7 +111,10 @@ router advertisements from the interface, in seconds.
 
 Must be no less than 4 seconds and no greater than 1800 seconds.
 
-Minimum when using Mobile IPv6 extensions: 1.5.
+Minimum when using Mobile IPv6 extensions: 0.07.
+
+For values less than 0.2 seconds, 0.02 seconds is added to account for
+scheduling granularities as specified in RFC3775.
 
 Default: 600 seconds	
 
@@ -124,9 +127,23 @@ router advertisements from the interface, in seconds.
 Must be no less than 3 seconds and no greater than 0.75 *
 MaxRtrAdvInterval.
 
-Minimum when using Mobile IPv6 extensions: 0.05.
+Minimum when using Mobile IPv6 extensions: 0.03.
 
 Default: 0.33 * MaxRtrAdvInterval
+
+.TP
+.BR "MinDelayBetweenRAs " seconds
+
+The minimum time allowed between sending multicast
+router advertisements from the interface, in seconds.
+
+This applies to solicited multicast RAs.
+This is defined as the protocol constant MIN_DELAY_BETWEEN_RAS in RFC2461.
+MIPv6 redefines this parameter to have a minimum of 0.03 seconds.
+
+Minimum when using Mobile IPv6 extensions: 0.03.
+
+Default: 3 
 
 .TP
 .BR AdvManagedFlag " " on | off
@@ -206,7 +223,7 @@ lifetime fields.
 
 Must be either zero or between MaxRtrAdvInterval and 9000 seconds.
 
-Default: 3 * MaxRtrAdvInterval
+Default: 3 * MaxRtrAdvInterval (Minimum 1 second).
 
 .TP
 .BR AdvDefaultPreference " " low | medium | high
@@ -276,6 +293,10 @@ When set, Advertisement Interval Option (specified by Mobile IPv6)
 is included in Router Advertisements.  When set, minimum limits
 specified by Mobile IPv6 are used for MinRtrAdvInterval and
 MaxRtrAdvInterval.
+
+The advertisement interval is based on the configured MaxRtrAdvInterval
+parameter except where this is less than 200ms.  In this case,
+the advertised interval is ( MaxRtrAdvInterval + 20ms ).
 
 Default: off
 

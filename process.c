@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.7 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: process.c,v 1.8 2004/10/26 05:30:34 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -160,7 +160,7 @@ process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
 	mdelay(delay);
  	
 	if (iface->UnicastOnly
-		|| tv.tv_sec - iface->last_multicast < MIN_DELAY_BETWEEN_RAS)
+		|| tv.tv_sec - iface->last_multicast < iface->MinDelayBetweenRAs)
 	{
 		/*
 		 *	unicast reply
