@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.10 2005/03/22 10:29:13 psavola Exp $
+ *   $Id: gram.y,v 1.11 2005/07/05 07:07:45 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -340,7 +340,7 @@ prefixdef	: prefixhead '{' optional_prefixplist '}' ';'
 					prefix->enabled = 0;
 				} else
 				{
-					*((uint32_t *)(prefix->Prefix.s6_addr)) = htons(0x2002);
+					*((uint16_t *)(prefix->Prefix.s6_addr)) = htons(0x2002);
 					memcpy( prefix->Prefix.s6_addr + 2, &dst, sizeof( dst ) );
 				}
 			}
