@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.12 2005/01/07 19:16:52 lutchann Exp $
+ *   $Id: device-linux.c,v 1.13 2005/07/05 06:44:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -167,8 +167,12 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 
 	if (setsockopt(sock, SOL_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
 	{
-		flog(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
-		return (-1);
+		/* linux-2.6.12-bk4 returns error with HUP signal but keep listening */
+		if (errno != EADDRINUSE)
+		{
+			flog(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
+			return (-1);
+		}
 	}
 
 	return (0);

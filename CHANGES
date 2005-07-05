@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.38 2005/03/29 12:59:41 psavola Exp $
+$Id: CHANGES,v 1.39 2005/07/05 06:44:17 psavola Exp $
+
+07/05/2005	Fix Linux-2.6.12-bk4+ error with HUP signal,
+		from YOSHIFUJI Hideaki / USAGI.
 
 03/29/2005	Merge a part of MIPv6/non-MIPv6 code, make printing
 		error messages nicer.
