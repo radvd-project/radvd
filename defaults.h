@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.11 2005/03/29 15:15:20 psavola Exp $
+ *   $Id: defaults.h,v 1.12 2005/07/05 08:10:28 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -128,10 +128,10 @@
 #define ND_OPT_HOME_AGENT_INFO          8
 #endif
 
-/* draft-ietf-ipv6-router-selection-02.txt */
-/* XXX: not formally assigned, this will be changed! */
-#ifndef ND_OPT_ROUTE_INFORMATION
-#define  ND_OPT_ROUTE_INFORMATION	9	
+/* de-facto codepoint used by many implementations was '9',
+   the official IANA assignment will be '24' */
+#undef ND_OPT_ROUTE_INFORMATION
+#define  ND_OPT_ROUTE_INFORMATION	24
 
 /* XXX: some libc's like KAME already had nd_opt_route_info! */
 struct nd_opt_route_info_local     /* route information */
@@ -146,9 +146,7 @@ struct nd_opt_route_info_local     /* route information */
 
 /* the reserved field is 8 bits and we're interested of the middle two: 000xx000 */
 #define ND_OPT_RI_PRF_SHIFT	3
-#define ND_OPT_RI_PRF_MASK	(3 << ND_OPT_RI_PRF_SHIFT)
-
-#endif
+#define ND_OPT_RI_PRF_MASK	(3 << ND_OPT_RI_PRF_SHIFT) /* 00011000 = 0x18 */
 
 /* Flags */
 

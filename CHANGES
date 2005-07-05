@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.40 2005/07/05 07:07:45 psavola Exp $
+$Id: CHANGES,v 1.41 2005/07/05 08:10:28 psavola Exp $
+
+07/05/2005	Change the more-specific route ND option code
+		from de-facto '9' to the official '24'.  Change
+		back in defaults.h if you need old behaviour.
 
 07/05/2005	Fix wrongly calculated prefix with Base6to4Interface
                 on ppc and maybe other big endian arches, from
