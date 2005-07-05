@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.39 2005/07/05 06:44:17 psavola Exp $
+$Id: CHANGES,v 1.40 2005/07/05 07:07:45 psavola Exp $
+
+07/05/2005	Fix wrongly calculated prefix with Base6to4Interface
+                on ppc and maybe other big endian arches, from
+		Debian #301543 by Sam Hathaway.
 
 07/05/2005	Fix Linux-2.6.12-bk4+ error with HUP signal,
 		from YOSHIFUJI Hideaki / USAGI.
