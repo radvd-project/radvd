@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.41 2005/07/05 08:10:28 psavola Exp $
+$Id: CHANGES,v 1.42 2005/07/08 11:50:32 psavola Exp $
+
+07/08/2005	Release 0.8.
 
 07/05/2005	Change the more-specific route ND option code
 		from de-facto '9' to the official '24'.  Change
