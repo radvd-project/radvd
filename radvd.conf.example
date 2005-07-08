@@ -1,3 +1,13 @@
+#
+# NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE 
+# NOTE                                                             NOTE
+# NOTE  This is an EXAMPLE, which serves only to demonstrate the   NOTE
+# NOTE  syntax of radvd.conf, and is not meant to be used for a    NOTE
+# NOTE  real radvd configuration.                                  NOTE
+# NOTE                                                             NOTE
+# NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE 
+#
+
 interface eth0
 {
 	AdvSendAdvert on;
@@ -32,7 +42,7 @@ interface eth0
 #
 # example of a standard prefix
 #
-	prefix 3ffe:0302:0011:0002::/64
+	prefix 2001:db8:1:0::/64
 	{
 		AdvOnLink on;
 		AdvAutonomous on;
