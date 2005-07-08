@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.12 2005/02/19 09:44:58 psavola Exp $
+# $Id: radvd.spec,v 1.13 2005/07/08 11:49:58 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -7,7 +7,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 0.7.3
+Version: 0.8
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD-style
@@ -43,7 +43,7 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 mkdir -p $RPM_BUILD_ROOT%{initdir}
 mkdir -p $RPM_BUILD_ROOT/var/run/radvd
 
-install -m 644 radvd.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/radvd.conf
+install -m 644 redhat/radvd.conf.empty $RPM_BUILD_ROOT%{_sysconfdir}/radvd.conf
 install -m 755 redhat/radvd.init $RPM_BUILD_ROOT%{initdir}/radvd
 install -m 644 redhat/radvd.sysconfig $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/radvd
 
@@ -75,11 +75,16 @@ fi
 %config(noreplace) /etc/sysconfig/radvd
 %config %{initdir}/radvd
 %dir %attr(-,radvd,radvd) /var/run/radvd/
+%doc radvd.conf.example
 %{_mandir}/*/*
 %{_sbindir}/radvd
 %{_sbindir}/radvdump
 
 %changelog
+* Fri Jul  8 2005 Pekka Savola <pekkas@netcore.fi> 0.8-1
+- 0.8.
+- Ship the example config file as %%doc (Red Hat's #159005)
+
 * Mon Feb 21 2005 Pekka Savola <pekkas@netcore.fi> 0.7.3-1
 - 0.7.3.
 
