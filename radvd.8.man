@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.8 2004/08/20 07:04:07 psavola Exp $
+.\"   $Id: radvd.8.man,v 1.9 2005/07/23 11:09:18 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -65,7 +65,7 @@ Displays a short usage description and then aborts.
 .TP
 .BR "\-d " debuglevel, " \-\-debug " debuglevel
 With this option you turn on debugging information. The debugging level is
-an integer in the range from 1 to 4, from  quiet to very verbose. A
+an integer in the range from 1 to 5, from  quiet to very verbose. A
 debugging level of 0 completely turns off debugging. If a debugging level 
 greater than 0 is used,
 .I radvd
