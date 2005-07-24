@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.6 2001/11/14 19:58:11 lutchann Exp $
+ *   $Id: timer.c,v 1.7 2005/07/24 08:04:55 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -49,7 +49,10 @@ schedule_timer(void)
 		{
 			dlog(LOG_DEBUG, 4, "calling alarm: %ld secs, %ld usecs", 
 					next.it_value.tv_sec, next.it_value.tv_usec);
-			setitimer(ITIMER_REAL, &next,  NULL);
+
+			if(setitimer(ITIMER_REAL, &next,  NULL))
+				flog(LOG_WARNING, "schedule_timer setitimer for %ld.%ld failed: %s",
+					next.it_value.tv_sec, next.it_value.tv_usec, strerror(errno));
 		}
 		else
 		{
