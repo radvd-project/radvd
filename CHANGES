@@ -1,4 +1,9 @@
-$Id: CHANGES,v 1.42 2005/07/08 11:50:32 psavola Exp $
+$Id: CHANGES,v 1.43 2005/07/26 19:21:04 psavola Exp $
+
+07/24/2005	Implement a new logging method "stderr_syslog" which is
+		now also the default.  Everything is logged on syslog,
+		while the most important messages (i.e., start-up failures)
+		are also logged on stderr.
 
 07/08/2005	Release 0.8.
 

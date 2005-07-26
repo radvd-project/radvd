@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.12 2005/02/15 08:32:06 psavola Exp $
+ *   $Id: radvd.h,v 1.13 2005/07/26 19:21:04 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -27,7 +27,8 @@
 #define	L_NONE		0
 #define L_SYSLOG	1
 #define L_STDERR	2
-#define L_LOGFILE	3
+#define L_STDERR_SYSLOG	3
+#define L_LOGFILE	4
 
 #define LOG_TIME_FORMAT "%b %d %H:%M:%S"
 

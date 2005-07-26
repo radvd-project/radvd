@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.4 2004/06/20 17:52:41 lutchann Exp $
+ *	$Id: log.c,v 1.5 2005/07/26 19:21:04 psavola Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -34,6 +34,8 @@ log_open(int method, char *ident, char *log, int facility)
 		case L_NONE:
 		case L_STDERR:
 			break;
+		case L_STDERR_SYSLOG:
+			/* fallthrough */
 		case L_SYSLOG:
 			if (facility == -1)
 				log_facility = LOG_DAEMON;
@@ -77,6 +79,11 @@ vlog(int prio, char *format, va_list ap)
 	    		vsnprintf(buff, sizeof(buff), format, ap);
 			syslog(prio, "%s", buff);
 			break;
+		case L_STDERR_SYSLOG:
+	    		vsnprintf(buff, sizeof(buff), format, ap);
+			syslog(prio, "%s", buff);
+			if (prio > LOG_ERR) /* fall through for messages with high priority */
+				break;
 		case L_STDERR:
 			current = time(NULL);
 			tm = localtime(&current);
