@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.21 2005/03/22 10:29:13 psavola Exp $
+ *   $Id: radvd.c,v 1.22 2005/07/26 19:21:04 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 
 	srand((unsigned int)time(NULL));
 
-	log_method = L_SYSLOG;
+	log_method = L_STDERR_SYSLOG;
 	logfile = PATH_RADVD_LOG;
 	conf_file = PATH_RADVD_CONF;
 	facility = LOG_FACILITY;
@@ -115,6 +115,10 @@ main(int argc, char *argv[])
 			if (!strcmp(optarg, "syslog"))
 			{
 				log_method = L_SYSLOG;
+			}
+			else if (!strcmp(optarg, "stderr_syslog"))
+			{
+				log_method = L_STDERR_SYSLOG;
 			}
 			else if (!strcmp(optarg, "stderr"))
 			{

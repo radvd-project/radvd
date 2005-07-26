@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.9 2005/07/23 11:09:18 psavola Exp $
+.\"   $Id: radvd.8.man,v 1.10 2005/07/26 19:21:04 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -97,8 +97,12 @@ a compiled in default is used (see next option).
 .B stderr
 Logs to standard error.
 .TP
+.B stderr_syslog
+Logs only the high messages (of at least LOG_ERR priority) to standard
+error, and everything to syslog (default method).
+.TP
 .B syslog
-Logs to syslog (default method).
+Logs to syslog.
 .RE
 .PP
 .TP
