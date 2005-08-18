@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.43 2005/07/26 19:21:04 psavola Exp $
+$Id: CHANGES,v 1.44 2005/08/18 07:22:22 psavola Exp $
+
+08/18/2005	Implement more robust timer handler, especially
+		because some Linux kernels don't seem to behave
+		all that well; see http://lkml.org/lkml/2005/4/29/163.
+		Based on extensive testing & reports by
+		Tomasz Grobelny.
 
 07/24/2005	Implement a new logging method "stderr_syslog" which is
 		now also the default.  Everything is logged on syslog,
