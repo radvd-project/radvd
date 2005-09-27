@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.12 2004/10/26 05:30:34 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.13 2005/09/27 09:44:59 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -508,8 +508,8 @@ Version 6 (IPv6)", RFC 2461, December 1998
 Thomson, S., and T. Narten, "IPv6 Stateless Address Autoconfiguration", 
 RFC 2462, December 1998.
 .PP
-Deering, S., and R. Hinden, Editors, "IP Version 6 Addressing
-Architecture", RFC 2373, July 1998.
+Deering, S., and R. Hinden, "IP Version 6 Addressing
+Architecture", RFC 3513, April 2003.
 .PP	
 Conta, A., and S. Deering, "Internet Control Message Protocol (ICMPv6)
 for the Internet Protocol Version 6 (IPv6)", RFC 2463, December 1998.
@@ -517,12 +517,15 @@ for the Internet Protocol Version 6 (IPv6)", RFC 2463, December 1998.
 Crawford, M., "Transmission of IPv6 Packets over Ethernet Networks",
 RFC 2464, December 1998.	
 .PP
-Carpenter B., Moore K., "Connection of IPv6 Domains via IPv4 Clouds",
+Carpenter B., K. Moore, "Connection of IPv6 Domains via IPv4 Clouds",
 RFC 3056, February 2001. (6to4 specification)
 .PP
-Draves, R., Hinden B., "Default Router Preferences, More-Specific Routes,
-and Load Sharing", draft-ietf-ipv6-router-selection-02.txt,
-work-in-progress, June 2002.
+Draves, R., D. Thaler, "Default Router Preferences and More-Specific Routes",
+draft-ietf-ipv6-router-selection-07.txt,
+work-in-progress, January 2005.
+.PP
+D. Johnson, C. Perkins, J. Arkko, "Mobility Support in IPv6",
+RFC 3775, June 2004.
 
 .SH "SEE ALSO"
 
