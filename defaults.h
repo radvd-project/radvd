@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.12 2005/07/05 08:10:28 psavola Exp $
+ *   $Id: defaults.h,v 1.13 2005/09/27 09:39:38 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -160,7 +160,7 @@ struct nd_opt_route_info_local     /* route information */
 /* Configurable values */
 
 #define DFLT_HomeAgentPreference	0
-#define DFLT_HomeAgentLifetime(iface)	DFLT_AdvDefaultLifetime(iface)
+#define DFLT_HomeAgentLifetime(iface)	((iface)->AdvDefaultLifetime)
 
 /* Other */
 
