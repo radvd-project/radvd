@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.17 2005/02/15 08:32:06 psavola Exp $
+ *   $Id: send.c,v 1.18 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -218,13 +218,16 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	 * Dynamic Home Agent Address Discovery
 	 */
 
-	if(iface->AdvHomeAgentInfo && (iface->HomeAgentPreference != 0 ||
-		iface->HomeAgentLifetime != iface->AdvDefaultLifetime))
+	if(iface->AdvHomeAgentInfo &&
+	   (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 ||
+	    iface->HomeAgentLifetime != iface->AdvDefaultLifetime))
+
 	{
 		struct HomeAgentInfo ha_info;
  		ha_info.type		= ND_OPT_HOME_AGENT_INFO;
 		ha_info.length		= 1;
-		ha_info.reserved	= 0;
+		ha_info.flags_reserved	=
+			(iface->AdvMobRtrSupportFlag)?ND_OPT_HAI_FLAG_SUPPORT_MR:0;
 		ha_info.preference	= htons(iface->HomeAgentPreference);
 		ha_info.lifetime	= htons(iface->HomeAgentLifetime);
 

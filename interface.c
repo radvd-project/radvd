@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.10 2005/03/29 15:15:20 psavola Exp $
+ *   $Id: interface.c,v 1.11 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -36,6 +36,7 @@ iface_init_defaults(struct Interface *iface)
 	iface->AdvHomeAgentFlag	  = DFLT_AdvHomeAgentFlag;
 	iface->HomeAgentPreference = DFLT_HomeAgentPreference;
 	iface->MinDelayBetweenRAs   = DFLT_MinDelayBetweenRAs;
+	iface->AdvMobRtrSupportFlag = DFLT_AdvMobRtrSupportFlag;
 
 	iface->MinRtrAdvInterval  = -1;
 	iface->AdvDefaultLifetime = -1;
@@ -191,6 +192,12 @@ check_iface(struct Interface *iface)
 	{
 		flog(LOG_ERR, 
 			"AdvHomeAgentFlag for %s must be set with HomeAgentInfo", iface->Name);
+		res = -1;
+	}
+	if (iface->AdvMobRtrSupportFlag && !(iface->AdvHomeAgentInfo))
+	{
+		flog(LOG_ERR, 
+			"AdvHomeAgentInfo for %s must be set with AdvMobRtrSupportFlag", iface->Name);
 		res = -1;
 	}
 

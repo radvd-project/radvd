@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.13 2005/09/27 09:39:38 psavola Exp $
+ *   $Id: defaults.h,v 1.14 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -176,5 +176,17 @@ struct nd_opt_route_info_local     /* route information */
 
 /* #define MAX_RTR_SOLICITATIONS This MAY be ignored by MIPv6 */
 
+/* NEMO extensions, off by default */
+#define DFLT_AdvMobRtrSupportFlag      	0
+
+/* Flags */
+
+#ifndef ND_OPT_HAI_FLAG_SUPPORT_MR
+#if BYTE_ORDER == BIG_ENDIAN
+#define ND_OPT_HAI_FLAG_SUPPORT_MR	0x8000
+#else /* BYTE_ORDER == LITTLE_ENDIAN */
+#define ND_OPT_HAI_FLAG_SUPPORT_MR	0x0080
+#endif
+#endif
 
 #endif
