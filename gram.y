@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.11 2005/07/05 07:07:45 psavola Exp $
+ *   $Id: gram.y,v 1.12 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -90,6 +90,8 @@ static void yyerror(char *msg);
 
 %token		T_AdvRoutePreference
 %token		T_AdvRouteLifetime
+
+%token		T_AdvMobRtrSupportFlag
 
 %token		T_BAD_TOKEN
 
@@ -305,6 +307,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_UnicastOnly SWITCH ';'
 		{
 			iface->UnicastOnly = $2;
+		}
+		| T_AdvMobRtrSupportFlag SWITCH ';'
+		{
+			iface->AdvMobRtrSupportFlag = $2;
 		}
 		;
 		

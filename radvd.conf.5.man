@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.13 2005/09/27 09:44:59 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.14 2005/09/28 10:55:29 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -287,6 +287,15 @@ default values, Home Agent Information Option will not be sent.
 Default: 0
 
 .TP
+.BR AdvMobRtrSupportFlag " " on | off
+
+When set, the Home Agent signals it supports Mobile Router
+registrations (specified by NEMO Basic).  AdvHomeAgentInfo must also
+be set when using this option.
+
+Default: off
+
+.TP
 .BR AdvIntervalOpt " " on | off
 
 When set, Advertisement Interval Option (specified by Mobile IPv6)
@@ -524,8 +533,11 @@ Draves, R., D. Thaler, "Default Router Preferences and More-Specific Routes",
 draft-ietf-ipv6-router-selection-07.txt,
 work-in-progress, January 2005.
 .PP
-D. Johnson, C. Perkins, J. Arkko, "Mobility Support in IPv6",
+Johnson, D., Perkins, C., and J. Arkko, "Mobility Support in IPv6",
 RFC 3775, June 2004.
+.PP
+Devarapalli, V., Wakikawa, R., Petrescu, A., and P. Thubert "Network Mobility (NEMO) Basic Support Protocol",
+RFC 3963, January 2005.
 
 .SH "SEE ALSO"
 

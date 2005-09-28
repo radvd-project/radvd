@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.9 2004/10/26 05:30:34 psavola Exp $
+ *   $Id: scanner.l,v 1.10 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -79,6 +79,8 @@ AdvRoutePreference	{ return T_AdvRoutePreference; }
 AdvRouteLifetime	{ return T_AdvRouteLifetime; }
 
 MinDelayBetweenRAs      { return T_MinDelayBetweenRAs; }
+
+AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 
 {addr}		{
 			static struct in6_addr addr;

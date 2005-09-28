@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.8 2004/06/20 17:52:41 lutchann Exp $
+ *   $Id: radvdump.c,v 1.9 2005/09/28 10:55:29 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -342,6 +342,9 @@ print_ra(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 			ha_info = (struct HomeAgentInfo *)opt_str;
 
 			printf("\tAdvHomeAgentInfo:\n");
+			/* NEMO ext */
+			printf("\t\tAdvMobRtrSupportFlag: %s\n",
+			       (ha_info->flags_reserved & ND_OPT_HAI_FLAG_SUPPORT_MR)?"on":"off");
 			printf("\t\tHomeAgentPreference: %hu", (unsigned short)ntohs(ha_info->preference));
 			printf("\n");
 			printf("\t\tHomeAgentLifetime: %hu", (unsigned short)ntohs(ha_info->lifetime));
@@ -475,9 +478,13 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 		case ND_OPT_HOME_AGENT_INFO:
 			ha_info = (struct HomeAgentInfo *)opt_str;
 
-			/* XXX: !DFLT depends on current DFLT_ value */
-			if (!edefs || !DFLT_AdvHomeAgentInfo)
+			/* XXX: we check DFLT_HomeAgentInfo by interface, and it's outside
+			   of context here, so we always need to print it out.. */
 			printf("\tAdvHomeAgentInfo on;\n");
+
+			/* NEMO ext */
+			if (!edefs || DFLT_AdvMobRtrSupportFlag != (ha_info->flags_reserved & ND_OPT_HAI_FLAG_SUPPORT_MR))
+				printf("\tAdvMobRtrSupportFlag %s;\n", (ha_info->flags_reserved & ND_OPT_HAI_FLAG_SUPPORT_MR)?"on":"off");
 
 			if (!edefs || DFLT_HomeAgentPreference != (unsigned short)ntohs(ha_info->preference))
 			printf("\tHomeAgentPreference %hu;\n", (unsigned short)ntohs(ha_info->preference));
