@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.13 2005/07/08 11:49:58 psavola Exp $
+# $Id: radvd.spec,v 1.14 2005/09/28 11:31:10 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -32,8 +32,13 @@ services.
 %setup
 
 %build
-CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" %configure --with-pidfile=/var/run/radvd/radvd.pid
-make %{?_smp_mflags}
+export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" 
+%configure --with-pidfile=/var/run/radvd/radvd.pid
+make
+# make %{?_smp_mflags} 
+# Parallel builds still fail because seds that transform y.tab.x into
+# scanner/gram.x are not executed before compile of scanner/gram.x
+#
 
 %install
 [ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
