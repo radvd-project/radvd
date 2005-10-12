@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.45 2005/09/28 10:55:29 psavola Exp $
+$Id: CHANGES,v 1.46 2005/10/12 18:18:28 psavola Exp $
 
 09/28/2005	Add NEMO Basic support (RFC3961) and fix default
 		HomeAgentLifetime, from Ville Nuorvala.
@@ -7,7 +7,9 @@ $Id: CHANGES,v 1.45 2005/09/28 10:55:29 psavola Exp $
 		because some Linux kernels don't seem to behave
 		all that well; see http://lkml.org/lkml/2005/4/29/163.
 		Based on extensive testing & reports by
-		Tomasz Grobelny.
+		Tomasz Grobelny.  NB: the bug report was caused by
+		a bad timer patch in PLD's kernel package, and this
+		should not occur often with standard kernels.
 
 07/24/2005	Implement a new logging method "stderr_syslog" which is
 		now also the default.  Everything is logged on syslog,
