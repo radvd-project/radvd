@@ -1,4 +1,4 @@
-$Id: TODO,v 1.16 2005/03/29 13:40:55 psavola Exp $
+$Id: TODO,v 1.17 2005/10/18 06:52:33 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -17,10 +17,6 @@ Quoting Peter Bieringer (peter@bieringer.de):
 from forking.]
 
 support for few protocol constants defined in RFC 2461 Sec 10 is missing.
-
-consider whether it's worth integrating radvdump print_ff and print_ra
-functions as they provide very similar service and there's some code
-duplication.
 
 consider whether UnicastOnly flag should be detected by radvdump.
 
