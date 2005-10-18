@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.46 2005/10/12 18:18:28 psavola Exp $
+$Id: CHANGES,v 1.47 2005/10/18 06:52:33 psavola Exp $
+
+10/18/2005	Make the radvd.conf syntax dump default
+		in radvdump and remove the previous default to
+		reduce code duplication.
 
 09/28/2005	Add NEMO Basic support (RFC3961) and fix default
 		HomeAgentLifetime, from Ville Nuorvala.
