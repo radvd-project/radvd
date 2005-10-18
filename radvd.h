@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.14 2005/09/28 10:55:29 psavola Exp $
+ *   $Id: radvd.h,v 1.15 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 
@@ -21,7 +21,7 @@
 #include <includes.h>
 #include <defaults.h>
 
-#define CONTACT_EMAIL	"Nathan Lutchansky <lutchann@litech.org>"
+#define CONTACT_EMAIL	"Pekka Savola <pekkas@netcore.fi>"
 
 /* for log.c */
 #define	L_NONE		0

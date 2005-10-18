@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvdump.8.man,v 1.4 2005/10/18 06:52:33 psavola Exp $
+.\"   $Id: radvdump.8.man,v 1.5 2005/10/18 19:17:29 lutchann Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -10,7 +10,7 @@
 .\"
 .\"   The license which is distributed with this software in the file COPYRIGHT
 .\"   applies to this software. If your distribution is missing this file, you
-.\"   may request it from <lutchann@litech.org>.
+.\"   may request it from <pekkas@netcore.fi>.
 .\"
 .\"
 .\"
@@ -71,8 +71,7 @@ The default debugging level is 0.
 .SH BUGS
 
 There certainly are some bugs. If you find them or have other
-suggestions please contact Pekka Savola <pekkas@netcore.fi> or
-Nathan Lutchansky <lutchann@litech.org>.
+suggestions please contact Pekka Savola <pekkas@netcore.fi>.
 
 .SH "SEE ALSO"
 
@@ -82,7 +81,7 @@ Nathan Lutchansky <lutchann@litech.org>.
 
 .nf
 Lars Fenneberg	<lf@elemental.net>	- previous maintainer
-Nathan Lutchansky <lutchann@litech.org> - current maintainer
+Nathan Lutchansky <lutchann@litech.org> - previous maintainer
 Pekka Savola	<pekkas@netcore.fi>	- current maintainer
 Marko Myllynen	<myllynen@lut.fi>	- Mobile IPv6 support
 .fi

@@ -1,5 +1,5 @@
 /*
- *   $Id: includes.h,v 1.12 2002/06/15 10:25:04 psavola Exp $
+ *   $Id: includes.h,v 1.13 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 

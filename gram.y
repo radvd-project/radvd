@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.12 2005/09/28 10:55:29 psavola Exp $
+ *   $Id: gram.y,v 1.13 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 %{

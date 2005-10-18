@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.5 2004/08/20 07:17:53 psavola Exp $
+ *   $Id: device-common.c,v 1.6 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 
