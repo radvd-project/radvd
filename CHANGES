@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.48 2005/10/18 19:17:29 lutchann Exp $
+$Id: CHANGES,v 1.49 2005/10/18 19:26:11 psavola Exp $
+
+10/19/2005	Release 0.9.
 
 10/18/2005	Transfer sole maintainership of radvd to Pekka Savola.
 

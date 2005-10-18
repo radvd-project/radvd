@@ -1,6 +1,6 @@
 #
-# $Id: VERSION,v 1.15 2005/07/08 11:50:32 psavola Exp $
+# $Id: VERSION,v 1.16 2005/10/18 19:26:11 psavola Exp $
 #
 # this file is automatically processed by configure
 #
-0.8
+0.9
