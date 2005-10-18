@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.9 2004/08/20 07:25:59 psavola Exp $
+dnl  $Id: configure.in,v 1.10 2005/10/18 19:17:29 lutchann Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -9,11 +9,11 @@ dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
 dnl   applies to this software. If your distribution is missing this file, you
-dnl   may request it from <lutchann@litech.org>.
+dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.9 2004/08/20 07:25:59 psavola Exp $)
+AC_REVISION ($Id: configure.in,v 1.10 2005/10/18 19:17:29 lutchann Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM

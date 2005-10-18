@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.22 2005/07/26 19:21:04 psavola Exp $
+ *   $Id: radvd.c,v 1.23 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 

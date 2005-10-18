@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.5 2005/07/26 19:21:04 psavola Exp $
+ *	$Id: log.c,v 1.6 2005/10/18 19:17:29 lutchann Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -9,7 +9,7 @@
  *
  *	The license which is distributed with this software in the file
  *	COPYRIGHT applies to this software. If your distribution is missing 
- *	this file, you may request it from <lutchann@litech.org>.
+ *	this file, you may request it from <pekkas@netcore.fi>.
  *
  */
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.14 2005/03/22 10:29:13 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.15 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 
@@ -208,7 +208,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 
 /* UNTESTED - This code is from device-linux.c and has not been tested
  * under BSD.  If it is broken in the distribution and you fix it, please
- * send me the patch.  -lutchann */
+ * submit a patch. */
 
 int
 get_v4addr(const char *ifn, unsigned int *dst)

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.10 2005/10/18 06:52:33 psavola Exp $
+ *   $Id: radvdump.c,v 1.11 2005/10/18 19:17:29 lutchann Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -10,7 +10,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <lutchann@litech.org>.
+ *   may request it from <pekkas@netcore.fi>.
  *
  */
 
