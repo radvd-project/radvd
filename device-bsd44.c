@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.16 2005/10/28 09:25:38 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.17 2005/10/28 14:29:49 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -53,11 +53,13 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
 
-	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0)
-		flog(LOG_WARNING, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->Name, strerror(errno));
+	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0) {
+		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->Name, strerror(errno));
+		goto ret;
+	}	
 
-	if (ifr.ifr_mtu)
-		dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
+	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
+	iface->if_maxmtu = ifr.ifr_mtu;
 
 	p = (uint8_t *)ifconf.ifc_buf;
 	end = p + ifconf.ifc_len;
@@ -93,11 +95,9 @@ setup_deviceinfo(int sock, struct Interface *iface)
             		case IFT_ETHER:
             		case IFT_ISO88023:
             			iface->if_prefix_len = 64;
-              			iface->if_maxmtu = (ifr.ifr_mtu) ? ifr.ifr_mtu : 1500;
               			break;
             		case IFT_FDDI:
             			iface->if_prefix_len = 64;
-              			iface->if_maxmtu = (ifr.ifr_mtu) ? ifr.ifr_mtu : 4352;
               			break;
             		default:
             			iface->if_prefix_len = -1;
