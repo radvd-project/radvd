@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.14 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: device-linux.c,v 1.15 2005/10/28 09:25:38 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -31,12 +31,13 @@
 int
 setup_deviceinfo(int sock, struct Interface *iface)
 {
-	struct ifreq	ifr;
+	struct ifreq	ifr, ifr2;
 	struct AdvPrefix *prefix;
 	char zero[HWADDR_MAX];
 	
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
+	memcpy(&ifr2, &ifr, sizeof(struct ifreq));
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
 	{
@@ -48,18 +49,25 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	dlog(LOG_DEBUG, 3, "hardware type for %s is %d", iface->Name,
 		ifr.ifr_hwaddr.sa_family); 
 
+	if (ioctl(sock, SIOCGIFMTU, &ifr2) < 0)
+		flog(LOG_WARNING, "ioctl(SIOCGIFMTU) failed for %s: %s",
+			iface->Name, strerror(errno));
+
+	if (ifr2.ifr_mtu) 
+		dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr2.ifr_mtu);
+
 	switch(ifr.ifr_hwaddr.sa_family)
         {
 	case ARPHRD_ETHER:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		iface->if_maxmtu = 1500;
+		iface->if_maxmtu = (ifr2.ifr_mtu) ? ifr2.ifr_mtu : 1500;
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		iface->if_maxmtu = 4352;
+		iface->if_maxmtu = (ifr2.ifr_mtu) ? ifr2.ifr_mtu : 4352;
 		break;
 #endif /* ARPHDR_FDDI */
 #ifdef ARPHRD_ARCNET
