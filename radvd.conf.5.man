@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.15 2005/10/18 19:17:29 lutchann Exp $
+.\"   $Id: radvd.conf.5.man,v 1.16 2005/11/17 16:21:57 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -530,8 +530,7 @@ Carpenter B., K. Moore, "Connection of IPv6 Domains via IPv4 Clouds",
 RFC 3056, February 2001. (6to4 specification)
 .PP
 Draves, R., D. Thaler, "Default Router Preferences and More-Specific Routes",
-draft-ietf-ipv6-router-selection-07.txt,
-work-in-progress, January 2005.
+RFC 4191, November 2005.
 .PP
 Johnson, D., Perkins, C., and J. Arkko, "Mobility Support in IPv6",
 RFC 3775, June 2004.
