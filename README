@@ -1,4 +1,4 @@
-$Id: README,v 1.7 2005/11/13 14:17:23 psavola Exp $
+$Id: README,v 1.8 2005/11/17 16:21:57 psavola Exp $
 
 Installation:
 =============
@@ -29,9 +29,9 @@ questions have been about what radvd _doesn't_ do...
     -- You don't.  By the specification, routers ignore RAs.
     You'll probably need to use manual configuration.  But you
     can't use the same prefix on two links in any case unless you
-    use something like proxy-ND (draft-ietf-ipv6-ndproxy-04.txt)
-    or prefix delegation (e.g., manually or with RFC3633),
-    so you may need to re-think your topology.
+    use something like proxy-ND (draft-ietf-ipv6-ndproxy-04.txt).
+    You may need to re-think your topology; prefix delegation
+    (e.g., manually or with RFC3633) may help.
 
  2. How do I set up the router running radvd to automatically
     configure the interfaces to use an EUI64-based address?
@@ -44,7 +44,7 @@ questions have been about what radvd _doesn't_ do...
 
  3. I have a dynamic /48 prefix.  How do I set up radvd to:
     a) set up interface addresses on downstream interfaces, and
-    b) advertise /64 prefixes from on downstream interfaces?
+    b) advertise /64 prefixes from the /48 on downstream interfaces?
 
     -- For a), this isn't supported. For b), radvd includes special
     support for 6to4 upstream interface only.  This should probably
