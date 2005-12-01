@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.17 2005/10/28 14:29:49 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.18 2005/12/01 06:32:23 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -216,10 +216,6 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 {
 	return (0);
 }
-
-/* UNTESTED - This code is from device-linux.c and has not been tested
- * under BSD.  If it is broken in the distribution and you fix it, please
- * submit a patch. */
 
 int
 get_v4addr(const char *ifn, unsigned int *dst)
