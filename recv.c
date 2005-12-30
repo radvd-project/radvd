@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.7 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: recv.c,v 1.8 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -26,7 +26,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	struct cmsghdr *cmsg;
 	struct iovec iov;
 	static unsigned char *chdr = NULL;
-	static int chdrlen = 0;
+	static unsigned int chdrlen = 0;
 	int len;
 	fd_set rfds;
 

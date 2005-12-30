@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.17 2005/12/30 09:46:50 psavola Exp $
+ *   $Id: device-linux.c,v 1.18 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -90,10 +90,10 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		iface->if_prefix_len);
 
 	if (iface->if_hwaddr_len != -1) {
-		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, (iface->if_hwaddr_len + 7) >> 3);
+		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, (unsigned int)((iface->if_hwaddr_len + 7) >> 3));
 
-		memset(zero, 0, (iface->if_hwaddr_len + 7) >> 3);
-		if (!memcmp(iface->if_hwaddr, zero, (iface->if_hwaddr_len + 7) >> 3))
+		memset(zero, 0, (unsigned int)((iface->if_hwaddr_len + 7) >> 3));
+		if (!memcmp(iface->if_hwaddr, zero, (unsigned int)((iface->if_hwaddr_len + 7) >> 3)))
 			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
 				iface->Name);
 	}
@@ -272,10 +272,10 @@ set_interface_var(const char *iface,
 	if (!fp) {
 		if (name)
 			flog(LOG_ERR, "failed to set %s (%u) for %s",
-			     name, (unsigned int)val, iface);
+			     name, val, iface);
 		return -1;
 	}
-	fprintf(fp, "%u", (unsigned int)val);
+	fprintf(fp, "%u", val);
 	fclose(fp);
 
 	return 0;

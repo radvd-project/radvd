@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.5 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: util.c,v 1.6 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -18,7 +18,7 @@
 #include <radvd.h>
                
 void
-mdelay(int msecs)
+mdelay(double msecs)
 {
 	struct timeval tv;
                 

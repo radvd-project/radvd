@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.19 2005/12/30 09:46:50 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.20 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -31,7 +31,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
 	struct ifreq ifr;
-	int nlen;
+	unsigned int nlen;
 	uint8_t *p, *end;
 	struct AdvPrefix *prefix;
 	char zero[HWADDR_MAX];
@@ -149,7 +149,7 @@ ret:
 int setup_linklocal_addr(int sock, struct Interface *iface)
 {
 	struct ifconf ifconf;
-	int nlen;
+	unsigned int nlen;
 	uint8_t *p, *end;
 	int index = 0;
 
@@ -260,7 +260,7 @@ int
 set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
 	dlog(LOG_DEBUG, 4, "setting LinkMTU (%u) for %s is not supported",
-	     (unsigned int)mtu, iface);
+	     mtu, iface);
 	return -1;
 }
 
@@ -268,7 +268,7 @@ int
 set_interface_curhlim(const char *iface, uint8_t hlim)
 {
 	dlog(LOG_DEBUG, 4, "setting CurHopLimit (%u) for %s is not supported",
-	     (unsigned int)hlim, iface);
+	     hlim, iface);
 	return -1;
 }
 
@@ -276,7 +276,7 @@ int
 set_interface_reachtime(const char *iface, uint32_t rtime)
 {
 	dlog(LOG_DEBUG, 4, "setting BaseReachableTime (%u) for %s is not supported",
-	     (unsigned int)rtime, iface);
+	     rtime, iface);
 	return -1;
 }
 
@@ -284,7 +284,7 @@ int
 set_interface_retranstimer(const char *iface, uint32_t rettimer)
 {
 	dlog(LOG_DEBUG, 4, "setting RetransTimer (%u) for %s is not supported",
-	     (unsigned int)rettimer, iface);
+	     rettimer, iface);
 	return -1;
 }
 

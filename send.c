@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.19 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: send.c,v 1.20 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -173,7 +173,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len != -1)
 	{
 		uint8_t *ucp;
-		int i;
+		unsigned int i;
 
 		ucp = (uint8_t *) (buff + len);
 	

@@ -1,4 +1,9 @@
-$Id: CHANGES,v 1.52 2005/12/30 08:54:02 psavola Exp $
+$Id: CHANGES,v 1.53 2005/12/30 15:13:11 psavola Exp $
+
+12/30/2005	Great cleanup of signed/unsigned values, add
+		-Wall and a number of other warnings to CFLAGS
+		by default.  Do not allow signed values for
+		HomeAgentPreference anymore.
 
 12/30/2005	Fix a couple of  IPv6 Ready Logo Phase-2 IPv6 Core
 		Protocols Self Test issues, patches from Yoshifuji

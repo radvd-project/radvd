@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.12 2005/12/30 08:54:03 psavola Exp $
+ *   $Id: process.c,v 1.13 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -380,8 +380,8 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 static int 
 addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 {
-	int pdw;
-	int pbi;
+	unsigned int pdw;
+	unsigned int pbi;
 
 	pdw = prefixlen >> 0x05;  /* num of whole uint32_t in prefix */
 	pbi = prefixlen &  0x1f;  /* num of bits in incomplete uint32_t in prefix */
