@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.13 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: gram.y,v 1.14 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -101,7 +101,7 @@ static void yyerror(char *msg);
 %type   <num>	number_or_infinity
 
 %union {
-	int			num;
+	unsigned int		num;
 	int			snum;
 	double			dec;
 	int			bool;
@@ -293,10 +293,6 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 			iface->AdvHomeAgentFlag = $2;
 		}
 		| T_HomeAgentPreference NUMBER ';'
-		{
-			iface->HomeAgentPreference = $2;
-		}
-		| T_HomeAgentPreference SIGNEDNUMBER ';'
 		{
 			iface->HomeAgentPreference = $2;
 		}

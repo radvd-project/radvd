@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.11 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: radvdump.c,v 1.12 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -36,8 +36,7 @@ int sock = -1;
 
 void version(void);
 void usage(void);
-void print_ra(unsigned char *, int, struct sockaddr_in6 *, int, int);
-void print_ff(unsigned char *, int, struct sockaddr_in6 *, int, int, int);
+void print_ff(unsigned char *, int, struct sockaddr_in6 *, int, unsigned int, int);
 void print_preferences(int);
 
 int
@@ -125,14 +124,14 @@ main(int argc, char *argv[])
 				exit(1);
 			}
 
-			dlog(LOG_DEBUG, 4, "receiver if_index: %d", pkt_info->ipi6_ifindex);
+			dlog(LOG_DEBUG, 4, "receiver if_index: %i", pkt_info->ipi6_ifindex);
 
 			if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 			{
 				/* not yet */	
 			}
 			else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
-				print_ff(msg, len, &rcv_addr, hoplimit, pkt_info->ipi6_ifindex, edefs);
+				print_ff(msg, len, &rcv_addr, hoplimit, (unsigned int)pkt_info->ipi6_ifindex, edefs);
         	}
 		else if (len == 0)
        	 	{
@@ -150,7 +149,7 @@ main(int argc, char *argv[])
 }
 
 void
-print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, int if_index, int edefs)
+print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, unsigned int if_index, int edefs)
 {
 	struct nd_router_advert *radvert;
 	char addr_str[INET6_ADDRSTRLEN];
@@ -177,14 +176,14 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 	printf("\tAdvOtherConfigFlag %s;\n", 
 		(radvert->nd_ra_flags_reserved & ND_RA_FLAG_OTHER)?"on":"off");
 
-	if (!edefs || DFLT_AdvReachableTime != (unsigned long)ntohl(radvert->nd_ra_reachable))
-	printf("\tAdvReachableTime %lu;\n", (unsigned long)ntohl(radvert->nd_ra_reachable));
+	if (!edefs || DFLT_AdvReachableTime != ntohl(radvert->nd_ra_reachable))
+	printf("\tAdvReachableTime %u;\n", ntohl(radvert->nd_ra_reachable));
 
-	if (!edefs || DFLT_AdvRetransTimer != (unsigned long)ntohl(radvert->nd_ra_retransmit))
-	printf("\tAdvRetransTimer %lu;\n", (unsigned long)ntohl(radvert->nd_ra_retransmit));
+	if (!edefs || DFLT_AdvRetransTimer != ntohl(radvert->nd_ra_retransmit))
+	printf("\tAdvRetransTimer %u;\n", ntohl(radvert->nd_ra_retransmit));
 
-	if (!edefs || DFLT_AdvCurHopLimit != (int) radvert->nd_ra_curhoplimit)
-	printf("\tAdvCurHopLimit %d;\n", (int) radvert->nd_ra_curhoplimit);
+	if (!edefs || DFLT_AdvCurHopLimit != radvert->nd_ra_curhoplimit)
+	printf("\tAdvCurHopLimit %u;\n", radvert->nd_ra_curhoplimit);
 
 	/* Mobile IPv6 ext */
 	if (!edefs || DFLT_AdvHomeAgentFlag != (ND_RA_FLAG_HOME_AGENT == (radvert->nd_ra_flags_reserved & ND_RA_FLAG_HOME_AGENT)))
@@ -240,8 +239,8 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 		case ND_OPT_MTU:
 			mtu = (struct nd_opt_mtu *)opt_str;
 
-			if (!edefs || DFLT_AdvLinkMTU != (unsigned long)ntohl(mtu->nd_opt_mtu_mtu))
-			printf("\tAdvLinkMTU %lu;\n", (unsigned long)ntohl(mtu->nd_opt_mtu_mtu));
+			if (!edefs || DFLT_AdvLinkMTU != ntohl(mtu->nd_opt_mtu_mtu))
+			printf("\tAdvLinkMTU %u;\n", ntohl(mtu->nd_opt_mtu_mtu));
 			break;
 		case ND_OPT_SOURCE_LINKADDR:
 			/* XXX: !DFLT depends on current DFLT_ value */
@@ -268,11 +267,11 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 			if (!edefs || DFLT_AdvMobRtrSupportFlag != (ha_info->flags_reserved & ND_OPT_HAI_FLAG_SUPPORT_MR))
 				printf("\tAdvMobRtrSupportFlag %s;\n", (ha_info->flags_reserved & ND_OPT_HAI_FLAG_SUPPORT_MR)?"on":"off");
 
-			if (!edefs || DFLT_HomeAgentPreference != (unsigned short)ntohs(ha_info->preference))
-			printf("\tHomeAgentPreference %hu;\n", (unsigned short)ntohs(ha_info->preference));
+			if (!edefs || DFLT_HomeAgentPreference != ntohs(ha_info->preference))
+			printf("\tHomeAgentPreference %hu;\n", ntohs(ha_info->preference));
 			/* Hum.. */
-			if (!edefs || (3*DFLT_MaxRtrAdvInterval) != (unsigned short)ntohs(ha_info->lifetime))
-			printf("\tHomeAgentLifetime %hu;\n", (unsigned short)ntohs(ha_info->lifetime));
+			if (!edefs || (3*DFLT_MaxRtrAdvInterval) != ntohs(ha_info->lifetime))
+			printf("\tHomeAgentLifetime %hu;\n", ntohs(ha_info->lifetime));
 			break;
 		case ND_OPT_TARGET_LINKADDR:
 		case ND_OPT_REDIRECTED_HEADER:
@@ -344,8 +343,8 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 			}
 			else
 			{
-				if (!edefs || DFLT_AdvValidLifetime != (unsigned long)ntohl(pinfo->nd_opt_pi_valid_time))
-				printf("\t\tAdvValidLifetime %lu;\n", (unsigned long)ntohl(pinfo->nd_opt_pi_valid_time));
+				if (!edefs || DFLT_AdvValidLifetime != ntohl(pinfo->nd_opt_pi_valid_time))
+				printf("\t\tAdvValidLifetime %u;\n", ntohl(pinfo->nd_opt_pi_valid_time));
 			}
 			if (ntohl(pinfo->nd_opt_pi_preferred_time) == 0xffffffff)
 			{
@@ -354,8 +353,8 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 			}
 			else
 			{
-				if (!edefs || DFLT_AdvPreferredLifetime != (unsigned long)ntohl(pinfo->nd_opt_pi_preferred_time))
-				printf("\t\tAdvPreferredLifetime %lu;\n", (unsigned long)ntohl(pinfo->nd_opt_pi_preferred_time));
+				if (!edefs || DFLT_AdvPreferredLifetime != ntohl(pinfo->nd_opt_pi_preferred_time))
+				printf("\t\tAdvPreferredLifetime %u;\n", ntohl(pinfo->nd_opt_pi_preferred_time));
 			}
 
 			if (!edefs || DFLT_AdvOnLinkFlag != (ND_OPT_PI_FLAG_ONLINK == (pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_ONLINK)))
@@ -390,7 +389,7 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, i
 			if (ntohl(rinfo->nd_opt_ri_lifetime) == 0xffffffff)
 				printf("\t\tAdvRouteLifetime infinity; # (0xffffffff)\n");
 			else
-				printf("\t\tAdvRouteLifetime %lu;\n", (unsigned long)ntohl(rinfo->nd_opt_ri_lifetime));
+				printf("\t\tAdvRouteLifetime %u;\n", ntohl(rinfo->nd_opt_ri_lifetime));
 		default:
 			break;
 		}

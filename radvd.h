@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.15 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: radvd.h,v 1.16 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -62,10 +62,10 @@ struct Interface {
 	double			MinDelayBetweenRAs;
 	int			AdvManagedFlag;
 	int			AdvOtherConfigFlag;
-	int			AdvLinkMTU;
-	int			AdvReachableTime;
-	int			AdvRetransTimer;
-	int			AdvCurHopLimit;
+	uint32_t		AdvLinkMTU;
+	uint32_t		AdvReachableTime;
+	uint32_t		AdvRetransTimer;
+	uint8_t			AdvCurHopLimit;
 	int			AdvDefaultLifetime;
 	int			AdvDefaultPreference;
 	int			AdvSourceLLAddress;
@@ -134,7 +134,7 @@ struct HomeAgentInfo {
 	uint8_t			type;
 	uint8_t			length;
 	uint16_t		flags_reserved;
-	int16_t			preference;
+	uint16_t		preference;
 	uint16_t		lifetime;
 };	
 
@@ -146,7 +146,7 @@ int yyparse(void);
 int yylex(void);
 
 /* radvd.c */
-int check_ip6_forwarding();
+int check_ip6_forwarding(void);
 
 /* timer.c */
 void set_timer(struct timer_lst *tm, double);
@@ -169,6 +169,10 @@ int setup_linklocal_addr(int, struct Interface *);
 int setup_allrouters_membership(int, struct Interface *);
 int check_allrouters_membership(int, struct Interface *);
 int get_v4addr(const char *, unsigned int *);
+int set_interface_linkmtu(const char *, uint32_t);
+int set_interface_curhlim(const char *, uint8_t);
+int set_interface_reachtime(const char *, uint32_t);
+int set_interface_retranstimer(const char *, uint32_t);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);
@@ -190,7 +194,7 @@ void process(int sock, struct Interface *, unsigned char *, int,
 int recv_rs_ra(int, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
 
 /* util.c */
-void mdelay(int);
+void mdelay(double);
 double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
 

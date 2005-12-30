@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.24 2005/12/30 09:46:50 psavola Exp $
+ *   $Id: radvd.c,v 1.25 2005/12/30 15:13:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -64,10 +64,6 @@ void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
-int set_interface_linkmtu(const char *, uint32_t);
-int set_interface_curhlim(const char *, uint8_t);
-int set_interface_reachtime(const char *, uint32_t);
-int set_interface_retranstimer(const char *, uint32_t);
 
 int
 main(int argc, char *argv[])
