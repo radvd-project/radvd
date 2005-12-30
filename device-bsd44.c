@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.18 2005/12/01 06:32:23 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.19 2005/12/30 09:46:50 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -255,3 +255,36 @@ get_v4addr(const char *ifn, unsigned int *dst)
 
 	return 0;
 }
+
+int
+set_interface_linkmtu(const char *iface, uint32_t mtu)
+{
+	dlog(LOG_DEBUG, 4, "setting LinkMTU (%u) for %s is not supported",
+	     (unsigned int)mtu, iface);
+	return -1;
+}
+
+int
+set_interface_curhlim(const char *iface, uint8_t hlim)
+{
+	dlog(LOG_DEBUG, 4, "setting CurHopLimit (%u) for %s is not supported",
+	     (unsigned int)hlim, iface);
+	return -1;
+}
+
+int
+set_interface_reachtime(const char *iface, uint32_t rtime)
+{
+	dlog(LOG_DEBUG, 4, "setting BaseReachableTime (%u) for %s is not supported",
+	     (unsigned int)rtime, iface);
+	return -1;
+}
+
+int
+set_interface_retranstimer(const char *iface, uint32_t rettimer)
+{
+	dlog(LOG_DEBUG, 4, "setting RetransTimer (%u) for %s is not supported",
+	     (unsigned int)rettimer, iface);
+	return -1;
+}
+
