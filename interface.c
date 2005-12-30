@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.12 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: interface.c,v 1.13 2005/12/30 16:12:23 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -38,10 +38,10 @@ iface_init_defaults(struct Interface *iface)
 	iface->MinDelayBetweenRAs   = DFLT_MinDelayBetweenRAs;
 	iface->AdvMobRtrSupportFlag = DFLT_AdvMobRtrSupportFlag;
 
-	iface->MinRtrAdvInterval  = -1;
-	iface->AdvDefaultLifetime = -1;
+	iface->MinRtrAdvInterval = DFLT_MinRtrAdvInterval(iface);
+	iface->AdvDefaultLifetime = DFLT_AdvDefaultLifetime(iface);
 	iface->AdvDefaultPreference = DFLT_AdvDefaultPreference;
-	iface->HomeAgentLifetime  = 0;
+	iface->HomeAgentLifetime = DFLT_HomeAgentLifetime(iface);
 }
 
 void
@@ -92,9 +92,6 @@ check_iface(struct Interface *iface)
 		}
 		prefix = prefix->next;
 	}
-
-	if (iface->MinRtrAdvInterval == -1)
-		iface->MinRtrAdvInterval = DFLT_MinRtrAdvInterval(iface);
 
 	if ((iface->MinRtrAdvInterval < (MIPv6 ? MIN_MinRtrAdvInterval_MIPv6 : MIN_MinRtrAdvInterval)) || 
 		    (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface)))
@@ -151,17 +148,6 @@ check_iface(struct Interface *iface)
 		res = -1;
 	}
 	
-	if (iface->AdvDefaultLifetime == -1)
-	{
-		iface->AdvDefaultLifetime = DFLT_AdvDefaultLifetime(iface);
-	}
-
-	/* Mobile IPv6 ext */
-	if (iface->HomeAgentLifetime == 0)
-	{
-		iface->HomeAgentLifetime = DFLT_HomeAgentLifetime(iface);
-	}
-
 	if ((iface->AdvDefaultLifetime != 0) &&
 	   ((iface->AdvDefaultLifetime > MAX_AdvDefaultLifetime) ||
 	    (iface->AdvDefaultLifetime < MIN_AdvDefaultLifetime(iface))))

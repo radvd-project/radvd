@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.16 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: radvd.h,v 1.17 2005/12/30 16:12:23 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -48,7 +48,7 @@ struct Interface {
 	char			Name[IFNAMSIZ];	/* interface name */
 
 	struct in6_addr		if_addr;
-	int			if_index;
+	unsigned int		if_index;
 
 	uint8_t			if_hwaddr[HWADDR_MAX];
 	int			if_hwaddr_len;
@@ -66,7 +66,7 @@ struct Interface {
 	uint32_t		AdvReachableTime;
 	uint32_t		AdvRetransTimer;
 	uint8_t			AdvCurHopLimit;
-	int			AdvDefaultLifetime;
+	uint16_t		AdvDefaultLifetime;
 	int			AdvDefaultPreference;
 	int			AdvSourceLLAddress;
 	int			UnicastOnly;
@@ -75,7 +75,7 @@ struct Interface {
 	int			AdvIntervalOpt;
 	int			AdvHomeAgentInfo;
 	int			AdvHomeAgentFlag;
-	int16_t			HomeAgentPreference;
+	uint16_t		HomeAgentPreference;
 	uint16_t		HomeAgentLifetime;
 
 	/* NEMO extensions */
@@ -92,7 +92,7 @@ struct Interface {
 
 struct AdvPrefix {
 	struct in6_addr		Prefix;
-	int			PrefixLen;
+	uint8_t			PrefixLen;
 	
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
@@ -113,7 +113,7 @@ struct AdvPrefix {
 
 struct AdvRoute {
 	struct in6_addr		Prefix;
-	int			PrefixLen;
+	uint8_t			PrefixLen;
 	
 	int			AdvRoutePreference;
 	uint32_t		AdvRouteLifetime;
