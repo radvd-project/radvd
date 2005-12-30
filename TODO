@@ -1,4 +1,4 @@
-$Id: TODO,v 1.17 2005/10/18 06:52:33 psavola Exp $
+$Id: TODO,v 1.18 2005/12/30 08:53:22 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -33,3 +33,5 @@ The following parts of RFC2461(bis) are not implemented:
  - section 6.2.8: if the link-local address of the router changes, it should
    multicast a few RAs from the old address with zero router lifetime, and a
    few from the new address. (SHOULD).
+
+Consider whether to support RFC 4286 (Multicast Router Discovery).
