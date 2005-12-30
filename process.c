@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.13 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: process.c,v 1.14 2005/12/30 16:12:23 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -93,7 +93,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 		return;
 	}
 	
-	dlog(LOG_DEBUG, 4, "if_index %d", pkt_info->ipi6_ifindex);
+	dlog(LOG_DEBUG, 4, "if_index %u", pkt_info->ipi6_ifindex);
 
 	/* get iface by received if_index */
 

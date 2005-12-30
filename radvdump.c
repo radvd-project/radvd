@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.12 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: radvdump.c,v 1.13 2005/12/30 16:12:23 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 				exit(1);
 			}
 
-			dlog(LOG_DEBUG, 4, "receiver if_index: %i", pkt_info->ipi6_ifindex);
+			dlog(LOG_DEBUG, 4, "receiver if_index: %u", pkt_info->ipi6_ifindex);
 
 			if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 			{
