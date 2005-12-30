@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.16 2005/10/28 14:29:49 psavola Exp $
+ *   $Id: device-linux.c,v 1.17 2005/12/30 09:46:50 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -258,3 +258,74 @@ get_v4addr(const char *ifn, unsigned int *dst)
 
 	return 0;
 }
+
+static int
+set_interface_var(const char *iface,
+		  const char *var, const char *name,
+		  uint32_t val)
+{
+	FILE *fp;
+	char spath[64+IFNAMSIZ];	/* XXX: magic constant */
+	snprintf(spath, sizeof(spath), var, iface);
+
+	fp = fopen(spath, "w");
+	if (!fp) {
+		if (name)
+			flog(LOG_ERR, "failed to set %s (%u) for %s",
+			     name, (unsigned int)val, iface);
+		return -1;
+	}
+	fprintf(fp, "%u", (unsigned int)val);
+	fclose(fp);
+
+	return 0;
+}
+
+int
+set_interface_linkmtu(const char *iface, uint32_t mtu)
+{
+	return set_interface_var(iface,
+				 PROC_SYS_IP6_LINKMTU, "LinkMTU",
+				 mtu);
+}
+
+int
+set_interface_curhlim(const char *iface, uint8_t hlim)
+{
+	return set_interface_var(iface,
+				 PROC_SYS_IP6_CURHLIM, "CurHopLimit",
+				 hlim);
+}
+
+int
+set_interface_reachtime(const char *iface, uint32_t rtime)
+{
+	int ret;
+	ret = set_interface_var(iface,
+				PROC_SYS_IP6_BASEREACHTIME_MS,
+				NULL,
+				rtime);
+	if (ret)
+		ret = set_interface_var(iface,
+					PROC_SYS_IP6_BASEREACHTIME,
+					"BaseReachableTimer",
+					rtime / 1000);
+	return ret;
+}
+
+int
+set_interface_retranstimer(const char *iface, uint32_t rettimer)
+{
+	int ret;
+	ret = set_interface_var(iface,
+				PROC_SYS_IP6_RETRANSTIMER_MS,
+				NULL,
+				rettimer);
+	if (ret)
+		ret = set_interface_var(iface,
+					PROC_SYS_IP6_RETRANSTIMER,
+					"RetransTimer",
+					rettimer / 1000);
+	return ret;
+}
+

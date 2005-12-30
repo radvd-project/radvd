@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.23 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: radvd.c,v 1.24 2005/12/30 09:46:50 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -55,6 +55,7 @@ void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void timer_handler(void *data);
+void config_interface(void);
 void kickoff_adverts(void);
 void stop_adverts(void);
 void reload_config(void);
@@ -63,6 +64,10 @@ void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
+int set_interface_linkmtu(const char *, uint32_t);
+int set_interface_curhlim(const char *, uint8_t);
+int set_interface_reachtime(const char *, uint32_t);
+int set_interface_retranstimer(const char *, uint32_t);
 
 int
 main(int argc, char *argv[])
@@ -258,6 +263,7 @@ main(int argc, char *argv[])
 	
 	close(fd);
 
+	config_interface();
 	kickoff_adverts();
 
 	/* enter loop */
@@ -301,6 +307,23 @@ timer_handler(void *data)
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
 	set_timer(&iface->tm, next);
+}
+
+void
+config_interface(void)
+{
+	struct Interface *iface;
+	for(iface=IfaceList; iface; iface=iface->next)
+	{
+		if (iface->AdvLinkMTU)
+			set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
+		if (iface->AdvCurHopLimit)
+			set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
+		if (iface->AdvReachableTime)
+			set_interface_reachtime(iface->Name, iface->AdvReachableTime);
+		if (iface->AdvRetransTimer)
+			set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
+	}
 }
 
 void
@@ -406,6 +429,7 @@ void reload_config(void)
 	if (readin_config(conf_file) < 0)
 		exit(1);
 
+	config_interface();
 	kickoff_adverts();
 
 	flog(LOG_INFO, "resuming normal operation");
@@ -584,6 +608,4 @@ usage(void)
 	fprintf(stderr, "usage: %s %s\n", pname, usage_str);
 	exit(1);	
 }
-
-
 
