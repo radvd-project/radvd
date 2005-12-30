@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.11 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: process.c,v 1.12 2005/12/30 08:54:03 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,12 +18,12 @@
 #include <includes.h>
 #include <radvd.h>
 
-static void process_rs(int, struct Interface *, struct sockaddr_in6 *);
+static void process_rs(int, struct Interface *, unsigned char *msg,
+		       int len, struct sockaddr_in6 *);
 static void process_ra(struct Interface *, unsigned char *msg, int len,
 	struct sockaddr_in6 *);
 static int  addr_match(struct in6_addr *a1, struct in6_addr *a2,
 	int prefixlen);
-static int rs_has_srclladdr(unsigned char *, int);
 
 void
 process(int sock, struct Interface *ifacel, unsigned char *msg, int len, 
@@ -84,14 +84,6 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 				len);
 			return;
 		}
-		
-		if (IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr) &&
-		    rs_has_srclladdr(msg, len))
-		{
-			flog(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option"); 
-			return;
-		}
-				
 	}			
 
 	if (icmph->icmp6_code != 0)
@@ -138,7 +130,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
-		process_rs(sock, iface, addr);
+		process_rs(sock, iface, msg, len, addr);
 	}
 	else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
@@ -147,11 +139,51 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 }
 
 static void
-process_rs(int sock, struct Interface *iface, struct sockaddr_in6 *addr)
+process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
+	struct sockaddr_in6 *addr)
 {
 	double delay;
 	double next;
 	struct timeval tv;
+	uint8_t *opt_str;
+
+	/* validation */
+	len -= sizeof(struct nd_router_solicit);
+
+	opt_str = (uint8_t *)(msg + sizeof(struct nd_router_solicit));
+
+	while (len > 0)
+	{
+		int optlen;
+
+		if (len < 2)
+		{
+			flog(LOG_WARNING, "trailing garbage in RS");
+			return;
+		}
+
+		optlen = (opt_str[1] << 3);
+
+		if (optlen == 0)
+		{
+			flog(LOG_WARNING, "zero length option in RS");
+			return;
+		}
+		else if (optlen > len)
+		{
+			flog(LOG_WARNING, "option length greater than total length in RS");
+			return;
+		}
+
+		if (*opt_str == ND_OPT_SOURCE_LINKADDR &&
+		    IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr)) {
+			flog(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option"); 
+			return;
+		}
+
+		len -= optlen;
+		opt_str += optlen;
+	}
 
 	gettimeofday(&tv, NULL);
 
@@ -377,52 +409,3 @@ addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 	return 1;
 }
 
-static int
-rs_has_srclladdr(unsigned char *msg, int len)
-{
-	uint8_t *opt_str;
-	int	has_lladdr = 0;
-
-	len -= sizeof(struct nd_router_solicit);
-
-	if (len == 0)
-	{		/* no option */
-		return 0;
-	}
-
-	opt_str = (uint8_t *)(msg + sizeof(struct nd_router_solicit));
-
-	while (len > 0)
-	{
-		int optlen;
-
-		if (len < 2)
-		{
-			flog(LOG_WARNING, "trailing garbage in RS");
-			break;
-		}
-
-		optlen = (opt_str[1] << 3);
-
-		if (optlen == 0)
-		{
-			flog(LOG_WARNING, "zero length option in RS");
-			break;
-		}
-		else if (optlen > len)
-		{
-			flog(LOG_WARNING, "option length greater than total length in RS");
-			break;
-		}
-
-		if (*opt_str == ND_OPT_SOURCE_LINKADDR)
-		{
-			has_lladdr = 1;
-		}
-
-		len -= optlen;
-		opt_str += optlen;
-	}
-
-	return has_lladdr;
-}
