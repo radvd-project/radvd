@@ -1,4 +1,4 @@
-$Id: TODO,v 1.19 2005/12/31 16:10:05 psavola Exp $
+$Id: TODO,v 1.20 2005/12/31 16:17:33 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -6,8 +6,9 @@ be nice) or from /proc
 follow interface state via netlink interface and send RAs only when the
 interface is up
 
-use getaddrinfo() instead of inet_pton in scanner.l so that DNS names
-can be used
+Consider whether to use getaddrinfo() instead of inet_pton in scanner.l
+so that DNS names can be used -- there doesn't seem to be much point as
+mostly we use prefixes, not complete addresses..
 
 Quoting Peter Bieringer (peter@bieringer.de):
 > Das war's schon. Ach ja, wenn Du mal eine neue Version machst, kannst Du
