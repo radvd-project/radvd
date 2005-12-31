@@ -1,4 +1,4 @@
-$Id: README,v 1.8 2005/11/17 16:21:57 psavola Exp $
+$Id: README,v 1.9 2005/12/31 16:10:05 psavola Exp $
 
 Installation:
 =============
@@ -9,7 +9,7 @@ Run configure, e.g.
 
 See configure --help for additional command line arguments.
 
-Run make and make install.
+Run 'make' and 'make install'.  On BSD, you may need to use 'gmake'.
 
 Configuration:
 ==============
@@ -43,11 +43,13 @@ questions have been about what radvd _doesn't_ do...
     could possibly do instead.
 
  3. I have a dynamic /48 prefix.  How do I set up radvd to:
-    a) set up interface addresses on downstream interfaces, and
+    a) set up interface addresses and routes on downstream
+       interfaces, and
     b) advertise /64 prefixes from the /48 on downstream interfaces?
 
     -- For a), this isn't supported. For b), radvd includes special
-    support for 6to4 upstream interface only.  This should probably
+    support for 6to4 upstream interface but assumes that the interface
+    addresses/routes are set up manually.  This should probably
     be done in the initscripts or manually. (Though if someone were
     to send a patch for b), it might be incorporated.)  
 

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.18 2005/12/30 08:53:22 psavola Exp $
+$Id: TODO,v 1.19 2005/12/31 16:10:05 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -35,3 +35,20 @@ The following parts of RFC2461(bis) are not implemented:
    few from the new address. (SHOULD).
 
 Consider whether to support RFC 4286 (Multicast Router Discovery).
+
+Consider whether to support multiple IPv4 addresses with Base6to4Interface
+(currently the code just uses the first one).
+
+Consider whether to support a generalization of Base6to4Interface for
+arbitrary IPv6 prefixes, to be used for automatic generation of downstream
+prefixes.  Also consider whether this would need to support multiple IPv6
+prefixes on the upstream interfaces.  See question 3 in README for more on
+this.
+
+Use getifaddrs() instead of ioctl SIOCGIFADDR and other friends.  The
+problem with this is that e.g. RHL73's glibc didn't support getifaddrs(),
+and before glibc 2.3.3 getifaddrs() didn't use netlink so it didn't work
+well with IPv6.  So, some kind of compat library would be needed if this
+would be used...
+
+
