@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.18 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: device-linux.c,v 1.19 2005/12/31 15:34:22 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -219,45 +219,6 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 
 	return(0);
 }		
-
-int
-get_v4addr(const char *ifn, unsigned int *dst)
-{
-	struct ifreq	ifr;
-	struct sockaddr_in *addr;
-	int fd;
-
-	if( ( fd = socket(AF_INET,SOCK_DGRAM,0) ) < 0 )
-	{
-		flog(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s",
-			ifn, strerror(errno));
-		return (-1);
-	}
-	
-	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, ifn, IFNAMSIZ-1);
-	ifr.ifr_name[IFNAMSIZ-1] = '\0';
-	ifr.ifr_addr.sa_family = AF_INET;
-	
-	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0)
-	{
-		flog(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s",
-			ifn, strerror(errno));
-		close( fd );
-		return (-1);
-	}
-
-	addr = (struct sockaddr_in *)(&ifr.ifr_addr);
-
-	dlog(LOG_DEBUG, 3, "IPv4 address for %s is %s", ifn,
-		inet_ntoa( addr->sin_addr ) ); 
-
-	*dst = addr->sin_addr.s_addr;
-
-	close( fd );
-
-	return 0;
-}
 
 static int
 set_interface_var(const char *iface,
