@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.53 2005/12/30 15:13:11 psavola Exp $
+$Id: CHANGES,v 1.54 2006/01/13 13:27:10 psavola Exp $
+
+01/13/2006	Release 0.9.1.
 
 12/30/2005	Great cleanup of signed/unsigned values, add
 		-Wall and a number of other warnings to CFLAGS
