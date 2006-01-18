@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.17 2005/12/30 16:12:23 psavola Exp $
+ *   $Id: radvd.h,v 1.18 2006/01/18 16:06:00 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -66,7 +66,7 @@ struct Interface {
 	uint32_t		AdvReachableTime;
 	uint32_t		AdvRetransTimer;
 	uint8_t			AdvCurHopLimit;
-	uint16_t		AdvDefaultLifetime;
+	int16_t			AdvDefaultLifetime;
 	int			AdvDefaultPreference;
 	int			AdvSourceLLAddress;
 	int			UnicastOnly;
@@ -76,7 +76,7 @@ struct Interface {
 	int			AdvHomeAgentInfo;
 	int			AdvHomeAgentFlag;
 	uint16_t		HomeAgentPreference;
-	uint16_t		HomeAgentLifetime;
+	int16_t			HomeAgentLifetime;
 
 	/* NEMO extensions */
 	int			AdvMobRtrSupportFlag;
