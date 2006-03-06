@@ -1,7 +1,10 @@
-$Id: CHANGES,v 1.55 2006/03/06 09:26:56 psavola Exp $
+$Id: CHANGES,v 1.56 2006/03/06 09:29:15 psavola Exp $
 
 03/06/2006	Exit when sending RAs if the interface no longer
-		exists unless IgnoreIfMissing is defined.
+		exists unless IgnoreIfMissing is defined.  Fix
+		the default STDERR+syslog logging methods, so
+		we don't try to unnecessarily log to STDERR after
+		forking.
 
 01/13/2006	Release 0.9.1.
 

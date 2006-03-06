@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.25 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: radvd.c,v 1.26 2006/03/06 09:29:15 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -237,10 +237,13 @@ main(int argc, char *argv[])
 		if (daemon(0, 0) < 0)
 			perror("daemon");
 
-		/*
-		 * reopen logfile, so that we get the process id right in the syslog
-		 */
-		if (log_reopen() < 0)
+		/* close old logfiles, including stderr */
+		log_close();
+		
+		/* reopen logfiles, but don't log to stderr unless explicitly requested */
+		if (log_method == L_STDERR_SYSLOG)
+			log_method = L_SYSLOG;
+		if (log_open(log_method, pname, logfile, facility) < 0)
 			exit(1);
 
 	}
