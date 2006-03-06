@@ -1,4 +1,4 @@
-$Id: TODO,v 1.20 2005/12/31 16:17:33 psavola Exp $
+$Id: TODO,v 1.21 2006/03/06 09:26:56 psavola Exp $
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
@@ -28,6 +28,14 @@ The following parts of RFC2461(bis) are not implemented:
  - section 6.2.1: Adv{Valid,Preferred}Lifetime that decrements in real time,
    that is, one that will result in a Lifetime of zero at the specified time in
    the future. (MUST)
+ - section 6.2.4: For the first few advertisements (up to
+   MAX_INITIAL_RTR_ADVERTISEMENTS) sent from an interface when it
+   becomes an advertising interface, if the randomly chosen interval is
+   greater than MAX_INITIAL_RTR_ADVERT_INTERVAL, the timer SHOULD be set
+   to MAX_INITIAL_RTR_ADVERT_INTERVAL instead.  Using a smaller interval
+   for the initial advertisements increases the likelihood of a router
+   being discovered quickly when it first becomes available, in the
+   presence of possible packet loss. (SHOULD)
  - section 6.2.5: when AdvSendAdvertisements changes to FALSE, we don't send 
    a final RA with zero Router Lifetime (we just send it when shutting down).
    (SHOULD)
@@ -52,4 +60,5 @@ and before glibc 2.3.3 getifaddrs() didn't use netlink so it didn't work
 well with IPv6.  So, some kind of compat library would be needed if this
 would be used...
 
-
+Consider whether radvd should work around missing/broken interfaces by
+default, especially if a previously working interface gets disabled.

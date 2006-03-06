@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.54 2006/01/13 13:27:10 psavola Exp $
+$Id: CHANGES,v 1.55 2006/03/06 09:26:56 psavola Exp $
+
+03/06/2006	Exit when sending RAs if the interface no longer
+		exists unless IgnoreIfMissing is defined.
 
 01/13/2006	Release 0.9.1.
 

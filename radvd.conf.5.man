@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.16 2005/11/17 16:21:57 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.17 2006/03/06 09:26:56 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -71,10 +71,14 @@ advertise more specific routes to the hosts.
 .BR IgnoreIfMissing " " on | off
 
 A flag indicating whether or not the interface is ignored
-if it does not exist.
+if it does not exist.  By default, radvd exits.
+
 This is useful for dynamic interfaces which are not active when radvd
-starts, but for which you want to already have configuration -- and when
-they become active, you send HUP signal to radvd to activate them.
+starts or which are dynamically disabled and re-enabled during the time
+radvd runs.
+
+When the interface becomes active (again), send HUP signal to radvd to
+activate them.
 
 Default: off
 

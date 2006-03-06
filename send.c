@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.20 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: send.c,v 1.21 2006/03/06 09:26:56 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,6 +34,17 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	unsigned char buff[MSG_SIZE];
 	int len = 0;
 	int err;
+
+	/* First we need to check that the interface hasn't been removed or deactivated */
+	if(check_device(sock, iface) < 0) {
+		if (iface->IgnoreIfMissing)
+			dlog(LOG_DEBUG, 3, "interface %s does not exist, ignoring the interface", iface->Name);
+		else {
+			flog(LOG_CRIT, "interface %s does not exist, exiting", iface->Name);
+			kill(0, SIGTERM);
+			return;
+		}
+	}
 
 	/* Make sure that we've joined the all-routers multicast group */
 	if (check_allrouters_membership(sock, iface) < 0)
