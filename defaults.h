@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.15 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: defaults.h,v 1.16 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -61,6 +61,11 @@
 #define DFLT_AdvRouteLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
 
 #define DFLT_AdvRoutePreference		0 /* medium*/
+
+/* RDNSS */
+#define DFLT_AdvRDNSSPreference				8 /* medium */
+#define DFLT_AdvRDNSSOpenFlag				0
+#define DFLT_AdvRDNSSLifetime				30 /* seconds */
 
 /* Protocol (RFC2461) constants: */
 
@@ -148,6 +153,28 @@ struct nd_opt_route_info_local     /* route information */
 #define ND_OPT_RI_PRF_SHIFT	3
 #define ND_OPT_RI_PRF_MASK	(3 << ND_OPT_RI_PRF_SHIFT) /* 00011000 = 0x18 */
 
+#undef ND_OPT_RDNSS_INFORMATION
+#define  ND_OPT_RDNSS_INFORMATION	25
+
+/* */
+struct nd_opt_rdnss_info_local
+{
+	uint8_t   			nd_opt_rdnssi_type;
+	uint8_t   			nd_opt_rdnssi_len;
+	uint16_t   			nd_opt_rdnssi_pref_flag_reserved;
+	uint32_t			nd_opt_rdnssi_lifetime;
+	struct in6_addr		nd_opt_rdnssi_adrr1;
+	struct in6_addr		nd_opt_rdnssi_adrr2;
+	struct in6_addr		nd_opt_rdnssi_adrr3;
+};
+/* pref/flag/reserved field : yyyyx00000000000 (big endian) - 00000000yyyyx000 (little indian); where yyyy = pref, x = flag */
+#if BYTE_ORDER == BIG_ENDIAN
+#define ND_OPT_RDNSSI_PREF_SHIFT	12
+#else
+#define ND_OPT_RDNSSI_PREF_SHIFT	4
+#endif
+#define ND_OPT_RDNSSI_PREF_MASK		(0xf << ND_OPT_RDNSSI_PREF_SHIFT)
+
 /* Flags */
 
 #ifndef ND_RA_FLAG_HOME_AGENT
@@ -155,6 +182,13 @@ struct nd_opt_route_info_local     /* route information */
 #endif
 #ifndef ND_OPT_PI_FLAG_RADDR
 #define ND_OPT_PI_FLAG_RADDR		0x20
+#endif
+#ifndef ND_OPT_RDNSSI_FLAG_S
+#if BYTE_ORDER == BIG_ENDIAN
+#define ND_OPT_RDNSSI_FLAG_S         0x0800
+#else
+#define ND_OPT_RDNSSI_FLAG_S         0x0008
+#endif
 #endif
 
 /* Configurable values */

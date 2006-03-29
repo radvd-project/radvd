@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.13 2005/12/30 16:12:23 psavola Exp $
+ *   $Id: radvdump.c,v 1.14 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -281,6 +281,8 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			break;
 		case ND_OPT_ROUTE_INFORMATION:
 			break;
+		case ND_OPT_RDNSS_INFORMATION:
+			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA",
 				(int)*opt_str);
@@ -303,6 +305,7 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 		int optlen;
 		struct nd_opt_prefix_info *pinfo;
 		struct nd_opt_route_info_local *rinfo;
+		struct nd_opt_rdnss_info_local *rdnss_info;
 		char prefix_str[INET6_ADDRSTRLEN];
 
 		if (orig_len < 2)
@@ -390,6 +393,45 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 				printf("\t\tAdvRouteLifetime infinity; # (0xffffffff)\n");
 			else
 				printf("\t\tAdvRouteLifetime %u;\n", ntohl(rinfo->nd_opt_ri_lifetime));
+
+			printf("\t}; # End of route definition\n\n");
+			break;
+		case ND_OPT_RDNSS_INFORMATION:
+			rdnss_info = (struct nd_opt_rdnss_info_local *) opt_str;
+
+			printf("\n\tRDNSS");
+
+			print_addr(&rdnss_info->nd_opt_rdnssi_adrr1, prefix_str);
+			printf(" %s", prefix_str);
+
+			if (rdnss_info->nd_opt_rdnssi_len >= 5) {
+				print_addr(&rdnss_info->nd_opt_rdnssi_adrr2, prefix_str);
+				printf(" %s", prefix_str);
+			}
+			if (rdnss_info->nd_opt_rdnssi_len >= 7) {
+				print_addr(&rdnss_info->nd_opt_rdnssi_adrr3, prefix_str);
+				printf(" %s", prefix_str);
+			}
+			
+			printf("\n\t{\n");
+			if (!edefs 
+			    || ((rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_PREF_MASK) >> ND_OPT_RDNSSI_PREF_SHIFT) != DFLT_AdvRDNSSPreference)
+				printf("\t\tAdvRDNSSPreference %d;\n", 
+				  (rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_PREF_MASK) >> ND_OPT_RDNSSI_PREF_SHIFT);
+
+			if (!edefs 
+			    || ((rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S) == 0 ) == DFLT_AdvRDNSSOpenFlag)
+				printf("\t\tAdvRDNSSOpen %s;\n", rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S ? "on" : "off");
+			if (!edefs
+			    || ntohl(rdnss_info->nd_opt_rdnssi_lifetime) != DFLT_AdvRDNSSLifetime ) {
+				if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
+					printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");
+				else
+					printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
+			}
+			
+			printf("\t}; # End of RDNSS definition\n\n");
+			break;
 		default:
 			break;
 		}

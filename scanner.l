@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.11 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: scanner.l,v 1.12 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -44,6 +44,7 @@ string		[a-z]([a-z]|{digit}|_)*([:.]{digit}+)?
 interface		{ return T_INTERFACE; }
 prefix			{ return T_PREFIX; }
 route			{ return T_ROUTE; }
+RDNSS			{ return T_RDNSS; }
 
 IgnoreIfMissing		{ return T_IgnoreIfMissing; }
 AdvSendAdvert		{ return T_AdvSendAdvert; }
@@ -77,6 +78,10 @@ HomeAgentLifetime	{ return T_HomeAgentLifetime; }
 
 AdvRoutePreference	{ return T_AdvRoutePreference; }
 AdvRouteLifetime	{ return T_AdvRouteLifetime; }
+
+AdvRDNSSPreference 	{ return T_AdvRDNSSPreference; }
+AdvRDNSSOpen		{ return T_AdvRDNSSOpenFlag; }
+AdvRDNSSLifetime	{ return T_AdvRDNSSLifetime; }
 
 MinDelayBetweenRAs      { return T_MinDelayBetweenRAs; }
 

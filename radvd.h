@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.19 2006/01/18 16:21:16 psavola Exp $
+ *   $Id: radvd.h,v 1.20 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -83,11 +83,11 @@ struct Interface {
 
 	struct AdvPrefix	*AdvPrefixList;
 	struct AdvRoute		*AdvRouteList;
+	struct AdvRDNSS		*AdvRDNSSList;
 	struct timer_lst	tm;
-	time_t                  last_multicast_sec;
-	suseconds_t             last_multicast_usec;
+	time_t			last_multicast_sec;
+	suseconds_t		last_multicast_usec;
 	struct Interface	*next;
-
 };
 
 struct AdvPrefix {
@@ -100,7 +100,7 @@ struct AdvPrefix {
 	uint32_t		AdvPreferredLifetime;
 
 	/* Mobile IPv6 extensions */
-        int                     AdvRouterAddr;
+	int             	AdvRouterAddr;
 
 	/* 6to4 extensions */
 	char			if6to4[IFNAMSIZ];
@@ -119,6 +119,19 @@ struct AdvRoute {
 	uint32_t		AdvRouteLifetime;
 
 	struct AdvRoute		*next;
+};
+
+/* Option for DNS configuration */
+struct AdvRDNSS {
+	int 			AdvRDNSSNumber;
+	uint8_t			AdvRDNSSPreference;
+	int 			AdvRDNSSOpenFlag;
+	uint32_t		AdvRDNSSLifetime;
+	struct in6_addr		AdvRDNSSAddr1;
+	struct in6_addr		AdvRDNSSAddr2;
+	struct in6_addr		AdvRDNSSAddr3;
+	
+	struct AdvRDNSS 	*next; 
 };
 
 /* Mobile IPv6 extensions */
@@ -178,6 +191,7 @@ int set_interface_retranstimer(const char *, uint32_t);
 void iface_init_defaults(struct Interface *);
 void prefix_init_defaults(struct AdvPrefix *);
 void route_init_defaults(struct AdvRoute *, struct Interface *);
+void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
 int check_iface(struct Interface *);
 
 /* socket.c */

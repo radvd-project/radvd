@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.14 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: gram.y,v 1.15 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -23,6 +23,7 @@ extern struct Interface *IfaceList;
 struct Interface *iface = NULL;
 struct AdvPrefix *prefix = NULL;
 struct AdvRoute *route = NULL;
+struct AdvRDNSS *rdnss = NULL;
 
 extern char *conf_file;
 extern int num_lines;
@@ -48,6 +49,7 @@ static void yyerror(char *msg);
 %token		T_INTERFACE
 %token		T_PREFIX
 %token		T_ROUTE
+%token		T_RDNSS
 
 %token	<str>	STRING
 %token	<num>	NUMBER
@@ -91,6 +93,10 @@ static void yyerror(char *msg);
 %token		T_AdvRoutePreference
 %token		T_AdvRouteLifetime
 
+%token		T_AdvRDNSSPreference
+%token		T_AdvRDNSSOpenFlag
+%token		T_AdvRDNSSLifetime
+
 %token		T_AdvMobRtrSupportFlag
 
 %token		T_BAD_TOKEN
@@ -98,7 +104,9 @@ static void yyerror(char *msg);
 %type	<str>	name
 %type	<pinfo> optional_prefixlist prefixdef prefixlist
 %type	<rinfo>	optional_routelist routedef routelist
+%type	<rdnssinfo> optional_rdnsslist rdnssdef rdnsslist
 %type   <num>	number_or_infinity
+%type	<addr>	rdnssaddrs
 
 %union {
 	unsigned int		num;
@@ -109,6 +117,7 @@ static void yyerror(char *msg);
 	char			*str;
 	struct AdvPrefix	*pinfo;
 	struct AdvRoute		*rinfo;
+	struct AdvRDNSS		*rdnssinfo;
 };
 
 %%
@@ -183,10 +192,11 @@ name		: STRING
 		}
 		;
 
-ifaceparams	: optional_ifacevlist optional_prefixlist optional_routelist
+ifaceparams	: optional_ifacevlist optional_prefixlist optional_routelist optional_rdnsslist
 		{
 			iface->AdvPrefixList = $2;
 			iface->AdvRouteList = $3;
+			iface->AdvRDNSSList = $4;
 		}
 		;
 
@@ -206,6 +216,13 @@ optional_routelist: /* empty */
 			$$ = NULL;
 		}
 		| routelist
+		;
+		
+optional_rdnsslist: /* empty */
+		{
+			$$ = NULL;
+		}
+		| rdnsslist
 		;
 
 ifacevlist	: ifacevlist ifaceval
@@ -472,7 +489,92 @@ routeparms	: T_AdvRoutePreference SIGNEDNUMBER ';'
 			route->AdvRouteLifetime = $2;
 		}
 		;
+		
+rdnsslist	: rdnssdef
+		{
+			$$ = $1;
+		}
+		| rdnsslist rdnssdef
+		{
+			$2->next = $1;
+			$$ = $2;
+		}
+		;
+		
+rdnssdef	: rdnsshead '{' optional_rdnssplist '}' ';'
+		{
+			$$ = rdnss;
+			rdnss = NULL;
+		}
+		;
 
+rdnssaddrs: 	/* empty */
+		| rdnssaddrs IPV6ADDR
+		{
+			if (!rdnss) {
+				/* first IP found */
+				rdnss = malloc(sizeof(struct AdvRDNSS));
+				
+				if (rdnss == NULL) {
+					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+					ABORT;
+				}
+
+				rdnss_init_defaults(rdnss, iface);
+			}
+			
+			switch (rdnss->AdvRDNSSNumber) {
+				case 0:
+					memcpy(&rdnss->AdvRDNSSAddr1, $2, sizeof(struct in6_addr));
+					rdnss->AdvRDNSSNumber++;
+					break;
+				case 1:
+					memcpy(&rdnss->AdvRDNSSAddr2, $2, sizeof(struct in6_addr));
+					rdnss->AdvRDNSSNumber++;
+					break;
+				case 2:
+					memcpy(&rdnss->AdvRDNSSAddr3, $2, sizeof(struct in6_addr));
+					rdnss->AdvRDNSSNumber++;
+					break;
+				default:
+					flog(LOG_CRIT, "Too many addresses in RDNSS section");
+					ABORT;
+			}
+			
+		}
+		;
+		
+rdnsshead	: T_RDNSS rdnssaddrs
+		{
+			if (!rdnss) {
+				flog(LOG_CRIT, "No address specified in RDNSS section");
+				ABORT;
+			}
+		}
+		;
+		
+optional_rdnssplist: /* empty */
+		| rdnssplist 
+		;
+		
+rdnssplist	: rdnssplist rdnssparms
+		| rdnssparms
+		;
+
+
+rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
+		{
+			rdnss->AdvRDNSSPreference = $2;
+		}
+		| T_AdvRDNSSOpenFlag SWITCH ';'
+		{
+			rdnss->AdvRDNSSOpenFlag = $2;
+		}
+		| T_AdvRDNSSLifetime number_or_infinity ';'
+		{
+			rdnss->AdvRDNSSLifetime = $2;
+		}
+		;
 
 number_or_infinity      : NUMBER
                         {
