@@ -50,16 +50,6 @@ interface eth0
 	};
 
 #
-# example of a more specific route
-# NOTE: This feature is still being specified and is not widely supported!
-#
-	route 2001:db0:fff::/48
-	{
-		AdvRoutePreference high;
-		AdvRouteLifetime 3600;
-	};
-
-#
 # example of a 6to4 prefix
 #
 # Note that the first 48 bits are specified here as zeros.  These will be
@@ -101,5 +91,27 @@ interface eth0
 		AdvPreferredLifetime 120;
 		AdvValidLifetime 300;
 	};
+#
+# example of a more specific route
+# NOTE: This feature is still being specified and is not widely supported!
+#
+	route 2001:db0:fff::/48
+	{
+		AdvRoutePreference high;
+		AdvRouteLifetime 3600;
+	};
+
+#
+# RDNSS
+# NOTE: This feature is still a draft has no IANA number type for the moment
+#
+        RDNSS 2001:db8::1 2001:db8::2
+        {
+                AdvRDNSSPreference 8;
+                AdvRDNSSOpen off;
+                AdvRDNSSLifetime 30;
+        };
+
 
 };
+

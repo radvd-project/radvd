@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.17 2006/03/06 09:26:56 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.18 2006/03/29 12:32:10 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -29,6 +29,7 @@ The file contains one or more interface definitions of the form:
 	list of interface specific options
 	list of prefix definitions
 	list of route definitions
+	list of RDNSS definitions
 .B };
 .fi
 
@@ -64,6 +65,14 @@ Route definitions are of the form:
 
 The prefix of a route definition should be network prefix; it can be used to
 advertise more specific routes to the hosts.
+
+RDNSS (Recursive DNS server) definitions are of the form:
+
+.nf
+.BR "RDNSS " "ip [ip] [ip] " {
+	list of rdnss specific options
+.B };
+.fi
 
 .SH INTERFACE SPECIFIC OPTIONS
 
@@ -426,6 +435,29 @@ The preference associated with the default router, as either "low",
 
 Default: medium
 
+.SH RDNSS SPECIFIC OPTIONS
+
+.TP
+.BR "AdvRDNSSPreference " integer;
+
+The preference of the DNS server, compared to other DNS servers advertised and used.
+0 to 7 means less important than manually configured nameservers in resolv.conf, while 12 to 15 means more important.
+
+Default: 8
+
+.TP
+.BR "AdvRDNSSOpen " on | off;
+
+"Service Open" flag. When set, indicates that RDNSS continues to be available to hosts even if they moved to a different subnet.
+
+Default: off
+
+.TP
+.BR "AdvRDNSSLifetime " seconds | infinity;
+The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
+
+Default: 30 seconds
+
 .SH EXAMPLES
 
 .nf
@@ -541,6 +573,9 @@ RFC 3775, June 2004.
 .PP
 Devarapalli, V., Wakikawa, R., Petrescu, A., and P. Thubert "Network Mobility (NEMO) Basic Support Protocol",
 RFC 3963, January 2005.
+.PP
+J. Jeong, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Option for DNS Configuration",
+IETF Draft v08 (January 18, 2006).
 
 .SH "SEE ALSO"
 

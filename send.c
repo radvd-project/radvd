@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.21 2006/03/06 09:26:56 psavola Exp $
+ *   $Id: send.c,v 1.22 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -31,6 +31,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct nd_router_advert *radvert;
 	struct AdvPrefix *prefix;
 	struct AdvRoute *route;
+	struct AdvRDNSS *rdnss;
 	unsigned char buff[MSG_SIZE];
 	int len = 0;
 	int err;
@@ -158,6 +159,38 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		len += sizeof(*rinfo);
 
 		route = route->next;
+	}
+	
+	rdnss = iface->AdvRDNSSList;
+	
+	/*
+	 *	add rdnss options
+	 */
+
+	while(rdnss)
+	{
+		struct nd_opt_rdnss_info_local *rdnssinfo;
+		
+		rdnssinfo = (struct nd_opt_rdnss_info_local *) (buff + len);
+
+		rdnssinfo->nd_opt_rdnssi_type	     = ND_OPT_RDNSS_INFORMATION;
+		rdnssinfo->nd_opt_rdnssi_len	     = 1 + 2*rdnss->AdvRDNSSNumber;
+		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved = 
+		((rdnss->AdvRDNSSPreference << ND_OPT_RDNSSI_PREF_SHIFT) & ND_OPT_RDNSSI_PREF_MASK);
+		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved |=
+		((rdnss->AdvRDNSSOpenFlag)?ND_OPT_RDNSSI_FLAG_S:0);
+
+		rdnssinfo->nd_opt_rdnssi_lifetime	= htonl(rdnss->AdvRDNSSLifetime);
+			
+		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr1, &rdnss->AdvRDNSSAddr1,
+		       sizeof(struct in6_addr));
+		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr2, &rdnss->AdvRDNSSAddr2,
+		       sizeof(struct in6_addr));
+		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr3, &rdnss->AdvRDNSSAddr3,
+		       sizeof(struct in6_addr));
+		len += sizeof(*rdnssinfo) - (3-rdnss->AdvRDNSSNumber)*sizeof(struct in6_addr);
+
+		rdnss = rdnss->next;
 	}
 	
 	/*

@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.14 2006/01/18 16:06:00 psavola Exp $
+ *   $Id: interface.c,v 1.15 2006/03/29 12:32:10 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -65,6 +65,17 @@ route_init_defaults(struct AdvRoute *route, struct Interface *iface)
 		
 	route->AdvRouteLifetime = DFLT_AdvRouteLifetime(iface);
 	route->AdvRoutePreference = DFLT_AdvRoutePreference;
+}
+
+void
+rdnss_init_defaults(struct AdvRDNSS *rdnss, struct Interface *iface)
+{
+	memset(rdnss, 0, sizeof(struct AdvRDNSS));
+		
+	rdnss->AdvRDNSSPreference = DFLT_AdvRDNSSPreference;
+	rdnss->AdvRDNSSOpenFlag = DFLT_AdvRDNSSOpenFlag;
+	rdnss->AdvRDNSSLifetime = DFLT_AdvRDNSSLifetime;
+	rdnss->AdvRDNSSNumber = 0;
 }
 
 int
