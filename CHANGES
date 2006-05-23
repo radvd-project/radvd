@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.58 2006/05/23 06:49:37 psavola Exp $
+$Id: CHANGES,v 1.59 2006/05/23 06:52:46 psavola Exp $
+
+05/23/2006	Unblock SIGALRM signals at startup.  Some scripts/programs
+		seem to run radvd from ALRM-blocked context which breaks
+		the timers.
 
 05/23/2006	Redefined IgnoreIfMissing: by default, radvd will now
 		try to reinitialize failed interfaces automatically.
