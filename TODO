@@ -1,14 +1,15 @@
-$Id: TODO,v 1.21 2006/03/06 09:26:56 psavola Exp $
+$Id: TODO,v 1.22 2006/05/23 06:37:43 psavola Exp $
+
+                       NOTE WELL
+                       =========
+
+	*NONE* of the items are being actively worked on.
+        So, if you're interested in one of these features,
+        it means you'll have to submit a patch... :-)
+
 
 read list of interfaces with SIOCGIFCONF (AF_INET6 support in the kernel would
 be nice) or from /proc
-
-follow interface state via netlink interface and send RAs only when the
-interface is up
-
-Consider whether to use getaddrinfo() instead of inet_pton in scanner.l
-so that DNS names can be used -- there doesn't seem to be much point as
-mostly we use prefixes, not complete addresses..
 
 Quoting Peter Bieringer (peter@bieringer.de):
 > Das war's schon. Ach ja, wenn Du mal eine neue Version machst, kannst Du
@@ -62,3 +63,5 @@ would be used...
 
 Consider whether radvd should work around missing/broken interfaces by
 default, especially if a previously working interface gets disabled.
+
+Implement Secure Neighbor Discovery (RFC 3971).
