@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.27 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: radvd.c,v 1.28 2006/05/23 06:52:46 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -58,7 +58,6 @@ void timer_handler(void *data);
 void config_interface(void);
 void kickoff_adverts(void);
 void stop_adverts(void);
-void reload_config(void);
 void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
@@ -72,6 +71,7 @@ main(int argc, char *argv[])
 	char pidstr[16];
 	int c, log_method;
 	char *logfile, *pidfile;
+	 sigset_t oset, nset;
 	int facility, fd;
 	char *username = NULL;
 	char *chrootdir = NULL;
@@ -249,8 +249,14 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 *	config signal handlers
+	 *	config signal handlers, also make sure ALRM isn't blocked and raise a warning if so
+	 *      (some stupid scripts/pppd appears to do this...)
 	 */
+	sigemptyset(&nset);
+	sigaddset(&nset, SIGALRM);
+	sigprocmask(SIG_UNBLOCK, &nset, &oset);
+	if (sigismember(&oset, SIGALRM))
+		flog(LOG_WARNING, "SIGALRM has been unblocked. Your startup environment might be wrong.");
 
 	signal(SIGHUP, sighup_handler);
 	signal(SIGTERM, sigterm_handler);

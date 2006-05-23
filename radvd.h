@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.20 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: radvd.h,v 1.21 2006/05/23 06:52:46 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -87,6 +87,10 @@ struct Interface {
 	struct timer_lst	tm;
 	time_t			last_multicast_sec;
 	suseconds_t		last_multicast_usec;
+
+	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
+	int			HasFailed;
+
 	struct Interface	*next;
 };
 
@@ -160,6 +164,7 @@ int yylex(void);
 
 /* radvd.c */
 int check_ip6_forwarding(void);
+void reload_config(void);
 
 /* timer.c */
 void set_timer(struct timer_lst *tm, double);
