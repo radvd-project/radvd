@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.22 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: send.c,v 1.23 2006/05/23 06:49:37 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -38,12 +38,19 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	/* First we need to check that the interface hasn't been removed or deactivated */
 	if(check_device(sock, iface) < 0) {
-		if (iface->IgnoreIfMissing)
-			dlog(LOG_DEBUG, 3, "interface %s does not exist, ignoring the interface", iface->Name);
+		if (iface->IgnoreIfMissing)  /* a bit more quiet warning message.. */
+			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
 		else {
-			flog(LOG_CRIT, "interface %s does not exist, exiting", iface->Name);
-			kill(0, SIGTERM);
-			return;
+			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
+		}
+		iface->HasFailed = 1;
+	} else {
+		/* check_device was successful, act if it has failed previously */
+		if (iface->HasFailed == 1) {
+			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
+			iface->HasFailed = 0;
+			/* XXX: reinitializes 'iface', so this probably isn't going to work until next send_ra().. */
+			reload_config();	
 		}
 	}
 
@@ -309,6 +316,9 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	err = sendmsg(sock, &mhdr, 0);
 	
 	if (err < 0) {
-		flog(LOG_WARNING, "sendmsg: %s", strerror(errno));
+		if (!iface->IgnoreIfMissing || !(errno == EINVAL || errno == ENODEV))
+			flog(LOG_WARNING, "sendmsg: %s", strerror(errno));
+		else
+			dlog(LOG_DEBUG, 3, "sendmsg: %s", strerror(errno));
 	}
 }

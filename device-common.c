@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.7 2005/12/31 15:34:22 psavola Exp $
+ *   $Id: device-common.c,v 1.8 2006/05/23 06:49:37 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -36,7 +36,8 @@ check_device(int sock, struct Interface *iface)
 
 	if (!(ifr.ifr_flags & IFF_UP))
 	{
-		flog(LOG_ERR, "interface %s is not UP", iface->Name);
+		if (!iface->IgnoreIfMissing)
+                	flog(LOG_ERR, "interface %s is not UP", iface->Name);
 		return (-1);
 	}
 	

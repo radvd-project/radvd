@@ -1,13 +1,23 @@
-$Id: CHANGES,v 1.57 2006/03/29 12:32:10 psavola Exp $
+$Id: CHANGES,v 1.58 2006/05/23 06:49:37 psavola Exp $
+
+05/23/2006	Redefined IgnoreIfMissing: by default, radvd will now
+		try to reinitialize failed interfaces automatically.
+		IgnoreIfMissing is still needed if radvd is started when the
+		interface isn't up, and it also quenches some messages
+		relating to missing interfaces.
 
 03/29/2006	Implement RDNSS draft, using non-allocated
-		IANA ND type value 25, by Mickaël Guérin.
+		IANA ND type value 25, by Lauréline Provost,
+                Mickaël Guérin, Adrien Clerc, Gaetan Eleouet,
+                Bahattin Demirplak, Lionel Guilmin (at the
+                ENSEEIHT, Toulouse)
 
-03/06/2006	Exit when sending RAs if the interface no longer
-		exists unless IgnoreIfMissing is defined.  Fix
-		the default STDERR+syslog logging methods, so
+03/06/2006	Fix the default STDERR+syslog logging methods, so
 		we don't try to unnecessarily log to STDERR after
 		forking.
+
+01/18/2006	radvd-0.9.1 did not initialize AdvDefaultLifetime (etc.)
+		appropriately, unbreak the "clean-up".
 
 01/13/2006	Release 0.9.1.
 
