@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.16 2006/05/23 06:49:37 psavola Exp $
+ *   $Id: interface.c,v 1.17 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -75,7 +75,7 @@ rdnss_init_defaults(struct AdvRDNSS *rdnss, struct Interface *iface)
 		
 	rdnss->AdvRDNSSPreference = DFLT_AdvRDNSSPreference;
 	rdnss->AdvRDNSSOpenFlag = DFLT_AdvRDNSSOpenFlag;
-	rdnss->AdvRDNSSLifetime = DFLT_AdvRDNSSLifetime;
+	rdnss->AdvRDNSSLifetime = DFLT_AdvRDNSSLifetime(iface);
 	rdnss->AdvRDNSSNumber = 0;
 }
 

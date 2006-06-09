@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.14 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: radvdump.c,v 1.15 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -401,15 +401,15 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 
 			printf("\n\tRDNSS");
 
-			print_addr(&rdnss_info->nd_opt_rdnssi_adrr1, prefix_str);
+			print_addr(&rdnss_info->nd_opt_rdnssi_addr1, prefix_str);
 			printf(" %s", prefix_str);
 
 			if (rdnss_info->nd_opt_rdnssi_len >= 5) {
-				print_addr(&rdnss_info->nd_opt_rdnssi_adrr2, prefix_str);
+				print_addr(&rdnss_info->nd_opt_rdnssi_addr2, prefix_str);
 				printf(" %s", prefix_str);
 			}
 			if (rdnss_info->nd_opt_rdnssi_len >= 7) {
-				print_addr(&rdnss_info->nd_opt_rdnssi_adrr3, prefix_str);
+				print_addr(&rdnss_info->nd_opt_rdnssi_addr3, prefix_str);
 				printf(" %s", prefix_str);
 			}
 			
@@ -422,13 +422,12 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			if (!edefs 
 			    || ((rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S) == 0 ) == DFLT_AdvRDNSSOpenFlag)
 				printf("\t\tAdvRDNSSOpen %s;\n", rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S ? "on" : "off");
-			if (!edefs
-			    || ntohl(rdnss_info->nd_opt_rdnssi_lifetime) != DFLT_AdvRDNSSLifetime ) {
-				if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
-					printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");
-				else
-					printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
-			}
+
+			/* as AdvRDNSSLifetime may depend on MaxRtrAdvInterval, it could change */
+			if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
+				printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");
+			else
+				printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
 			
 			printf("\t}; # End of RDNSS definition\n\n");
 			break;

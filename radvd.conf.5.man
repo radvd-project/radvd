@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.19 2006/05/23 06:49:37 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.20 2006/06/09 11:46:49 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -457,8 +457,12 @@ Default: off
 .TP
 .BR "AdvRDNSSLifetime " seconds | infinity;
 The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
+The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
+The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale
+RDNSS info gets removed in a timely fashion, this should not be greater than
+2*MaxRtrAdvInterval.
 
-Default: 30 seconds
+Default: 2*MaxRtrAdvInterval
 
 .SH EXAMPLES
 
