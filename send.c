@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.23 2006/05/23 06:49:37 psavola Exp $
+ *   $Id: send.c,v 1.24 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -189,11 +189,11 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 		rdnssinfo->nd_opt_rdnssi_lifetime	= htonl(rdnss->AdvRDNSSLifetime);
 			
-		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr1, &rdnss->AdvRDNSSAddr1,
+		memcpy(&rdnssinfo->nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1,
 		       sizeof(struct in6_addr));
-		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr2, &rdnss->AdvRDNSSAddr2,
+		memcpy(&rdnssinfo->nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2,
 		       sizeof(struct in6_addr));
-		memcpy(&rdnssinfo->nd_opt_rdnssi_adrr3, &rdnss->AdvRDNSSAddr3,
+		memcpy(&rdnssinfo->nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3,
 		       sizeof(struct in6_addr));
 		len += sizeof(*rdnssinfo) - (3-rdnss->AdvRDNSSNumber)*sizeof(struct in6_addr);
 

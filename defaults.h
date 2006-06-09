@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.16 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: defaults.h,v 1.17 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -65,7 +65,7 @@
 /* RDNSS */
 #define DFLT_AdvRDNSSPreference				8 /* medium */
 #define DFLT_AdvRDNSSOpenFlag				0
-#define DFLT_AdvRDNSSLifetime				30 /* seconds */
+#define DFLT_AdvRDNSSLifetime(iface)			(iface)->MaxRtrAdvInterval
 
 /* Protocol (RFC2461) constants: */
 
@@ -163,9 +163,9 @@ struct nd_opt_rdnss_info_local
 	uint8_t   			nd_opt_rdnssi_len;
 	uint16_t   			nd_opt_rdnssi_pref_flag_reserved;
 	uint32_t			nd_opt_rdnssi_lifetime;
-	struct in6_addr		nd_opt_rdnssi_adrr1;
-	struct in6_addr		nd_opt_rdnssi_adrr2;
-	struct in6_addr		nd_opt_rdnssi_adrr3;
+	struct in6_addr		nd_opt_rdnssi_addr1;
+	struct in6_addr		nd_opt_rdnssi_addr2;
+	struct in6_addr		nd_opt_rdnssi_addr3;
 };
 /* pref/flag/reserved field : yyyyx00000000000 (big endian) - 00000000yyyyx000 (little indian); where yyyy = pref, x = flag */
 #if BYTE_ORDER == BIG_ENDIAN

@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.15 2006/03/29 12:32:10 psavola Exp $
+ *   $Id: gram.y,v 1.16 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -106,7 +106,6 @@ static void yyerror(char *msg);
 %type	<rinfo>	optional_routelist routedef routelist
 %type	<rdnssinfo> optional_rdnsslist rdnssdef rdnsslist
 %type   <num>	number_or_infinity
-%type	<addr>	rdnssaddrs
 
 %union {
 	unsigned int		num;
@@ -508,8 +507,11 @@ rdnssdef	: rdnsshead '{' optional_rdnssplist '}' ';'
 		}
 		;
 
-rdnssaddrs: 	/* empty */
-		| rdnssaddrs IPV6ADDR
+rdnssaddrs	: rdnssaddrs rdnssaddr
+		| rdnssaddr
+		;
+
+rdnssaddr	: IPV6ADDR
 		{
 			if (!rdnss) {
 				/* first IP found */
@@ -525,15 +527,15 @@ rdnssaddrs: 	/* empty */
 			
 			switch (rdnss->AdvRDNSSNumber) {
 				case 0:
-					memcpy(&rdnss->AdvRDNSSAddr1, $2, sizeof(struct in6_addr));
+					memcpy(&rdnss->AdvRDNSSAddr1, $1, sizeof(struct in6_addr));
 					rdnss->AdvRDNSSNumber++;
 					break;
 				case 1:
-					memcpy(&rdnss->AdvRDNSSAddr2, $2, sizeof(struct in6_addr));
+					memcpy(&rdnss->AdvRDNSSAddr2, $1, sizeof(struct in6_addr));
 					rdnss->AdvRDNSSNumber++;
 					break;
 				case 2:
-					memcpy(&rdnss->AdvRDNSSAddr3, $2, sizeof(struct in6_addr));
+					memcpy(&rdnss->AdvRDNSSAddr3, $1, sizeof(struct in6_addr));
 					rdnss->AdvRDNSSNumber++;
 					break;
 				default:
@@ -572,6 +574,13 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{
+			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
+				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
+				ABORT;
+			}
+			if ($2 > 2*(iface->MaxRtrAdvInterval))
+				flog(LOG_WARNING, "Warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
+
 			rdnss->AdvRDNSSLifetime = $2;
 		}
 		;

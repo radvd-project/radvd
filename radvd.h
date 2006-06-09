@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.21 2006/05/23 06:52:46 psavola Exp $
+ *   $Id: radvd.h,v 1.22 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -216,5 +216,6 @@ int recv_rs_ra(int, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo *
 void mdelay(double);
 double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
+int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.6 2005/12/30 15:13:11 psavola Exp $
+ *   $Id: util.c,v 1.7 2006/06/09 11:46:49 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -46,4 +46,19 @@ print_addr(struct in6_addr *addr, char *str)
 	{
 		strcpy(str, "[invalid address]");	
 	}
+}
+
+/* Check if an in6_addr exists in the rdnss list */
+int
+check_rdnss_presence(struct AdvRDNSS *rdnss, struct in6_addr *addr)
+{
+	while (rdnss) {
+		if (    !memcmp(&rdnss->AdvRDNSSAddr1, addr, sizeof(struct in6_addr)) 
+		     || !memcmp(&rdnss->AdvRDNSSAddr2, addr, sizeof(struct in6_addr))
+		     || !memcmp(&rdnss->AdvRDNSSAddr3, addr, sizeof(struct in6_addr)) )
+			break; /* rdnss address found in the list */
+		else
+			rdnss = rdnss->next; /* no match */
+	}
+	return (rdnss != NULL);
 }
