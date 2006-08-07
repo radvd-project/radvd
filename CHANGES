@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.59 2006/05/23 06:52:46 psavola Exp $
+$Id: CHANGES,v 1.60 2006/08/07 19:50:53 psavola Exp $
+
+08/07/2006	Implement MAX_INITIAL_RTR_ADVERT_INTERVAL handling,
+		patch from Yoshifuji Hideaki / USAGI.
 
 05/23/2006	Unblock SIGALRM signals at startup.  Some scripts/programs
 		seem to run radvd from ALRM-blocked context which breaks

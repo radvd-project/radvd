@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.28 2006/05/23 06:52:46 psavola Exp $
+ *   $Id: radvd.c,v 1.29 2006/08/07 19:50:53 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -311,6 +311,13 @@ timer_handler(void *data)
 	send_ra(sock, iface, NULL);
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
+
+	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
+	{
+		iface->init_racount++;
+		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
+	}
+
 	set_timer(&iface->tm, next);
 }
 
@@ -350,7 +357,11 @@ kickoff_adverts(void)
 				/* send an initial advertisement */
 				send_ra(sock, iface, NULL);
 
-				set_timer(&iface->tm, iface->MaxRtrAdvInterval);
+				iface->init_racount++;
+
+				set_timer(&iface->tm,
+					  min(MAX_INITIAL_RTR_ADVERT_INTERVAL,
+					      iface->MaxRtrAdvInterval));
 			}
 		}
 	}
