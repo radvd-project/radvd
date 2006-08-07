@@ -1,4 +1,4 @@
-$Id: TODO,v 1.22 2006/05/23 06:37:43 psavola Exp $
+$Id: TODO,v 1.23 2006/08/07 19:50:53 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -29,14 +29,6 @@ The following parts of RFC2461(bis) are not implemented:
  - section 6.2.1: Adv{Valid,Preferred}Lifetime that decrements in real time,
    that is, one that will result in a Lifetime of zero at the specified time in
    the future. (MUST)
- - section 6.2.4: For the first few advertisements (up to
-   MAX_INITIAL_RTR_ADVERTISEMENTS) sent from an interface when it
-   becomes an advertising interface, if the randomly chosen interval is
-   greater than MAX_INITIAL_RTR_ADVERT_INTERVAL, the timer SHOULD be set
-   to MAX_INITIAL_RTR_ADVERT_INTERVAL instead.  Using a smaller interval
-   for the initial advertisements increases the likelihood of a router
-   being discovered quickly when it first becomes available, in the
-   presence of possible packet loss. (SHOULD)
  - section 6.2.5: when AdvSendAdvertisements changes to FALSE, we don't send 
    a final RA with zero Router Lifetime (we just send it when shutting down).
    (SHOULD)

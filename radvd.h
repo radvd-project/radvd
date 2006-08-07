@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.22 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: radvd.h,v 1.23 2006/08/07 19:50:53 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -40,6 +40,8 @@ struct timer_lst {
 	struct timer_lst	*prev;	
 };
 
+#define min(a,b)	(((a) < (b)) ? (a) : (b))
+
 struct AdvPrefix;
 
 #define HWADDR_MAX 16
@@ -49,6 +51,8 @@ struct Interface {
 
 	struct in6_addr		if_addr;
 	unsigned int		if_index;
+
+	uint8_t			init_racount;	/* Initial RAs */
 
 	uint8_t			if_hwaddr[HWADDR_MAX];
 	int			if_hwaddr_len;
