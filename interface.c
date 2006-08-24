@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.17 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: interface.c,v 1.18 2006/08/24 11:41:39 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -172,7 +172,7 @@ check_iface(struct Interface *iface)
 	{
 		flog(LOG_ERR, 
 			"AdvDefaultLifetime for %s (%u) must be zero or between %u and %u",
-			iface->Name, iface->AdvDefaultLifetime, MIN_AdvDefaultLifetime(iface),
+			iface->Name, iface->AdvDefaultLifetime, (int)MIN_AdvDefaultLifetime(iface),
 			MAX_AdvDefaultLifetime);
 		res = -1;
 	}
