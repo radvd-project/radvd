@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.29 2006/08/07 19:50:53 psavola Exp $
+ *   $Id: radvd.c,v 1.30 2006/10/08 19:04:28 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -555,7 +555,8 @@ check_conffile_perm(const char *username, const char *conf_file)
         return 0;
 
 errorout:
-	free(st);
+	if (st)
+		free(st);
 	return(-1);
 }
 
