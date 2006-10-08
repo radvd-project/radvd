@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.19 2005/12/31 15:34:22 psavola Exp $
+ *   $Id: device-linux.c,v 1.20 2006/10/08 19:25:29 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -33,7 +33,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 {
 	struct ifreq	ifr;
 	struct AdvPrefix *prefix;
-	char zero[HWADDR_MAX];
+	char zero[sizeof(iface->if_addr)];
 	
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
 	ifr.ifr_name[IFNAMSIZ-1] = '\0';
@@ -116,7 +116,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 
 /*
  * this function extracts the link local address and interface index
- * from PATH_PROC_NET_IF_INET6
+ * from PATH_PROC_NET_IF_INET6.  Note: 'sock' unused in Linux.
  */
 int setup_linklocal_addr(int sock, struct Interface *iface)
 {
@@ -148,7 +148,7 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 				sscanf(str_addr + i * 2, "%02x", &ap);
 				addr.s6_addr[i] = (unsigned char)ap;
 			}
-			memcpy(&iface->if_addr, &addr, sizeof(addr));
+			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
 
 			iface->if_index = if_idx;
 			fclose(fp);

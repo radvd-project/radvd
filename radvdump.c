@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.15 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: radvdump.c,v 1.16 2006/10/08 19:25:29 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -151,6 +151,7 @@ main(int argc, char *argv[])
 void
 print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, unsigned int if_index, int edefs)
 {
+	/* XXX: hoplimit not being used for anything here.. */
 	struct nd_router_advert *radvert;
 	char addr_str[INET6_ADDRSTRLEN];
 	uint8_t *opt_str;
@@ -209,7 +210,6 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 	{
 		int optlen;
 		struct nd_opt_mtu *mtu;
-		struct AdvInterval *a_ival;
 		struct HomeAgentInfo *ha_info;
 
 		if (len < 2)
@@ -249,8 +249,6 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			break;
 		/* Mobile IPv6 ext */
 		case ND_OPT_RTR_ADV_INTERVAL:
-			a_ival = (struct AdvInterval *)opt_str;
-
 			/* XXX: !DFLT depends on current DFLT_ value */
 			if (!edefs || !DFLT_AdvIntervalOpt)
 			printf("\tAdvIntervalOpt on;\n");
