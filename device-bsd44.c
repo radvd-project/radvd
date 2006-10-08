@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.21 2005/12/31 15:34:22 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.22 2006/10/08 19:25:29 psavola Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -34,7 +34,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	unsigned int nlen;
 	uint8_t *p, *end;
 	struct AdvPrefix *prefix;
-	char zero[HWADDR_MAX];
+	char zero[sizeof(iface->if_addr)];
 
 	/* just allocate 8192 bytes, should be more than enough.. */
 	if (!(ifconf.ifc_buf = malloc(ifconf.ifc_len = (32 << 8))))
@@ -80,7 +80,7 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		    (!memcmp(iface->Name, ((struct sockaddr_dl *)p)->sdl_data, nlen)))
 		{
 		
-			if (((struct sockaddr_dl *)p)->sdl_alen > HWADDR_MAX)
+			if (((struct sockaddr_dl *)p)->sdl_alen > sizeof(iface->if_addr))
 			{
 				flog(LOG_ERR, "address length %d too big for",
 					((struct sockaddr_dl *)p)->sdl_alen,
