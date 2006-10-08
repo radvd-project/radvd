@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.24 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: send.c,v 1.25 2006/10/08 19:22:36 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -32,6 +32,9 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct AdvPrefix *prefix;
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
+	/* XXX: we don't keep track if buff gets overflowed.  In theory the sysadmin could
+	   do that with e.g., too many advertised prefixes or routes, but buff is just so
+	   large that this should never happen and if it does, it's admin's fault :-)  */
 	unsigned char buff[MSG_SIZE];
 	int len = 0;
 	int err;
