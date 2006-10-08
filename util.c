@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.7 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: util.c,v 1.8 2006/10/08 19:20:02 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -44,6 +44,7 @@ print_addr(struct in6_addr *addr, char *str)
 	
 	if (res == NULL) 
 	{
+		flog(LOG_ERR, "print_addr: inet_ntop: %s", strerror(errno));		
 		strcpy(str, "[invalid address]");	
 	}
 }
