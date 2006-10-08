@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.20 2006/10/08 19:25:29 psavola Exp $
+ *   $Id: device-linux.c,v 1.21 2006/10/08 19:32:22 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -90,10 +90,16 @@ setup_deviceinfo(int sock, struct Interface *iface)
 		iface->if_prefix_len);
 
 	if (iface->if_hwaddr_len != -1) {
-		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, (unsigned int)((iface->if_hwaddr_len + 7) >> 3));
+		unsigned int if_hwaddr_len_bytes = (iface->if_hwaddr_len + 7) >> 3;
+		
+		if (if_hwaddr_len_bytes > sizeof(iface->if_hwaddr)) {
+			flog(LOG_ERR, "address length %d too big for %s", if_hwaddr_len_bytes, iface->Name);
+			return(-2);
+		}
+		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
 
-		memset(zero, 0, (unsigned int)((iface->if_hwaddr_len + 7) >> 3));
-		if (!memcmp(iface->if_hwaddr, zero, (unsigned int)((iface->if_hwaddr_len + 7) >> 3)))
+		memset(zero, 0, sizeof(zero));
+		if (!memcmp(iface->if_hwaddr, zero, if_hwaddr_len_bytes))
 			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!",
 				iface->Name);
 	}
