@@ -1,5 +1,5 @@
 /*
- *   $Id: recv.c,v 1.9 2006/10/08 19:25:29 psavola Exp $
+ *   $Id: recv.c,v 1.10 2006/10/08 19:39:33 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,7 +34,10 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 	{
 		chdrlen = CMSG_SPACE(sizeof(struct in6_pktinfo)) +
 				CMSG_SPACE(sizeof(int));
-		chdr = malloc( chdrlen );
+		if ((chdr = malloc(chdrlen)) == NULL) {
+			flog(LOG_ERR, "recv_rs_ra: malloc: %s", strerror(errno));
+			return -1;
+		}
 	}
 
 	FD_ZERO( &rfds );
@@ -70,7 +73,7 @@ recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr,
 
 	*hoplimit = 255;
 
-        for (cmsg = CMSG_FIRSTHDR(&mhdr); cmsg; cmsg = CMSG_NXTHDR(&mhdr, cmsg))
+        for (cmsg = CMSG_FIRSTHDR(&mhdr); cmsg != NULL; cmsg = CMSG_NXTHDR(&mhdr, cmsg))
 	{
           if (cmsg->cmsg_level != IPPROTO_IPV6)
           	continue;
