@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.23 2006/08/07 19:50:53 psavola Exp $
+ *   $Id: radvd.h,v 1.24 2006/10/08 19:01:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -177,8 +177,8 @@ void init_timer(struct timer_lst *, void (*)(void *), void *);
 
 /* log.c */
 int log_open(int, char *, char*, int);
-int flog(int, char *, ...);
-int dlog(int, int, char *, ...);
+void flog(int, char *, ...);
+void dlog(int, int, char *, ...);
 int log_close(void);
 int log_reopen(void);
 void set_debuglevel(int);
