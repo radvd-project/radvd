@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.6 2005/10/18 19:17:29 lutchann Exp $
+ *	$Id: log.c,v 1.7 2006/10/08 19:01:17 psavola Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -112,7 +112,7 @@ vlog(int prio, char *format, va_list ap)
 	return 0;
 }
 
-int
+void
 dlog(int prio, int level, char *format, ...)
 {
 	va_list ap;
@@ -124,11 +124,11 @@ dlog(int prio, int level, char *format, ...)
 	va_start(ap, format);
 	res = vlog(prio, format, ap);
 	va_end(ap);		
-	
-	return res;
+
+	/* XXX: should we do something if res < 0.. */
 }
 
-int
+void
 flog(int prio, char *format, ...)
 {
 	va_list ap;
@@ -137,8 +137,8 @@ flog(int prio, char *format, ...)
 	va_start(ap, format);
 	res = vlog(prio, format, ap);
 	va_end(ap);		
-	
-	return res;
+
+	/* XXX: should we do something if res < 0.. */
 }
 
 int
