@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.60 2006/08/07 19:50:53 psavola Exp $
+$Id: CHANGES,v 1.61 2006/10/09 20:11:34 psavola Exp $
+
+10/09/2006	Perform a static/dynamic code audit; plug some minor
+		bugs (see CVS changelogs for more information) and
+		perform minor clean-up.
 
 08/07/2006	Implement MAX_INITIAL_RTR_ADVERT_INTERVAL handling,
 		patch from Yoshifuji Hideaki / USAGI.
