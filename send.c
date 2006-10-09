@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.26 2006/10/08 19:36:21 psavola Exp $
+ *   $Id: send.c,v 1.27 2006/10/09 06:21:59 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -310,6 +310,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			addr.sin6_scope_id = iface->if_index;
 #endif
 
+	memset(&mhdr, 0, sizeof(mhdr));
 	mhdr.msg_name = (caddr_t)&addr;
 	mhdr.msg_namelen = sizeof(struct sockaddr_in6);
 	mhdr.msg_iov = &iov;
