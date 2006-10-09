@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.16 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: gram.y,v 1.17 2006/10/09 06:20:59 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -605,6 +605,12 @@ void cleanup(void)
 	
 	if (prefix)
 		free(prefix);
+
+	if (route)
+		free(route);
+
+	if (rdnss)
+		free(rdnss);
 }
 
 static void
