@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.7 2006/10/08 19:01:17 psavola Exp $
+ *	$Id: log.c,v 1.8 2006/10/09 06:15:32 psavola Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -119,7 +119,7 @@ dlog(int prio, int level, char *format, ...)
 	int res;
 
 	if (debug_level < level)
-		return 0;
+		return;
 	
 	va_start(ap, format);
 	res = vlog(prio, format, ap);
