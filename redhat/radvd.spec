@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.16 2006/01/13 13:27:10 psavola Exp $
+# $Id: radvd.spec,v 1.17 2006/11/01 14:54:28 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -7,7 +7,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 0.9.1
+Version: 1.0
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD-style
@@ -16,6 +16,7 @@ Packager: Pekka Savola <pekkas@netcore.fi>
 Source: http://www.litech.org/radvd/radvd-%{version}.tar.gz
 PreReq: chkconfig, /usr/sbin/useradd, /sbin/service, initscripts
 BuildRoot: %{_tmppath}/%{name}-root
+BuildRequires: flex, byacc
 
 %description
 radvd is the router advertisement daemon for IPv6.  It listens to router
@@ -86,6 +87,9 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Wed Nov  1 2006 Pekka Savola <pekkas@netcore.fi> 1.0-1
+- 1.0; add BuildRequires
+
 * Fri Jan 13 2006 Pekka Savola <pekkas@netcore.fi> 0.9.1-1
 - 0.9.1
 
