@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.17 2006/10/08 19:34:35 psavola Exp $
+ *   $Id: radvdump.c,v 1.18 2007/06/25 11:42:10 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -185,6 +185,9 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 
 	if (!edefs || DFLT_AdvCurHopLimit != radvert->nd_ra_curhoplimit)
 	printf("\tAdvCurHopLimit %u;\n", radvert->nd_ra_curhoplimit);
+
+	if (!edefs || (3*DFLT_MaxRtrAdvInterval) != ntohs(radvert->nd_ra_router_lifetime))
+	printf("\tAdvDefaultLifetime %hu;\n", ntohs(radvert->nd_ra_router_lifetime));
 
 	/* Mobile IPv6 ext */
 	if (!edefs || DFLT_AdvHomeAgentFlag != (ND_RA_FLAG_HOME_AGENT == (radvert->nd_ra_flags_reserved & ND_RA_FLAG_HOME_AGENT)))
