@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.17 2006/10/09 06:20:59 psavola Exp $
+ *   $Id: gram.y,v 1.18 2007/06/25 11:46:45 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -326,14 +326,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		;
 		
-prefixlist	: prefixdef
+prefixlist	: prefixdef optional_prefixlist
 		{
+			$1->next = $2;
 			$$ = $1;
-		}
-		| prefixlist prefixdef
-		{
-			$2->next = $1;
-			$$ = $2;
 		}
 		;
 
@@ -427,14 +423,10 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 		}
 		;
 
-routelist	: routedef
+routelist	: routedef optional_routelist
 		{
+			$1->next = $2;
 			$$ = $1;
-		}
-		| routelist routedef
-		{
-			$2->next = $1;
-			$$ = $2;
 		}
 		;
 
@@ -489,14 +481,10 @@ routeparms	: T_AdvRoutePreference SIGNEDNUMBER ';'
 		}
 		;
 		
-rdnsslist	: rdnssdef
+rdnsslist	: rdnssdef optional_rdnsslist
 		{
+			$1->next = $2;
 			$$ = $1;
-		}
-		| rdnsslist rdnssdef
-		{
-			$2->next = $1;
-			$$ = $2;
 		}
 		;
 		
