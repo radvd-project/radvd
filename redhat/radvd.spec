@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.17 2006/11/01 14:54:28 psavola Exp $
+# $Id: radvd.spec,v 1.18 2007/10/24 13:54:27 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -12,11 +12,15 @@ Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD-style
 Group: System Environment/Daemons
-Packager: Pekka Savola <pekkas@netcore.fi>
-Source: http://www.litech.org/radvd/radvd-%{version}.tar.gz
-PreReq: chkconfig, /usr/sbin/useradd, /sbin/service, initscripts
-BuildRoot: %{_tmppath}/%{name}-root
+URL:        http://www.litech.org/radvd/
+Source:     http://www.litech.org/radvd/dist/%{name}-%{version}.tar.gz
+Patch1:                radvd-1.0-initscript.patch
+Requires(postun):   chkconfig, /usr/sbin/userdel, initscripts
+Requires(preun):    chkconfig, initscripts
+Requires(post):     chkconfig
+Requires(pre):      /usr/sbin/useradd
 BuildRequires: flex, byacc
+BuildRoot:          %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
 radvd is the router advertisement daemon for IPv6.  It listens to router
@@ -30,7 +34,7 @@ Install radvd if you are setting up IPv6 network and/or Mobile IPv6
 services.
 
 %prep
-%setup
+%setup -q
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" 
@@ -44,7 +48,8 @@ make
 %install
 [ $RPM_BUILD_ROOT != "/" ] && rm -rf $RPM_BUILD_ROOT
 
-%makeinstall
+make DESTDIR=$RPM_BUILD_ROOT install
+
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 mkdir -p $RPM_BUILD_ROOT%{initdir}
 mkdir -p $RPM_BUILD_ROOT/var/run/radvd
@@ -59,6 +64,9 @@ install -m 644 redhat/radvd.sysconfig $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/ra
 %postun
 if [ "$1" -ge "1" ]; then
     /sbin/service radvd condrestart >/dev/null 2>&1
+fi
+if [ $1 = 0 ]; then
+        /usr/sbin/userdel radvd > /dev/null 2>&1 || :
 fi
 
 %post
@@ -75,11 +83,11 @@ fi
 /usr/sbin/useradd -c "radvd user" -r -M -s /sbin/nologin -u %{RADVD_UID} -d / radvd 2>/dev/null || :
 
 %files
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %doc COPYRIGHT README CHANGES INTRO.html TODO
 %config(noreplace) %{_sysconfdir}/radvd.conf
 %config(noreplace) /etc/sysconfig/radvd
-%config %{initdir}/radvd
+%{initdir}/radvd
 %dir %attr(-,radvd,radvd) /var/run/radvd/
 %doc radvd.conf.example
 %{_mandir}/*/*
