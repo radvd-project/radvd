@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.17 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: defaults.h,v 1.18 2007/10/25 05:29:33 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -134,7 +134,7 @@
 #endif
 
 /* de-facto codepoint used by many implementations was '9',
-   the official IANA assignment will be '24' */
+   the official IANA assignment is '24' */
 #undef ND_OPT_ROUTE_INFORMATION
 #define  ND_OPT_ROUTE_INFORMATION	24
 

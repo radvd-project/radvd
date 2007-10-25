@@ -1,4 +1,4 @@
-$Id: TODO,v 1.23 2006/08/07 19:50:53 psavola Exp $
+$Id: TODO,v 1.24 2007/10/25 05:29:33 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -25,7 +25,7 @@ consider whether UnicastOnly flag should be detected by radvdump.
 read the man pages one more time and make sure their are understandable
 and English is correct
 
-The following parts of RFC2461(bis) are not implemented:
+The following parts of RFC2461/RFC4861 are not implemented:
  - section 6.2.1: Adv{Valid,Preferred}Lifetime that decrements in real time,
    that is, one that will result in a Lifetime of zero at the specified time in
    the future. (MUST)
