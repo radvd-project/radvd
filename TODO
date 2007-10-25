@@ -1,4 +1,4 @@
-$Id: TODO,v 1.24 2007/10/25 05:29:33 psavola Exp $
+$Id: TODO,v 1.25 2007/10/25 05:53:40 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -57,3 +57,10 @@ Consider whether radvd should work around missing/broken interfaces by
 default, especially if a previously working interface gets disabled.
 
 Implement Secure Neighbor Discovery (RFC 3971).
+
+Radvd can't set interface variables such as MTU if it's not running as root
+due to how early we drop root privileges.  Even if root privileges were
+dropped later, interface variables could not be reconfigured at SIGHUP. See:
+http://lists.litech.org/pipermail/radvd-devel-l/2007-October/000281.html
+
+
