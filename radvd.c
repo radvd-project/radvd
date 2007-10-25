@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.30 2006/10/08 19:04:28 psavola Exp $
+ *   $Id: radvd.c,v 1.31 2007/10/25 05:53:40 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -268,6 +268,7 @@ main(int argc, char *argv[])
 	
 	close(fd);
 
+	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();
 	kickoff_adverts();
 
@@ -455,6 +456,7 @@ void reload_config(void)
 	if (readin_config(conf_file) < 0)
 		exit(1);
 
+	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();
 	kickoff_adverts();
 

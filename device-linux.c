@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.21 2006/10/08 19:32:22 psavola Exp $
+ *   $Id: device-linux.c,v 1.22 2007/10/25 05:53:40 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -238,8 +238,8 @@ set_interface_var(const char *iface,
 	fp = fopen(spath, "w");
 	if (!fp) {
 		if (name)
-			flog(LOG_ERR, "failed to set %s (%u) for %s",
-			     name, val, iface);
+			flog(LOG_ERR, "failed to set %s (%u) for %s: %s",
+			     name, val, iface, strerror(errno));
 		return -1;
 	}
 	fprintf(fp, "%u", val);
