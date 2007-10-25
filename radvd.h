@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.24 2006/10/08 19:01:17 psavola Exp $
+ *   $Id: radvd.h,v 1.25 2007/10/25 19:29:40 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -110,9 +110,10 @@ struct AdvPrefix {
 	/* Mobile IPv6 extensions */
 	int             	AdvRouterAddr;
 
-	/* 6to4 extensions */
+	/* 6to4 etc. extensions */
 	char			if6to4[IFNAMSIZ];
 	int			enabled;
+	int			AutoSelected;
 
 	struct AdvPrefix	*next;
 };
