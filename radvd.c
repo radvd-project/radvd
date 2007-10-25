@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.31 2007/10/25 05:53:40 psavola Exp $
+ *   $Id: radvd.c,v 1.32 2007/10/25 19:17:16 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
 	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
 	{
-		flog(LOG_ERR, "another radvd seems to be already running, terminating");
+		flog(LOG_ERR, "radvd pid file already exists or cannot be created, terminating: %s", strerror(errno));
 		exit(1);
 	}
 	
