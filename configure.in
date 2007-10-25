@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.10 2005/10/18 19:17:29 lutchann Exp $
+dnl  $Id: configure.in,v 1.11 2007/10/25 19:29:40 psavola Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.10 2005/10/18 19:17:29 lutchann Exp $)
+AC_REVISION ($Id: configure.in,v 1.11 2007/10/25 19:29:40 psavola Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -120,7 +120,7 @@ then
 fi
 unset hdrfound
 
-AC_CHECK_HEADERS(sys/sockio.h getopt.h inttypes.h)
+AC_CHECK_HEADERS(ifaddrs.h sys/sockio.h getopt.h inttypes.h)
 AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)
 AC_CHECK_HEADERS(sys/param.h)
 AC_CHECK_HEADERS(machine/param.h)

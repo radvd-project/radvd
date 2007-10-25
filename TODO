@@ -1,4 +1,4 @@
-$Id: TODO,v 1.25 2007/10/25 05:53:40 psavola Exp $
+$Id: TODO,v 1.26 2007/10/25 19:29:40 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -39,7 +39,11 @@ The following parts of RFC2461/RFC4861 are not implemented:
 Consider whether to support RFC 4286 (Multicast Router Discovery).
 
 Consider whether to support multiple IPv4 addresses with Base6to4Interface
-(currently the code just uses the first one).
+(currently the code just picks one).
+
+Consider whether to support multiple prefixes and routes with a single
+configuration line (instead of having to specify each prefix/route
+separately) somewhat similar to how RDNSS configuration already supports.
 
 Consider whether to support a generalization of Base6to4Interface for
 arbitrary IPv6 prefixes, to be used for automatic generation of downstream

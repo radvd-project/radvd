@@ -1,4 +1,9 @@
-$Id: CHANGES,v 1.63 2007/06/25 11:46:45 psavola Exp $
+$Id: CHANGES,v 1.64 2007/10/25 19:29:40 psavola Exp $
+
+25/10/2007	Implement automatically selecting and advertising an
+                interface address, see radvd.conf(5) for more.  Add
+		a warning about not being able to set interface
+		variables with non-root user.
 
 25/06/2007	Send prefix, route and RDNSS options (matters if there
 		are many RDNSS options) in the same order they appear

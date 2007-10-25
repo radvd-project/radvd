@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.21 2007/10/25 05:29:33 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.22 2007/10/25 19:29:40 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -47,6 +47,14 @@ Prefix definitions are of the form:
 Prefix can be network prefix or the address of the inferface.
 The address of interface should be used when using Mobile IPv6
 extensions.
+
+Special prefix "::/64" is also supported on systems that implement getifaddrs()
+(on other systems, configuration activation fails and radvd exits).
+When configured, radvd
+picks one non-link-local prefix assigned to the interface and starts advertising
+it.  This may be applicable in non-6to4 scenarios where the upstream prefix might
+change.  This option is incompatible with Base6to4Interface option.
+AdvRouterAddr option is always enabled when this configuration is used.
 
 All the possible prefix specific options are described below.  Each
 option has to be terminated by a semicolon.
