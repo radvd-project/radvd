@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.20 2006/06/09 11:46:49 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.21 2007/10/25 05:29:33 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -445,12 +445,16 @@ Default: medium
 The preference of the DNS server, compared to other DNS servers advertised and used.
 0 to 7 means less important than manually configured nameservers in resolv.conf, while 12 to 15 means more important.
 
+NOTE: This feature was removed from the final RFC but can still be used for experimental purposes.
+
 Default: 8
 
 .TP
 .BR "AdvRDNSSOpen " on | off;
 
 "Service Open" flag. When set, indicates that RDNSS continues to be available to hosts even if they moved to a different subnet.
+
+NOTE: This feature was removed from the final RFC but can still be used for experimental purposes.
 
 Default: off
 
@@ -583,7 +587,7 @@ Devarapalli, V., Wakikawa, R., Petrescu, A., and P. Thubert "Network Mobility (N
 RFC 3963, January 2005.
 .PP
 J. Jeong, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Option for DNS Configuration",
-IETF Draft v08 (January 18, 2006).
+RFC 5006, September 2007.
 
 .SH "SEE ALSO"
 
