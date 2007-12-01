@@ -1,4 +1,16 @@
-$Id: CHANGES,v 1.65 2007/10/25 19:35:56 psavola Exp $
+$Id: CHANGES,v 1.66 2007/12/01 08:59:49 psavola Exp $
+
+01/12/2007	Require that interface is also 'RUNNING' instead of just
+		'UP', except if IgnoreIfMissing is enabled.  The reason is
+		that at least some recent Linux kernels do not generate
+		link-local addresses before interface is running and as
+		a result, the startup may fail if network cable is unplugged
+		in any case.
+
+		Note: this could break deployments with some very old 
+                kernels, see more info at:
+
+		http://lists.litech.org/pipermail/radvd-devel-l/2007-October/000280.html
 
 25/10/2007	Implement automatically selecting and advertising an
                 interface address, see radvd.conf(5) for more.  Add
