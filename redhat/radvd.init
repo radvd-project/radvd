@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: radvd.init,v 1.3 2007/10/24 13:54:27 psavola Exp $
+# $Id: radvd.init,v 1.4 2007/12/01 08:50:16 psavola Exp $
 #
 ### BEGIN INIT INFO
 # provides: radvd
@@ -29,9 +29,9 @@
 [ -f /etc/sysconfig/radvd ] && . /etc/sysconfig/radvd
 
 if [ $1 == 'status' ]; then
-	[ -f /usr/sbin/radvd ] && exit 4
+	[ -f /usr/sbin/radvd ] || exit 4
 else 
-	[ -f /usr/sbin/radvd ] && exit 1
+	[ -f /usr/sbin/radvd ] || exit 1
 fi
 
 RETVAL=0
