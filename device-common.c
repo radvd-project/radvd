@@ -1,5 +1,5 @@
 /*
- *   $Id: device-common.c,v 1.8 2006/05/23 06:49:37 psavola Exp $
+ *   $Id: device-common.c,v 1.9 2007/12/01 08:59:49 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -38,6 +38,12 @@ check_device(int sock, struct Interface *iface)
 	{
 		if (!iface->IgnoreIfMissing)
                 	flog(LOG_ERR, "interface %s is not UP", iface->Name);
+		return (-1);
+	}
+	if (!(ifr.ifr_flags & IFF_RUNNING))
+	{
+		if (!iface->IgnoreIfMissing)
+                	flog(LOG_ERR, "interface %s is not RUNNING", iface->Name);
 		return (-1);
 	}
 	
