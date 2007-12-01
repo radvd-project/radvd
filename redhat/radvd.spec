@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.18 2007/10/24 13:54:27 psavola Exp $
+# $Id: radvd.spec,v 1.19 2007/12/01 09:32:00 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -14,7 +14,6 @@ License: BSD-style
 Group: System Environment/Daemons
 URL:        http://www.litech.org/radvd/
 Source:     http://www.litech.org/radvd/dist/%{name}-%{version}.tar.gz
-Patch1:                radvd-1.0-initscript.patch
 Requires(postun):   chkconfig, /usr/sbin/userdel, initscripts
 Requires(preun):    chkconfig, initscripts
 Requires(post):     chkconfig
