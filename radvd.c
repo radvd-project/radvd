@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.32 2007/10/25 19:17:16 psavola Exp $
+ *   $Id: radvd.c,v 1.33 2008/01/21 08:25:10 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -189,12 +189,6 @@ main(int argc, char *argv[])
 	if (sock < 0)
 		exit(1);
 
-	/* drop root privileges if requested. */
-	if (username) {
-		if (drop_root_privileges(username) < 0)
-			exit(1);
-	}
-
 	/* check that 'other' cannot write the file
          * for non-root, also that self/own group can't either
          */
@@ -218,6 +212,15 @@ main(int argc, char *argv[])
 	/* parse config file */
 	if (readin_config(conf_file) < 0)
 		exit(1);
+
+	/* XXX: config_interface() only works with non-root user at startup */
+	config_interface();
+
+	/* drop root privileges if requested. */
+	if (username) {
+		if (drop_root_privileges(username) < 0)
+			exit(1);
+	}
 
 	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
 	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
@@ -268,8 +271,6 @@ main(int argc, char *argv[])
 	
 	close(fd);
 
-	/* XXX: fails due to lack of permissions with non-root user */
-	config_interface();
 	kickoff_adverts();
 
 	/* enter loop */
