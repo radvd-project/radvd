@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.26 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: radvd.h,v 1.27 2008/01/24 10:10:18 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -45,6 +45,7 @@ struct timer_lst {
 struct AdvPrefix;
 
 #define HWADDR_MAX 16
+#define USER_HZ 100
 
 struct Interface {
 	char			Name[IFNAMSIZ];	/* interface name */

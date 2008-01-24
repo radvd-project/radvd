@@ -1,5 +1,5 @@
 /*
- *   $Id: privsep-linux.c,v 1.1 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: privsep-linux.c,v 1.2 2008/01/24 10:10:18 psavola Exp $
  *
  *   Authors:
  *    Jim Paris			<jim@jtan.com>
@@ -92,7 +92,7 @@ privsep_read_loop(void)
 			ret = privsep_set(cmd.iface, PROC_SYS_IP6_RETRANSTIMER_MS, cmd.val);
 			if (ret == 0)
 				break;
-			privsep_set(cmd.iface, PROC_SYS_IP6_RETRANSTIMER, cmd.val / 10); /* XXX user_hz */
+			privsep_set(cmd.iface, PROC_SYS_IP6_RETRANSTIMER, cmd.val / 1000 * USER_HZ); /* XXX user_hz */
 			break;
 
 		default:
