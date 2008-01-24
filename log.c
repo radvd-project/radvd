@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.9 2008/01/21 08:11:27 psavola Exp $
+ *	$Id: log.c,v 1.10 2008/01/24 05:38:47 psavola Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -144,6 +144,7 @@ log_close(void)
 		case L_NONE:
 		case L_STDERR:
 			break;
+		case L_STDERR_SYSLOG:
 		case L_SYSLOG:
 			closelog();
 			break;
