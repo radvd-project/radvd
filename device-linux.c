@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.24 2008/01/24 10:10:18 psavola Exp $
+ *   $Id: device-linux.c,v 1.25 2008/01/24 17:08:46 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -226,6 +226,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 	return(0);
 }		
 
+/* note: also called from the root context */
 int
 set_interface_var(const char *iface,
 		  const char *var, const char *name,

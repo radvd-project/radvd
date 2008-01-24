@@ -1,5 +1,5 @@
 /*
- *   $Id: privsep-linux.c,v 1.2 2008/01/24 10:10:18 psavola Exp $
+ *   $Id: privsep-linux.c,v 1.3 2008/01/24 17:08:46 psavola Exp $
  *
  *   Authors:
  *    Jim Paris			<jim@jtan.com>
@@ -65,34 +65,41 @@ privsep_read_loop(void)
 		switch(cmd.type) {
 
 		case SET_INTERFACE_LINKMTU:
-			if (cmd.val < MIN_AdvLinkMTU || cmd.val > MAX_AdvLinkMTU)
+			if (cmd.val < MIN_AdvLinkMTU || cmd.val > MAX_AdvLinkMTU) {
+				flog(LOG_ERR, "(privsep) %s: LinkMTU (%u) is not within the defined bounds, ignoring", cmd.iface, cmd.val);
 				break;
-			ret = privsep_set(cmd.iface, PROC_SYS_IP6_LINKMTU, cmd.val);
-			 dlog(LOG_DEBUG, 4, "privsep: set link %s mtu to %u", cmd.iface, cmd.val);
+			}
+			ret = set_interface_var(cmd.iface, PROC_SYS_IP6_LINKMTU, "LinkMTU", cmd.val);
 			break;
 
 		case SET_INTERFACE_CURHLIM:
-			if (cmd.val < MIN_AdvCurHopLimit || cmd.val > MAX_AdvCurHopLimit)
+			if (cmd.val < MIN_AdvCurHopLimit || cmd.val > MAX_AdvCurHopLimit) {
+				flog(LOG_ERR, "(privsep) %s: CurHopLimit (%u) is not within the defined bounds, ignoring", cmd.iface, cmd.val);
 				break;
-			ret = privsep_set(cmd.iface, PROC_SYS_IP6_CURHLIM, cmd.val);
+			}
+			ret = set_interface_var(cmd.iface, PROC_SYS_IP6_CURHLIM, "CurHopLimit", cmd.val);
 			break;
 
 		case SET_INTERFACE_REACHTIME:
-			if (cmd.val < MIN_AdvReachableTime || cmd.val > MAX_AdvReachableTime) 
+			if (cmd.val < MIN_AdvReachableTime || cmd.val > MAX_AdvReachableTime) {
+				flog(LOG_ERR, "(privsep) %s: BaseReachableTimer (%u) is not within the defined bounds, ignoring", cmd.iface, cmd.val);
 				break;
-			ret = privsep_set(cmd.iface, PROC_SYS_IP6_BASEREACHTIME_MS, cmd.val);
+			}
+			ret = set_interface_var(cmd.iface, PROC_SYS_IP6_BASEREACHTIME_MS, "BaseReachableTimer (ms)", cmd.val);
 			if (ret == 0)
 				break;
-			privsep_set(cmd.iface, PROC_SYS_IP6_BASEREACHTIME, cmd.val / 1000); /* sec */
+			set_interface_var(cmd.iface, PROC_SYS_IP6_BASEREACHTIME, "BaseReachableTimer", cmd.val / 1000);
 			break;
 
 		case SET_INTERFACE_RETRANSTIMER:
-			if (cmd.val < MIN_AdvRetransTimer || cmd.val > MAX_AdvRetransTimer)
+			if (cmd.val < MIN_AdvRetransTimer || cmd.val > MAX_AdvRetransTimer) {
+				flog(LOG_ERR, "(privsep) %s: RetransTimer (%u) is not within the defined bounds, ignoring", cmd.iface, cmd.val);
 				break;
-			ret = privsep_set(cmd.iface, PROC_SYS_IP6_RETRANSTIMER_MS, cmd.val);
+			}
+			ret = set_interface_var(cmd.iface, PROC_SYS_IP6_RETRANSTIMER_MS, "RetransTimer (ms)", cmd.val);
 			if (ret == 0)
 				break;
-			privsep_set(cmd.iface, PROC_SYS_IP6_RETRANSTIMER, cmd.val / 1000 * USER_HZ); /* XXX user_hz */
+			set_interface_var(cmd.iface, PROC_SYS_IP6_RETRANSTIMER, "RetransTimer", cmd.val / 1000 * USER_HZ); /* XXX user_hz */
 			break;
 
 		default:
@@ -100,27 +107,6 @@ privsep_read_loop(void)
 			break;
 		}
 	}
-}
-
-int
-privsep_set(const char *iface, const char *var, uint32_t val)
-{
-	FILE *fp;
-	char spath[64+IFNAMSIZ];	/* XXX: magic constant */
-
-	if (snprintf(spath, sizeof(spath), var, iface) >= sizeof(spath))
-		return (-1);
-
-	if (access(spath, F_OK) != 0)
-		return -1;
-
-	fp = fopen(spath, "w");
-	if (!fp)
-		return -1;
-
-	fprintf(fp, "%u", val);
-	fclose(fp);
-	return 0;
 }
 
 /* Return 1 if privsep is currently enabled */
@@ -143,13 +129,13 @@ privsep_init(void)
 		return 0;
 
 	if (pipe(pipefds) != 0) {
-		flog(LOG_ERR, "Couldn't create privsep pipe\n");
+		flog(LOG_ERR, "Couldn't create privsep pipe.");
 		return (-1);
 	}
 
 	pid = fork();
 	if (pid == -1) {
-		flog(LOG_ERR, "Couldn't fork for privsep\n");
+		flog(LOG_ERR, "Couldn't fork for privsep.");
 		return (-1);
 	}
 
@@ -169,7 +155,9 @@ privsep_init(void)
 		}
 		dup2(nullfd, 0);
 		dup2(nullfd, 1);
-		dup2(nullfd, 2);
+		/* XXX: we'll keep stderr open in debug mode for better logging */
+		if (get_debuglevel() == 0)
+			dup2(nullfd, 2);
 
 		privsep_read_loop();
 		close(pfd);
