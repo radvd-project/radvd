@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.4 2005/12/30 15:13:11 psavola Exp $
+#   $Id: Makefile.am,v 1.5 2008/01/24 10:03:17 psavola Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -28,9 +28,9 @@ COMMON_SRC = log.c socket.c recv.c util.c radvd.h defaults.h pathnames.h \
 sbin_PROGRAMS = radvd radvdump
 
 radvd_SOURCES = $(COMMON_SRC) radvd.c timer.c send.c process.c interface.c \
-	device.c device-common.c gram.y gram.h scanner.l
+	device.c device-common.c privsep.c gram.y gram.h scanner.l
 radvd_LDADD = -lfl
-EXTRA_radvd_SOURCES = device-linux.c device-bsd44.c
+EXTRA_radvd_SOURCES = device-linux.c device-bsd44.c privsep-linux.c privsep-bsd44.c
 YFLAGS = -d
 CFLAGS = @CFLAGS@ -Wall -Wpointer-arith  -Wcast-qual -Wcast-align -Wconversion \
 	-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations

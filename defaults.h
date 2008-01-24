@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.18 2007/10/25 05:29:33 psavola Exp $
+ *   $Id: defaults.h,v 1.19 2008/01/24 10:03:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -108,9 +108,15 @@
 #define MAX_AdvDefaultLifetime		9000
 
 #define	MIN_AdvLinkMTU			1280
+#define	MAX_AdvLinkMTU			131072
 
+#define MIN_AdvReachableTime		100
 #define MAX_AdvReachableTime		3600000 /* 1 hour in milliseconds */
 
+#define MIN_AdvRetransTimer		10
+#define MAX_AdvRetransTimer		3600000
+
+#define MIN_AdvCurHopLimit		2
 #define MAX_AdvCurHopLimit		255
 
 #define MAX_PrefixLen			128
