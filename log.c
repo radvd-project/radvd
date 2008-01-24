@@ -1,5 +1,5 @@
 /*
- *	$Id: log.c,v 1.10 2008/01/24 05:38:47 psavola Exp $
+ *	$Id: log.c,v 1.11 2008/01/24 17:08:46 psavola Exp $
  *
  *	Authors:
  *	 Lars Fenneberg		<lf@elemental.net>	 
@@ -65,6 +65,7 @@ log_open(int method, char *ident, char *log, int facility)
 	return 0;
 }
 
+/* note: [dfv]log() is also called from root context */
 static int
 vlog(int prio, char *format, va_list ap)
 {
