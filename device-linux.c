@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.23 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: device-linux.c,v 1.24 2008/01/24 10:10:18 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -290,7 +290,7 @@ set_interface_reachtime(const char *iface, uint32_t rtime)
 		ret = set_interface_var(iface,
 					PROC_SYS_IP6_BASEREACHTIME,
 					"BaseReachableTimer",
-					rtime / 1000);
+					rtime / 1000); /* sec */
 	return ret;
 }
 
@@ -310,7 +310,7 @@ set_interface_retranstimer(const char *iface, uint32_t rettimer)
 		ret = set_interface_var(iface,
 					PROC_SYS_IP6_RETRANSTIMER,
 					"RetransTimer",
-					rettimer / 1000);
+					rettimer / 1000 * USER_HZ); /* XXX user_hz */
 	return ret;
 }
 

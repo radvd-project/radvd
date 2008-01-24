@@ -1,8 +1,11 @@
-$Id: CHANGES,v 1.69 2008/01/24 10:03:17 psavola Exp $
+$Id: CHANGES,v 1.70 2008/01/24 10:10:18 psavola Exp $
 
 24/01/2008	Implement privilege separation (Linux only) so that
 		config_interface() works both with a user and root,
 		even after HUP signal.  Work by Jim Paris.
+
+24/01/2008      The old Linux retrans_timer proc value is given in
+		USER_HZ, not in seconds.  Fix that, by Jim Paris.
 
 21/01/2008	Fix stderr+syslog logging crash (on non-i386).  Analysis and
 		patch by Jim Paris (Debian bug #409600).
