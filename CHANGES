@@ -1,7 +1,8 @@
-$Id: CHANGES,v 1.68 2008/01/21 08:25:10 psavola Exp $
+$Id: CHANGES,v 1.69 2008/01/24 10:03:17 psavola Exp $
 
-21/01/2008	Make config_interface() work when starting up by postponing
-		root-privilege dropping.
+24/01/2008	Implement privilege separation (Linux only) so that
+		config_interface() works both with a user and root,
+		even after HUP signal.  Work by Jim Paris.
 
 21/01/2008	Fix stderr+syslog logging crash (on non-i386).  Analysis and
 		patch by Jim Paris (Debian bug #409600).

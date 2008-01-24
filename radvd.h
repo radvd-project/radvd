@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.25 2007/10/25 19:29:40 psavola Exp $
+ *   $Id: radvd.h,v 1.26 2008/01/24 10:03:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -192,6 +192,7 @@ int setup_linklocal_addr(int, struct Interface *);
 int setup_allrouters_membership(int, struct Interface *);
 int check_allrouters_membership(int, struct Interface *);
 int get_v4addr(const char *, unsigned int *);
+int set_interface_var(const char *, const char *, const char *, uint32_t);
 int set_interface_linkmtu(const char *, uint32_t);
 int set_interface_curhlim(const char *, uint8_t);
 int set_interface_reachtime(const char *, uint32_t);
@@ -222,5 +223,15 @@ void mdelay(double);
 double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
 int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
+ssize_t readn(int fd, void *buf, size_t count);
+ssize_t writen(int fd, const void *buf, size_t count);
+
+/* privsep.c */
+int privsep_init(void);
+int privsep_enabled(void);
+int privsep_interface_linkmtu(const char *iface, uint32_t mtu);
+int privsep_interface_curhlim(const char *iface, uint32_t hlim);
+int privsep_interface_reachtime(const char *iface, uint32_t rtime);
+int privsep_interface_retranstimer(const char *iface, uint32_t rettimer);
 
 #endif

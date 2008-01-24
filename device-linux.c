@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.22 2007/10/25 05:53:40 psavola Exp $
+ *   $Id: device-linux.c,v 1.23 2008/01/24 10:03:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -226,14 +226,18 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 	return(0);
 }		
 
-static int
+int
 set_interface_var(const char *iface,
 		  const char *var, const char *name,
 		  uint32_t val)
 {
 	FILE *fp;
 	char spath[64+IFNAMSIZ];	/* XXX: magic constant */
-	snprintf(spath, sizeof(spath), var, iface);
+	if (snprintf(spath, sizeof(spath), var, iface) >= sizeof(spath))
+		return -1;
+
+	if (access(spath, F_OK) != 0)
+		return -1;
 
 	fp = fopen(spath, "w");
 	if (!fp) {
@@ -251,6 +255,9 @@ set_interface_var(const char *iface,
 int
 set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
+	if (privsep_enabled())
+		return privsep_interface_linkmtu(iface, mtu);
+
 	return set_interface_var(iface,
 				 PROC_SYS_IP6_LINKMTU, "LinkMTU",
 				 mtu);
@@ -259,6 +266,9 @@ set_interface_linkmtu(const char *iface, uint32_t mtu)
 int
 set_interface_curhlim(const char *iface, uint8_t hlim)
 {
+	if (privsep_enabled())
+		return privsep_interface_curhlim(iface, hlim);
+
 	return set_interface_var(iface,
 				 PROC_SYS_IP6_CURHLIM, "CurHopLimit",
 				 hlim);
@@ -268,6 +278,10 @@ int
 set_interface_reachtime(const char *iface, uint32_t rtime)
 {
 	int ret;
+
+	if (privsep_enabled())
+		return privsep_interface_reachtime(iface, rtime);
+
 	ret = set_interface_var(iface,
 				PROC_SYS_IP6_BASEREACHTIME_MS,
 				NULL,
@@ -284,6 +298,10 @@ int
 set_interface_retranstimer(const char *iface, uint32_t rettimer)
 {
 	int ret;
+
+	if (privsep_enabled())
+		return privsep_interface_retranstimer(iface, rettimer);
+
 	ret = set_interface_var(iface,
 				PROC_SYS_IP6_RETRANSTIMER_MS,
 				NULL,
