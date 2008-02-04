@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.19 2007/12/01 09:32:00 psavola Exp $
+# $Id: radvd.spec,v 1.20 2008/02/04 06:32:22 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -7,7 +7,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 1.0
+Version: 1.1
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD-style
@@ -94,6 +94,9 @@ fi
 %{_sbindir}/radvdump
 
 %changelog
+* Mon Feb  4 2008 Pekka Savola <pekkas@netcore.fi> 1.1-1
+- 1.1
+
 * Wed Nov  1 2006 Pekka Savola <pekkas@netcore.fi> 1.0-1
 - 1.0; add BuildRequires
 
