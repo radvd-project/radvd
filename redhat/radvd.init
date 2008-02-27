@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: radvd.init,v 1.4 2007/12/01 08:50:16 psavola Exp $
+# $Id: radvd.init,v 1.5 2008/02/27 13:02:59 psavola Exp $
 #
 ### BEGIN INIT INFO
 # provides: radvd
@@ -28,7 +28,7 @@
 
 [ -f /etc/sysconfig/radvd ] && . /etc/sysconfig/radvd
 
-if [ $1 == 'status' ]; then
+if [ "$1" == "status" ]; then
 	[ -f /usr/sbin/radvd ] || exit 4
 else 
 	[ -f /usr/sbin/radvd ] || exit 1
@@ -43,7 +43,7 @@ case "$1" in
   start)
 
 	# Check that networking is up.	
-	[ x${NETWORKING_IPV6} = "xyes" ] || exit 1
+	[ "${NETWORKING_IPV6}" = "yes" ] || exit 1
 
 	echo -n $"Starting $PROG: "
 	daemon radvd $OPTIONS
