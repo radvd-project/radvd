@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.24 2008/03/31 09:18:15 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.25 2008/03/31 09:23:23 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -374,6 +374,10 @@ determination.  The symbolic value
 .B infinity
 represents infinity (i.e. a value of all one bits (0xffffffff)).
 The valid lifetime is also used by RFC 4862.
+
+Note that clients will ignore AdvValidLifetime of an existing prefix
+if the lifetime is below two hours, as required in RFC 4862 Section 5.5.3
+point e).
 
 Default: 2592000 seconds (30 days)
 
