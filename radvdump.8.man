@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvdump.8.man,v 1.5 2005/10/18 19:17:29 lutchann Exp $
+.\"   $Id: radvdump.8.man,v 1.6 2008/03/31 09:18:15 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -27,7 +27,7 @@ radvdump \- dump router advertisements
 prints out the contents of incoming router advertisements sent by
 .B radvd
 or some other software implementing (parts of)
-"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 2461).
+"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 4861).
 
 .SH OPTIONS
 
