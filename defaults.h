@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.19 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: defaults.h,v 1.20 2008/03/31 09:18:15 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -67,7 +67,7 @@
 #define DFLT_AdvRDNSSOpenFlag				0
 #define DFLT_AdvRDNSSLifetime(iface)			(iface)->MaxRtrAdvInterval
 
-/* Protocol (RFC2461) constants: */
+/* Protocol (RFC4861) constants: */
 
 /* Router constants: */
 
@@ -96,7 +96,7 @@
 #define MIN_RANDOM_FACTOR		(1.0/2.0)
 #define MAX_RANDOM_FACTOR		(3.0/2.0)
 
-/* MAX and MIN (RFC2461), Mobile IPv6 extensions will override if in use */
+/* MAX and MIN (RFC4861), Mobile IPv6 extensions will override if in use */
 
 #define MIN_MaxRtrAdvInterval		4
 #define MAX_MaxRtrAdvInterval		1800

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.28 2008/01/24 10:03:17 psavola Exp $
+$Id: TODO,v 1.29 2008/03/31 09:18:15 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -18,7 +18,7 @@ Quoting Peter Bieringer (peter@bieringer.de):
 [ Peter wants that a debugging level greater than 0 doesn't stop radvd
 from forking.]
 
-support for few protocol constants defined in RFC 2461 Sec 10 is missing.
+support for few protocol constants defined in RFC 4861 Sec 10 is missing.
 
 consider whether UnicastOnly flag should be detected by radvdump.
 

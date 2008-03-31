@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.15 2006/06/09 11:46:49 psavola Exp $
+ *   $Id: process.c,v 1.16 2008/03/31 09:18:15 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -213,7 +213,7 @@ process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
 }
 
 /*
- * check router advertisements according to RFC 2461, 6.2.7
+ * check router advertisements according to RFC 4861, 6.2.7
  */
 static void
 process_ra(struct Interface *iface, unsigned char *msg, int len, 

@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.23 2008/01/24 10:02:30 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.24 2008/03/31 09:18:15 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -162,7 +162,7 @@ The minimum time allowed between sending multicast
 router advertisements from the interface, in seconds.
 
 This applies to solicited multicast RAs.
-This is defined as the protocol constant MIN_DELAY_BETWEEN_RAS in RFC2461.
+This is defined as the protocol constant MIN_DELAY_BETWEEN_RAS in RFC4861.
 MIPv6 redefines this parameter to have a minimum of 0.03 seconds.
 
 Minimum when using Mobile IPv6 extensions: 0.03.
@@ -175,7 +175,7 @@ Default: 3
 When set, hosts use the administered (stateful) protocol for address
 autoconfiguration in addition to any addresses autoconfigured using
 stateless address autoconfiguration.  The use of this flag is
-described in RFC 2462.
+described in RFC 4862.
 
 Default: off
 
@@ -184,7 +184,7 @@ Default: off
 
 When set, hosts use the administered (stateful) protocol for
 autoconfiguration of other (non-address) information.  The use of
-this flag is described in RFC 2462.
+this flag is described in RFC 4862.
 
 Default: off
 
@@ -197,7 +197,7 @@ the link MTU is not well known.
 
 If specified, i.e. not 0, must not be smaller than 1280 and not greater
 than the maximum MTU allowed for this link (e.g. ethernet has
-a maximum MTU of 1500. See RFC 2464).
+a maximum MTU of 1500. See RFC 4864).
 
 Default: 0
 
@@ -207,7 +207,7 @@ Default: 0
 The time, in milliseconds, that a node assumes a neighbor is
 reachable after having received a reachability confirmation.  Used
 by the Neighbor Unreachability Detection algorithm (see Section
-7.3 of RFC 2461).  A value of zero means unspecified (by this router).
+7.3 of RFC 4861).  A value of zero means unspecified (by this router).
 
 Must be no greater than 3,600,000 milliseconds (1 hour).
 
@@ -218,7 +218,7 @@ Default: 0
 
 The time, in milliseconds, between retransmitted Neighbor
 Solicitation messages.  Used by address resolution and the Neighbor
-Unreachability Detection algorithm (see Sections 7.2 and 7.3 of RFC 2461).
+Unreachability Detection algorithm (see Sections 7.2 and 7.3 of RFC 4861).
 A value of zero means unspecified (by this router).
 
 Default: 0
@@ -351,7 +351,7 @@ Default: on
 .BR AdvAutonomous " " on | off
 
 When set, indicates that this prefix can be used for autonomous
-address configuration as specified in RFC 2462.
+address configuration as specified in RFC 4862.
 
 Default: on
 
@@ -373,7 +373,7 @@ sent) that the prefix is valid for the purpose of on-link
 determination.  The symbolic value
 .B infinity
 represents infinity (i.e. a value of all one bits (0xffffffff)).
-The valid lifetime is also used by RFC 2462.
+The valid lifetime is also used by RFC 4862.
 
 Default: 2592000 seconds (30 days)
 
@@ -386,7 +386,7 @@ autoconfiguration remain preferred.
 The symbolic value
 .B infinity
 represents infinity (i.e. a value of all one bits (0xffffffff)).
-See RFC 2462.
+See RFC 4862.
 
 Default: 604800 seconds (7 days)
 
@@ -565,20 +565,20 @@ comes back up.
 
 .SH CREDIT
 The description of the different flags and variables is in large
-parts taken from RFC 2461.
+parts taken from RFC 4861.
 
 .SH RFCS
-Narten, T., E. Nordmark, W. Simpson, "Neighbor Discovery for IP
-Version 6 (IPv6)", RFC 2461, December 1998
+Narten, T., Nordmark, E., Simpson, W., and H. Soliman, "Neighbor Discovery for IP
+Version 6 (IPv6)", RFC 4861, September 2007.
 .PP
-Thomson, S., and T. Narten, "IPv6 Stateless Address Autoconfiguration", 
-RFC 2462, December 1998.
+Thomson, S., Narten, T., T. Jinmei, "IPv6 Stateless Address Autoconfiguration", 
+RFC 4862, September 2007.
 .PP
 Deering, S., and R. Hinden, "IP Version 6 Addressing
-Architecture", RFC 3513, April 2003.
+Architecture", RFC 4291, February 2006.
 .PP	
-Conta, A., and S. Deering, "Internet Control Message Protocol (ICMPv6)
-for the Internet Protocol Version 6 (IPv6)", RFC 2463, December 1998.
+Conta, A., Deering, S., and M. Gupta "Internet Control Message Protocol (ICMPv6)
+for the Internet Protocol Version 6 (IPv6)", RFC 4443, March 2006.
 .PP
 Crawford, M., "Transmission of IPv6 Packets over Ethernet Networks",
 RFC 2464, December 1998.	

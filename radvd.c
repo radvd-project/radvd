@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.34 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: radvd.c,v 1.35 2008/03/31 09:18:15 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -384,7 +384,7 @@ stop_adverts(void)
 	struct Interface *iface;
 
 	/*
-	 *	send final RA (a SHOULD in RFC2461 section 6.2.5)
+	 *	send final RA (a SHOULD in RFC4861 section 6.2.5)
 	 */
 
 	for (iface=IfaceList; iface; iface=iface->next) {
