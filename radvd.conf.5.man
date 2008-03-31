@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.25 2008/03/31 09:23:23 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.26 2008/03/31 09:37:31 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -379,7 +379,9 @@ Note that clients will ignore AdvValidLifetime of an existing prefix
 if the lifetime is below two hours, as required in RFC 4862 Section 5.5.3
 point e).
 
-Default: 2592000 seconds (30 days)
+Note: RFC4861's suggested default value is significantly longer: 30 days.
+
+Default: 86400 seconds (1 day)
 
 .TP
 .BR "AdvPreferredLifetime " seconds "" | infinity
@@ -392,7 +394,9 @@ The symbolic value
 represents infinity (i.e. a value of all one bits (0xffffffff)).
 See RFC 4862.
 
-Default: 604800 seconds (7 days)
+Note: RFC4861's suggested default value is significantly longer: 7 days.
+
+Default: 14400 seconds (4 hours)
 
 .TP
 .BR "Base6to4Interface " name 

@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.71 2008/02/04 06:32:22 psavola Exp $
+$Id: CHANGES,v 1.72 2008/03/31 09:37:31 psavola Exp $
+
+31/03/2008	Update references to RFCs.  Give pointer to the "two hour rule".
+		Decrease the default valid and preferred lifetimes from 30/1
+		days to 1day/4hours, respectively.  See more info at:
+
+		http://lists.litech.org/pipermail/radvd-devel-l/2007-October/000282.html
 
 04/02/2008	Release 1.1.
 
