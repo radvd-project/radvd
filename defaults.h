@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.20 2008/03/31 09:18:15 psavola Exp $
+ *   $Id: defaults.h,v 1.21 2008/03/31 09:37:31 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -52,9 +52,9 @@
 
 /* Each prefix has an associated: */
 
-#define DFLT_AdvValidLifetime		2592000 /* seconds */
+#define DFLT_AdvValidLifetime		86400 /* seconds */
 #define DFLT_AdvOnLinkFlag		1
-#define DFLT_AdvPreferredLifetime	604800 /* seconds */
+#define DFLT_AdvPreferredLifetime	14400 /* seconds */
 #define DFLT_AdvAutonomousFlag		1
 
 /* Each route has an associated: */
