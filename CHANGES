@@ -1,8 +1,11 @@
-$Id: CHANGES,v 1.73 2008/10/14 11:34:09 psavola Exp $
+$Id: CHANGES,v 1.74 2008/10/14 11:37:32 psavola Exp $
 
 14/10/2008	Accept virtually any interface name (up to 15 chars) instead of
 		forcing a specific naming convention.  Patch from
 		Michiel Brandenburg.
+
+		If stale radvd.pid file exists, try to overwrite it unless
+		the specified PID exists, from Fedora (Martin Nagy).
 
 31/03/2008	Update references to RFCs.  Give pointer to the "two hour rule".
 		Decrease the default valid and preferred lifetimes from 30/1
