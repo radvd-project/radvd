@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.74 2008/10/14 11:37:32 psavola Exp $
+$Id: CHANGES,v 1.75 2008/10/14 13:10:11 psavola Exp $
 
 14/10/2008	Accept virtually any interface name (up to 15 chars) instead of
 		forcing a specific naming convention.  Patch from
@@ -6,6 +6,9 @@ $Id: CHANGES,v 1.74 2008/10/14 11:37:32 psavola Exp $
 
 		If stale radvd.pid file exists, try to overwrite it unless
 		the specified PID exists, from Fedora (Martin Nagy).
+
+		Define _GNU_SOURCE on Linux, otherwise glibc >= 2.8
+		compilation fails.
 
 31/03/2008	Update references to RFCs.  Give pointer to the "two hour rule".
 		Decrease the default valid and preferred lifetimes from 30/1

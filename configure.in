@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.12 2008/01/24 10:03:17 psavola Exp $
+dnl  $Id: configure.in,v 1.13 2008/10/14 13:10:11 psavola Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.12 2008/01/24 10:03:17 psavola Exp $)
+AC_REVISION ($Id: configure.in,v 1.13 2008/10/14 13:10:11 psavola Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -24,6 +24,7 @@ echo $ac_n "building for architecture""... $ac_c" 1>&6
 case "$target" in
 	*linux*)
 		AC_MSG_RESULT(linux)
+		AC_DEFINE([_GNU_SOURCE], [], [whether compiling on Linux, glibc>=2.8 doesn't expose in6_pktinfo otherwise..])
                 arch=linux
         ;;
         *bsd*)
