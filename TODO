@@ -1,4 +1,4 @@
-$Id: TODO,v 1.29 2008/03/31 09:18:15 psavola Exp $
+$Id: TODO,v 1.30 2008/10/14 08:01:21 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -25,10 +25,7 @@ consider whether UnicastOnly flag should be detected by radvdump.
 read the man pages one more time and make sure their are understandable
 and English is correct
 
-The following parts of RFC2461/RFC4861 are not implemented:
- - section 6.2.1: Adv{Valid,Preferred}Lifetime that decrements in real time,
-   that is, one that will result in a Lifetime of zero at the specified time in
-   the future. (MUST)
+The following parts of RFC4861 are not implemented:
  - section 6.2.5: when AdvSendAdvertisements changes to FALSE, we don't send 
    a final RA with zero Router Lifetime (we just send it when shutting down).
    (SHOULD)
