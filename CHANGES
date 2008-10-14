@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.72 2008/03/31 09:37:31 psavola Exp $
+$Id: CHANGES,v 1.73 2008/10/14 11:34:09 psavola Exp $
+
+14/10/2008	Accept virtually any interface name (up to 15 chars) instead of
+		forcing a specific naming convention.  Patch from
+		Michiel Brandenburg.
 
 31/03/2008	Update references to RFCs.  Give pointer to the "two hour rule".
 		Decrease the default valid and preferred lifetimes from 30/1
