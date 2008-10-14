@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.35 2008/03/31 09:18:15 psavola Exp $
+ *   $Id: radvd.c,v 1.36 2008/10/14 11:37:32 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -70,6 +70,7 @@ main(int argc, char *argv[])
 {
 	unsigned char msg[MSG_SIZE];
 	char pidstr[16];
+	int ret;
 	int c, log_method;
 	char *logfile, *pidfile;
 	sigset_t oset, nset;
@@ -230,10 +231,29 @@ main(int argc, char *argv[])
 			exit(1);
 	}
 
-	/* FIXME: not atomic if pidfile is on an NFS mounted volume */	
-	if ((fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
+	if ((fd = open(pidfile, O_RDONLY, 0)) > 0)
 	{
-		flog(LOG_ERR, "radvd pid file already exists or cannot be created, terminating: %s", strerror(errno));
+		ret = read(fd, pidstr, sizeof(pidstr) - 1);
+		if (ret < 0)
+		{
+			flog(LOG_ERR, "cannot read radvd pid file, terminating: %s", strerror(errno));
+			exit(1);
+		}
+		pidstr[ret] = '\0';
+		if (!kill(atol(pidstr), 0))
+		{
+			flog(LOG_ERR, "radvd already running, terminating.");
+			exit(1);
+		}
+		close(fd);
+		fd = open(pidfile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+	}
+	else	/* FIXME: not atomic if pidfile is on an NFS mounted volume */
+		fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644);
+
+	if (fd < 0)
+	{
+		flog(LOG_ERR, "cannot create radvd pid file, terminating: %s", strerror(errno));
 		exit(1);
 	}
 	
