@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.20 2008/02/04 06:32:22 psavola Exp $
+# $Id: radvd.spec,v 1.21 2008/10/14 08:48:42 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -10,7 +10,7 @@ Name: radvd
 Version: 1.1
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
-License: BSD-style
+License: BSD with advertising
 Group: System Environment/Daemons
 URL:        http://www.litech.org/radvd/
 Source:     http://www.litech.org/radvd/dist/%{name}-%{version}.tar.gz
