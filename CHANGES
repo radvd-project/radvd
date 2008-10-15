@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.76 2008/10/14 14:03:29 psavola Exp $
+$Id: CHANGES,v 1.77 2008/10/15 05:34:35 psavola Exp $
 
 14/10/2008	Accept virtually any interface name (up to 15 chars) instead of
 		forcing a specific naming convention.  Patch from
@@ -11,6 +11,7 @@ $Id: CHANGES,v 1.76 2008/10/14 14:03:29 psavola Exp $
 		compilation fails.
 
 		Remove -Wconversion from default CFLAGS as its very noisy.
+		Fix some warnings, from Jim Paris.
 
 31/03/2008	Update references to RFCs.  Give pointer to the "two hour rule".
 		Decrease the default valid and preferred lifetimes from 30/1
