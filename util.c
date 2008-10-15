@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.9 2008/01/24 10:03:17 psavola Exp $
+ *   $Id: util.c,v 1.10 2008/10/15 05:34:35 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -99,7 +99,7 @@ writen(int fd, const void *buf, size_t count)
 		}
 		if (r == 0)
 			return n;
-		buf = (char *)buf + r;
+		buf = (const char *)buf + r;
 		count -= r;
 		n += r;
 	}

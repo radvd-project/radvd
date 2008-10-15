@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.36 2008/10/14 11:37:32 psavola Exp $
+ *   $Id: radvd.c,v 1.37 2008/10/15 05:34:35 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 {
 	unsigned char msg[MSG_SIZE];
 	char pidstr[16];
-	int ret;
+	ssize_t ret;
 	int c, log_method;
 	char *logfile, *pidfile;
 	sigset_t oset, nset;
@@ -240,7 +240,7 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 		pidstr[ret] = '\0';
-		if (!kill(atol(pidstr), 0))
+		if (!kill((pid_t)atol(pidstr), 0))
 		{
 			flog(LOG_ERR, "radvd already running, terminating.");
 			exit(1);
@@ -293,7 +293,7 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigint_handler);
 
-	snprintf(pidstr, sizeof(pidstr), "%d\n", getpid());
+	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
 	
 	write(fd, pidstr, strlen(pidstr));
 	

@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.27 2006/10/09 06:21:59 psavola Exp $
+ *   $Id: send.c,v 1.28 2008/10/15 05:34:35 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -36,8 +36,8 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	   do that with e.g., too many advertised prefixes or routes, but buff is just so
 	   large that this should never happen and if it does, it's admin's fault :-)  */
 	unsigned char buff[MSG_SIZE];
-	int len = 0;
-	int err;
+	size_t len = 0;
+	ssize_t err;
 
 	/* First we need to check that the interface hasn't been removed or deactivated */
 	if(check_device(sock, iface) < 0) {
