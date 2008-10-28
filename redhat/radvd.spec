@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.21 2008/10/14 08:48:42 psavola Exp $
+# $Id: radvd.spec,v 1.22 2008/10/28 16:31:57 psavola Exp $
 
 %define initdir /etc/rc.d/init.d
 #%(if test -d /etc/init.d/. ; then echo /etc/init.d ; else echo /etc/rc.d/init.d ; fi)
@@ -36,7 +36,6 @@ services.
 %setup -q
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE" 
 %configure --with-pidfile=/var/run/radvd/radvd.pid
 make
 # make %{?_smp_mflags} 
