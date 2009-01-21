@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.79 2009/01/21 20:11:28 psavola Exp $
+$Id: CHANGES,v 1.80 2009/01/21 20:17:36 psavola Exp $
+
+21/01/2009	Add a workaround for Linux in scenarios where libc is
+		providing IPV6_RECV(PKTINFO|HOPLIMIT) has renumbered IPV6_PKTINFO,
+		but kernel doesn't support it yet (<2.6.14).  Found out by
+		Freetz (special thanks to Paul Oranje) and OpenWrt projects.
+		See the source code and CVS changelog for more.
 
 28/10/2008	Release 1.2.
 
