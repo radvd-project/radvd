@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.27 2008/01/24 10:10:18 psavola Exp $
+ *   $Id: radvd.h,v 1.28 2009/01/21 20:17:36 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -234,5 +234,35 @@ int privsep_interface_linkmtu(const char *iface, uint32_t mtu);
 int privsep_interface_curhlim(const char *iface, uint32_t hlim);
 int privsep_interface_reachtime(const char *iface, uint32_t rtime);
 int privsep_interface_retranstimer(const char *iface, uint32_t rettimer);
+
+/*
+ * compat hacks in case libc and kernel get out of sync:
+ *
+ * glibc 2.4 and uClibc 0.9.29 introduce IPV6_RECVPKTINFO etc. and change IPV6_PKTINFO
+ * This is only supported in Linux kernel >= 2.6.14
+ *
+ * This is only an approximation because the kernel version that libc was compiled against
+ * could be older or newer than the one being run.  But this should not be a problem --
+ * we just keep using the old kernel interface.
+ * 
+ * these are placed here because they're needed in all of socket.c, recv.c and send.c
+ */
+#ifdef __linux__
+#  if defined IPV6_RECVHOPLIMIT || defined IPV6_RECVPKTINFO
+#    include <linux/version.h>
+#    if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+#      if defined IPV6_RECVHOPLIMIT && defined IPV6_2292HOPLIMIT
+#        undef IPV6_RECVHOPLIMIT
+#        define IPV6_RECVHOPLIMIT IPV6_2292HOPLIMIT
+#      endif
+#      if defined IPV6_RECVPKTINFO && defined IPV6_2292PKTINFO
+#        undef IPV6_RECVPKTINFO
+#        undef IPV6_PKTINFO
+#        define IPV6_RECVPKTINFO IPV6_2292PKTINFO
+#        define IPV6_PKTINFO IPV6_2292PKTINFO
+#      endif
+#    endif
+#  endif
+#endif
 
 #endif
