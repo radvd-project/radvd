@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.16 2008/10/14 11:34:09 psavola Exp $
+ *   $Id: scanner.l,v 1.17 2009/06/19 07:28:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -117,9 +117,9 @@ AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 
 infinity	{ return INFINITY; }
 
-on			{ yylval.bool = 1; return SWITCH; }
+on			{ yylval.num = 1; return SWITCH; }
 
-off			{ yylval.bool = 0; return SWITCH; }
+off			{ yylval.num = 0; return SWITCH; }
 
 low		{ yylval.snum = -1; return SIGNEDNUMBER; }
 

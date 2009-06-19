@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.19 2007/10/25 19:29:40 psavola Exp $
+ *   $Id: gram.y,v 1.20 2009/06/19 07:28:06 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -55,7 +55,7 @@ static void yyerror(char *msg);
 %token	<num>	NUMBER
 %token	<snum>	SIGNEDNUMBER
 %token	<dec>	DECIMAL
-%token	<bool>	SWITCH
+%token	<num>	SWITCH
 %token	<addr>	IPV6ADDR
 %token 		INFINITY
 
@@ -111,7 +111,6 @@ static void yyerror(char *msg);
 	unsigned int		num;
 	int			snum;
 	double			dec;
-	int			bool;
 	struct in6_addr		*addr;
 	char			*str;
 	struct AdvPrefix	*pinfo;
