@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.28 2008/10/15 05:34:35 psavola Exp $
+ *   $Id: send.c,v 1.29 2009/06/19 07:34:07 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -17,6 +17,55 @@
 #include <config.h>
 #include <includes.h>
 #include <radvd.h>
+
+/*
+ * Sends an advertisement for all specified clients of this interface
+ * (or via broadcast, if there are no restrictions configured).
+ *
+ * If a destination address is given, the RA will be sent to the destination
+ * address only, but only if it was configured.
+ *
+ */
+void
+send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
+{
+	struct Clients *current;
+
+	/* If no list of clients was specified for this interface, we broadcast */
+	if (iface->ClientList == NULL) {
+		send_ra(sock, iface, dest);
+		return;
+	}
+
+	/* If clients are configured, send the advertisement to all of them via unicast */
+	for (current = iface->ClientList; current; current = current->next)
+	{
+		char address_text[INET6_ADDRSTRLEN];
+		memset(address_text, 0, sizeof(address_text));
+		if (get_debuglevel() >= 5)
+			inet_ntop(AF_INET6, &current->Address, address_text, INET6_ADDRSTRLEN);
+
+                /* If a non-authorized client sent a solicitation, ignore it (logging later) */
+		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
+			continue;
+		dlog(LOG_DEBUG, 5, "Sending RA to %s", address_text);
+		send_ra(sock, iface, &(current->Address));
+
+		/* If we should only send the RA to a specific address, we are done */
+		if (dest != NULL)
+			return;
+	}
+	if (dest == NULL)
+		return;
+
+        /* If we refused a client's solicitation, log it if debugging is high enough */
+	char address_text[INET6_ADDRSTRLEN];
+	memset(address_text, 0, sizeof(address_text));
+	if (get_debuglevel() >= 5)
+		inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
+
+	dlog(LOG_DEBUG, 5, "Not answering request from %s, not configured", address_text);
+}
 
 void
 send_ra(int sock, struct Interface *iface, struct in6_addr *dest)

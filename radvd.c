@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.37 2008/10/15 05:34:35 psavola Exp $
+ *   $Id: radvd.c,v 1.38 2009/06/19 07:34:07 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -339,7 +339,7 @@ timer_handler(void *data)
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	send_ra(sock, iface, NULL);
+	send_ra_forall(sock, iface, NULL);
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
 
@@ -380,21 +380,22 @@ kickoff_adverts(void)
 
 	for(iface=IfaceList; iface; iface=iface->next)
 	{
-		if( ! iface->UnicastOnly )
-		{
-			init_timer(&iface->tm, timer_handler, (void *) iface);
-			if (iface->AdvSendAdvert)
-			{
-				/* send an initial advertisement */
-				send_ra(sock, iface, NULL);
+		if( iface->UnicastOnly )
+			break;
 
-				iface->init_racount++;
+		init_timer(&iface->tm, timer_handler, (void *) iface);
 
-				set_timer(&iface->tm,
-					  min(MAX_INITIAL_RTR_ADVERT_INTERVAL,
-					      iface->MaxRtrAdvInterval));
-			}
-		}
+		if (!iface->AdvSendAdvert)
+			break;
+
+		/* send an initial advertisement */
+		send_ra_forall(sock, iface, NULL);
+
+		iface->init_racount++;
+
+		set_timer(&iface->tm,
+			  min(MAX_INITIAL_RTR_ADVERT_INTERVAL,
+			      iface->MaxRtrAdvInterval));
 	}
 }
 
@@ -412,7 +413,7 @@ stop_adverts(void)
 			if (iface->AdvSendAdvert) {
 				/* send a final advertisement with zero Router Lifetime */
 				iface->AdvDefaultLifetime = 0;
-				send_ra(sock, iface, NULL);
+				send_ra_forall(sock, iface, NULL);
 			}
 		}
 	}

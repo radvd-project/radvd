@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.28 2009/01/21 20:17:36 psavola Exp $
+ *   $Id: radvd.h,v 1.29 2009/06/19 07:34:07 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -43,6 +43,7 @@ struct timer_lst {
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 
 struct AdvPrefix;
+struct Clients;
 
 #define HWADDR_MAX 16
 #define USER_HZ 100
@@ -89,6 +90,7 @@ struct Interface {
 	struct AdvPrefix	*AdvPrefixList;
 	struct AdvRoute		*AdvRouteList;
 	struct AdvRDNSS		*AdvRDNSSList;
+	struct Clients		*ClientList;
 	struct timer_lst	tm;
 	time_t			last_multicast_sec;
 	suseconds_t		last_multicast_usec;
@@ -97,6 +99,11 @@ struct Interface {
 	int			HasFailed;
 
 	struct Interface	*next;
+};
+
+struct Clients {
+	struct in6_addr		Address;
+	struct Clients		*next;
 };
 
 struct AdvPrefix {
@@ -211,6 +218,7 @@ int open_icmpv6_socket(void);
 
 /* send.c */
 void send_ra(int, struct Interface *iface, struct in6_addr *dest);
+void send_ra_forall(int, struct Interface *iface, struct in6_addr *dest);
 
 /* process.c */
 void process(int sock, struct Interface *, unsigned char *, int,
