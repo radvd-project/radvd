@@ -1,6 +1,8 @@
-$Id: CHANGES,v 1.81 2009/06/19 07:28:06 psavola Exp $
+$Id: CHANGES,v 1.82 2009/06/19 07:34:07 psavola Exp $
 
-19/06/2009	Fixes and enhancements from Michael Stapelberg.  Use
+19/06/2009	Fixes and enhancements from Michael Stapelberg.  Add a new
+		'clients' interface definition to allow configuring which
+		address to send advertisements and accept from. Use
 		getifaddrs() on BSD because ioctl didn't work on NetBSD 5.
 		Use int instead of bool to make NetBSD 5 happy.
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.20 2009/06/19 07:28:06 psavola Exp $
+ *   $Id: gram.y,v 1.21 2009/06/19 07:34:07 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -50,6 +50,7 @@ static void yyerror(char *msg);
 %token		T_PREFIX
 %token		T_ROUTE
 %token		T_RDNSS
+%token		T_CLIENTS
 
 %token	<str>	STRING
 %token	<num>	NUMBER
@@ -103,6 +104,7 @@ static void yyerror(char *msg);
 
 %type	<str>	name
 %type	<pinfo> optional_prefixlist prefixdef prefixlist
+%type	<ainfo> optional_clientslist clientslist v6addrlist
 %type	<rinfo>	optional_routelist routedef routelist
 %type	<rdnssinfo> optional_rdnsslist rdnssdef rdnsslist
 %type   <num>	number_or_infinity
@@ -116,6 +118,7 @@ static void yyerror(char *msg);
 	struct AdvPrefix	*pinfo;
 	struct AdvRoute		*rinfo;
 	struct AdvRDNSS		*rdnssinfo;
+	struct Clients		*ainfo;
 };
 
 %%
@@ -190,11 +193,12 @@ name		: STRING
 		}
 		;
 
-ifaceparams	: optional_ifacevlist optional_prefixlist optional_routelist optional_rdnsslist
+ifaceparams	: optional_ifacevlist optional_prefixlist optional_clientslist optional_routelist optional_rdnsslist
 		{
 			iface->AdvPrefixList = $2;
-			iface->AdvRouteList = $3;
-			iface->AdvRDNSSList = $4;
+			iface->ClientList = $3;
+			iface->AdvRouteList = $4;
+			iface->AdvRDNSSList = $5;
 		}
 		;
 
@@ -207,6 +211,13 @@ optional_prefixlist: /* empty */
 			$$ = NULL;
 		}
 		| prefixlist
+		;
+
+optional_clientslist: /* empty */
+		{
+			$$ = NULL;
+		}
+		| clientslist
 		;
 
 optional_routelist: /* empty */
@@ -324,7 +335,39 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 			iface->AdvMobRtrSupportFlag = $2;
 		}
 		;
-		
+
+clientslist	: T_CLIENTS '{' v6addrlist '}' ';'
+		{
+			$$ = $3;
+		}
+		;
+
+v6addrlist	: IPV6ADDR ';'
+		{
+			struct Clients *new = calloc(1, sizeof(struct Clients));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Address), $1, sizeof(struct in6_addr));
+			$$ = new;
+		}
+		| v6addrlist IPV6ADDR ';'
+		{
+			struct Clients *new = calloc(1, sizeof(struct Clients));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Address), $2, sizeof(struct in6_addr));
+			new->next = $1;
+			$$ = new;
+		}
+		;
+
+
 prefixlist	: prefixdef optional_prefixlist
 		{
 			$1->next = $2;
