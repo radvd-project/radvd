@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.38 2009/06/19 07:34:07 psavola Exp $
+ *   $Id: radvd.c,v 1.39 2009/06/19 07:37:11 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -534,13 +534,13 @@ drop_root_privileges(const char *username)
 	pw = getpwnam(username);
 	if (pw) {
 		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
-			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d\n", 
+			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d", 
 					username, pw->pw_uid, pw->pw_gid);
 			return (-1);
 		}
 	}
 	else {
-		flog(LOG_ERR, "Couldn't find user '%.32s'\n", username);
+		flog(LOG_ERR, "Couldn't find user '%.32s'", username);
 		return (-1);
 	}
 	return 0;
