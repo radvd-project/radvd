@@ -1,4 +1,4 @@
-$Id: TODO,v 1.31 2009/02/16 06:36:34 psavola Exp $
+$Id: TODO,v 1.32 2009/06/19 07:35:17 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -71,3 +71,6 @@ Known problems (probably can't do anything about these):
    in its LL option (until HUP signal).  The kernel will keep sending
    Ethernet frames with the old MAC until interface is flapped.
    More: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=508466
+
+Prefix/clients/route/RDNSS configurations must be given in exactly this
+order.  This should really be more flexible, likely minor work in gram.y.
