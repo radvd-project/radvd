@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.29 2009/06/19 07:34:07 psavola Exp $
+ *   $Id: send.c,v 1.30 2009/06/24 09:27:49 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -76,7 +76,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct msghdr mhdr;
 	struct cmsghdr *cmsg;
 	struct iovec iov;
-	char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
+	char __attribute__((aligned(8))) chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
 	struct nd_router_advert *radvert;
 	struct AdvPrefix *prefix;
 	struct AdvRoute *route;
