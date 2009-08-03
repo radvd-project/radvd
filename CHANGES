@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.84 2009/07/07 04:33:59 psavola Exp $
+$Id: CHANGES,v 1.85 2009/08/03 13:00:51 psavola Exp $
+
+03/08/2009	Restore original behaviour changed in
+		1.3: RAs were accidentally often unicast to solicitors
+		instead of being multicast.
 
 07/07/2009	Release 1.3.
 
