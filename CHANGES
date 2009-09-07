@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.87 2009/08/25 05:41:56 psavola Exp $
+$Id: CHANGES,v 1.88 2009/09/07 07:56:02 psavola Exp $
+
+07/09/2009	Fix IgnoreIfMissing when cable is unplugged at startup.
+		Radvd would keep skipping the interface.  Patch from
+		Reuben Hawkins.
 
 25/08/2009	Fix parallel make, from Robert Buchholz / Gentoo.
 
