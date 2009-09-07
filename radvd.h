@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.29 2009/06/19 07:34:07 psavola Exp $
+ *   $Id: radvd.h,v 1.30 2009/09/07 07:59:57 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -217,8 +217,8 @@ int check_iface(struct Interface *);
 int open_icmpv6_socket(void);
 
 /* send.c */
-void send_ra(int, struct Interface *iface, struct in6_addr *dest);
-void send_ra_forall(int, struct Interface *iface, struct in6_addr *dest);
+int send_ra(int, struct Interface *iface, struct in6_addr *dest);
+int send_ra_forall(int, struct Interface *iface, struct in6_addr *dest);
 
 /* process.c */
 void process(int sock, struct Interface *, unsigned char *, int,

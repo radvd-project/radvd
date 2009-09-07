@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.18 2009/08/03 13:00:51 psavola Exp $
+ *   $Id: process.c,v 1.19 2009/09/07 07:59:57 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -205,10 +205,10 @@ process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
 	else {
 		/* no RA sent in a while, send an immediate multicast reply */
 		clear_timer(&iface->tm);
-		send_ra_forall(sock, iface, NULL);
-		
-		next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
-		set_timer(&iface->tm, next);
+		if (send_ra_forall(sock, iface, NULL) == 0) {
+			next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
+			set_timer(&iface->tm, next);
+		}
 	}
 }
 

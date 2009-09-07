@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.30 2009/06/24 09:27:49 psavola Exp $
+ *   $Id: send.c,v 1.31 2009/09/07 07:59:57 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -26,16 +26,14 @@
  * address only, but only if it was configured.
  *
  */
-void
+int
 send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
 	struct Clients *current;
 
 	/* If no list of clients was specified for this interface, we broadcast */
-	if (iface->ClientList == NULL) {
-		send_ra(sock, iface, dest);
-		return;
-	}
+	if (iface->ClientList == NULL)
+		return send_ra(sock, iface, dest);
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
 	for (current = iface->ClientList; current; current = current->next)
@@ -53,10 +51,10 @@ send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 
 		/* If we should only send the RA to a specific address, we are done */
 		if (dest != NULL)
-			return;
+			return 0;
 	}
 	if (dest == NULL)
-		return;
+		return 0;
 
         /* If we refused a client's solicitation, log it if debugging is high enough */
 	char address_text[INET6_ADDRSTRLEN];
@@ -65,9 +63,10 @@ send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 		inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
 
 	dlog(LOG_DEBUG, 5, "Not answering request from %s, not configured", address_text);
+	return 0;
 }
 
-void
+int
 send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 {
 	uint8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
@@ -96,13 +95,20 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
 		}
 		iface->HasFailed = 1;
+		/* not really a 'success', but we need to schedule new timers.. */
+		return 0;
 	} else {
 		/* check_device was successful, act if it has failed previously */
 		if (iface->HasFailed == 1) {
 			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
 			iface->HasFailed = 0;
-			/* XXX: reinitializes 'iface', so this probably isn't going to work until next send_ra().. */
-			reload_config();	
+			/*
+			 * return -1 so timer_handler() doesn't schedule new timers,
+			 * reload_config() will kick off new timers anyway.  This avoids
+			 * timer list corruption.
+			 */
+			reload_config();
+			return -1;
 		}
 	}
 
@@ -375,4 +381,6 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		else
 			dlog(LOG_DEBUG, 3, "sendmsg: %s", strerror(errno));
 	}
+
+	return 0;
 }
