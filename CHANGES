@@ -1,4 +1,10 @@
-$Id: CHANGES,v 1.88 2009/09/07 07:56:02 psavola Exp $
+$Id: CHANGES,v 1.89 2009/09/07 07:59:57 psavola Exp $
+
+07/09/2009	Fix infinite loop/segmentation fault problems when cable
+		plugged out/plugged back in, caused by reload_config()
+		and subsequent timer list corruption.  Slightly modified
+		patch from Teemu Torma.  For more information, see
+		http://lists.litech.org/pipermail/radvd-devel-l/2009-August/000416.html
 
 07/09/2009	Fix IgnoreIfMissing when cable is unplugged at startup.
 		Radvd would keep skipping the interface.  Patch from
