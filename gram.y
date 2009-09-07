@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.21 2009/06/19 07:34:07 psavola Exp $
+ *   $Id: gram.y,v 1.22 2009/09/07 07:56:02 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -146,7 +146,6 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 			if (check_device(sock, iface) < 0) {
 				if (iface->IgnoreIfMissing) {
 					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
-					goto skip_interface;
 				}
 				else {
 					flog(LOG_ERR, "interface %s does not exist", iface->Name);
@@ -154,20 +153,23 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				}
 			}
 			if (setup_deviceinfo(sock, iface) < 0)
+				if (!iface->IgnoreIfMissing)
 				ABORT;
 			if (check_iface(iface) < 0)
+				if (!iface->IgnoreIfMissing)
 				ABORT;
 			if (setup_linklocal_addr(sock, iface) < 0)
+				if (!iface->IgnoreIfMissing)
 				ABORT;
 			if (setup_allrouters_membership(sock, iface) < 0)
+				if (!iface->IgnoreIfMissing)
 				ABORT;
+
+			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
 
 			iface->next = IfaceList;
 			IfaceList = iface;
 
-			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
-
-skip_interface:
 			iface = NULL;
 		};
 
