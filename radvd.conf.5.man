@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.27 2009/06/19 07:34:07 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.28 2009/11/07 18:42:14 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -22,8 +22,7 @@ radvd.conf \- configuration file of the router advertisement daemon
 This file describes the information which is included in the router
 advertisement (RA) of a specific interface.
 .P
-The file contains one or more interface definitions of the form
-(NOTE: the prefix/clients/route/RDNSS definitions must be in this order):
+The file contains one or more interface definitions of the form:
 
 .nf
 .BR "interface " "name " {
