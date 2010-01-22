@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.91 2009/11/07 18:42:14 psavola Exp $
+$Id: CHANGES,v 1.92 2010/01/22 12:18:21 psavola Exp $
+
+22/01/2010	On BSD use getifaddrs() also in setup_deviceinfo(),
+		fixes a multiple interfaces problem on NetBSD 5 due to
+		change in data structures. Patch from Michael Stapelberg.
 
 07/11/2009	Allow radvd.conf prefix, clients, route, and RDNSS options
 		to be in any order.  Patch from Michael Stapelberg.
