@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.92 2010/01/22 12:18:21 psavola Exp $
+$Id: CHANGES,v 1.93 2010/01/28 12:31:22 psavola Exp $
+
+28/01/2010	Keep track of buffer size and exit if the number of
+		prefixes/routes/etc. would grow too much. Patch from Jan
+                Görig, Red Hat bug #554125.
 
 22/01/2010	On BSD use getifaddrs() also in setup_deviceinfo(),
 		fixes a multiple interfaces problem on NetBSD 5 due to
