@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.28 2009/11/07 18:42:14 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.29 2010/01/28 13:34:26 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -649,3 +649,9 @@ RFC 5006, September 2007.
 
 .BR radvd (8),
 .BR radvdump (8)
+
+.SH BUGS
+radvd does not support splitting up RAs to multiple packets (RFC4861 6.2.3 last paragraph).
+In practise this limits advertising to ~45 prefixes on a link, but there is no reason to
+be able to so.
+

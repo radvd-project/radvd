@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.33 2010/01/28 12:35:36 psavola Exp $
+ *   $Id: send.c,v 1.34 2010/01/28 13:34:26 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -70,7 +70,7 @@ static void
 send_ra_inc_len(size_t *len, int add)
 {
 	*len += add;
-	if(*len >= MSG_SIZE)
+	if(*len >= MSG_SIZE_SEND)
 	{
 		flog(LOG_ERR, "Too many prefixes or routes. Exiting.");
 		exit(1);
@@ -92,7 +92,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 
-	unsigned char buff[MSG_SIZE];
+	unsigned char buff[MSG_SIZE_SEND];
 	size_t len = 0;
 	ssize_t err;
 
