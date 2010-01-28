@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.32 2010/01/28 12:31:22 psavola Exp $
+ *   $Id: send.c,v 1.33 2010/01/28 12:35:36 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -143,7 +143,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	addr.sin6_port = htons(IPPROTO_ICMPV6);
 	memcpy(&addr.sin6_addr, dest, sizeof(struct in6_addr));
 
-	memset(&buff, 0, sizeof(buff));
+	memset(buff, 0, sizeof(buff));
 	radvert = (struct nd_router_advert *) buff;
 
 	radvert->nd_ra_type  = ND_ROUTER_ADVERT;
