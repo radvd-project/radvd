@@ -1,4 +1,6 @@
-$Id: CHANGES,v 1.95 2010/01/28 13:34:26 psavola Exp $
+$Id: CHANGES,v 1.96 2010/03/05 12:14:47 psavola Exp $
+
+05/03/2010	Update Redhat spec and init files from Fedora.
 
 28/01/2010	Decrease MSG_SIZE from 4096 to about 1500B. Send buffer
                 uses a smaller size in order to avoid sending out
