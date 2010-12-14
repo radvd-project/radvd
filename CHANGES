@@ -1,6 +1,7 @@
-$Id: CHANGES,v 1.104 2010/12/14 11:23:16 psavola Exp $
+$Id: CHANGES,v 1.105 2010/12/14 11:41:17 psavola Exp $
 
 14/12/2010	Deprecate old, pre-RFC5006 parameters.
+		Support RFC6106 by adding DNS Search List support.
 		From Pierre Ossman.
 
 14/12/2010      Integrate cleanup patches from Reuben Hawkins:

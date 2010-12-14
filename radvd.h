@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.31 2010/12/14 11:23:16 psavola Exp $
+ *   $Id: radvd.h,v 1.32 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -90,6 +90,7 @@ struct Interface {
 	struct AdvPrefix	*AdvPrefixList;
 	struct AdvRoute		*AdvRouteList;
 	struct AdvRDNSS		*AdvRDNSSList;
+	struct AdvDNSSL		*AdvDNSSLList;
 	struct Clients		*ClientList;
 	struct timer_lst	tm;
 	time_t			last_multicast_sec;
@@ -138,7 +139,8 @@ struct AdvRoute {
 	struct AdvRoute		*next;
 };
 
-/* Option for DNS configuration */
+/* Options for DNS configuration */
+
 struct AdvRDNSS {
 	int 			AdvRDNSSNumber;
 	uint32_t		AdvRDNSSLifetime;
@@ -147,6 +149,15 @@ struct AdvRDNSS {
 	struct in6_addr		AdvRDNSSAddr3;
 	
 	struct AdvRDNSS 	*next; 
+};
+
+struct AdvDNSSL {
+	uint32_t		AdvDNSSLLifetime;
+
+	int			AdvDNSSLNumber;
+	char			**AdvDNSSLSuffixes;
+	
+	struct AdvDNSSL 	*next;
 };
 
 /* Mobile IPv6 extensions */
@@ -209,6 +220,7 @@ void iface_init_defaults(struct Interface *);
 void prefix_init_defaults(struct AdvPrefix *);
 void route_init_defaults(struct AdvRoute *, struct Interface *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
+void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 int check_iface(struct Interface *);
 
 /* socket.c */
@@ -230,6 +242,7 @@ void mdelay(double);
 double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
 int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
+int check_dnssl_presence(struct AdvDNSSL *, const char *);
 ssize_t readn(int fd, void *buf, size_t count);
 ssize_t writen(int fd, const void *buf, size_t count);
 

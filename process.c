@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.19 2009/09/07 07:59:57 psavola Exp $
+ *   $Id: process.c,v 1.20 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -274,11 +274,14 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		int optlen;
 		struct nd_opt_prefix_info *pinfo;
 		struct nd_opt_rdnss_info_local *rdnssinfo;
+		struct nd_opt_dnssl_info_local *dnsslinfo;
 		struct nd_opt_mtu *mtu;
 		struct AdvPrefix *prefix;
 		struct AdvRDNSS *rdnss;
 		char prefix_str[INET6_ADDRSTRLEN];
 		char rdnss_str[INET6_ADDRSTRLEN];
+		char suffix[256];
+		int offset, label_len;
 		uint32_t preferred, valid, count;
 
 		if (len < 2)
@@ -409,6 +412,40 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			}
 			
 			break;	
+		case ND_OPT_DNSSL_INFORMATION:
+			dnsslinfo = (struct nd_opt_dnssl_info_local *) opt_str;
+			for (offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
+				label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];
+
+				if (label_len == 0) {
+					/*
+					 * Ignore empty suffixes. They're
+					 * probably just padding...
+					 */
+					if (suffix[0] == '\0')
+						continue;
+
+					if (!check_dnssl_presence(iface->AdvDNSSLList, suffix)) {
+						flog(LOG_WARNING, "DNSSL suffix %s received on %s from %s is not advertised by us",
+							suffix, iface->Name, addr_str);
+					}
+
+					suffix[0] = '\0';
+					continue;
+				}
+
+				if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2)) {
+					flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s",
+							iface->Name, addr_str);
+					break;
+				}
+
+				if (suffix[0] != '\0')
+					strcat(suffix, ".");
+				strncat(suffix, &dnsslinfo->nd_opt_dnssli_suffixes[offset], label_len);
+				offset += label_len;
+			}
+			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA on %s from %s",
 				(int)*opt_str, iface->Name, addr_str);

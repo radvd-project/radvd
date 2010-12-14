@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.44 2010/12/14 11:19:37 psavola Exp $
+ *   $Id: radvd.c,v 1.45 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -480,6 +480,7 @@ void reload_config(void)
 		struct AdvPrefix *prefix;
 		struct AdvRoute *route;
 		struct AdvRDNSS *rdnss;
+		struct AdvDNSSL *dnssl;
 
 		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
 		
@@ -509,6 +510,20 @@ void reload_config(void)
 			free(rdnss);
 			rdnss = next_rdnss;
 		}	 
+
+		dnssl = iface->AdvDNSSLList;
+		while (dnssl) 
+		{
+			struct AdvDNSSL *next_dnssl = dnssl->next;
+			int i;
+
+			for (i = 0; i < dnssl->AdvDNSSLNumber; i++)
+				free(dnssl->AdvDNSSLSuffixes[i]);
+			free(dnssl->AdvDNSSLSuffixes);
+			free(dnssl);
+
+			dnssl = next_dnssl;
+		}
 
 		free(iface);
 		iface = next_iface;
