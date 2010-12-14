@@ -1,5 +1,5 @@
 /*
- *   $Id: util.c,v 1.10 2008/10/15 05:34:35 psavola Exp $
+ *   $Id: util.c,v 1.11 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -62,6 +62,24 @@ check_rdnss_presence(struct AdvRDNSS *rdnss, struct in6_addr *addr)
 			rdnss = rdnss->next; /* no match */
 	}
 	return (rdnss != NULL);
+}
+
+/* Check if a suffix exists in the dnssl list */
+int
+check_dnssl_presence(struct AdvDNSSL *dnssl, const char *suffix)
+{
+	int i;
+	while (dnssl) {
+		for (i = 0; i < dnssl->AdvDNSSLNumber; i++) {
+			if (strcmp(dnssl->AdvDNSSLSuffixes[i], suffix) == 0)
+				break; /* suffix found in the list */
+		}
+		if (i != dnssl->AdvDNSSLNumber)
+			break;
+
+		dnssl = dnssl->next; /* no match */
+	}
+	return (dnssl != NULL);
 }
 
 /* Like read(), but retries in case of partial read */

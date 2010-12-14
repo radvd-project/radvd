@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.30 2010/12/14 11:23:16 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.31 2010/12/14 11:41:17 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -31,6 +31,7 @@ The file contains one or more interface definitions of the form:
 	list of clients (IPv6 addresses) to advertise to
 	list of route definitions
 	list of RDNSS definitions
+	list of DNSSL definitions
 .B };
 .fi
 
@@ -80,6 +81,14 @@ RDNSS (Recursive DNS server) definitions are of the form:
 .nf
 .BR "RDNSS " "ip [ip] [ip] " {
 	list of rdnss specific options
+.B };
+.fi
+
+DNSSL (DNS Search List) definitions are of the form:
+
+.nf
+.BR "DNSSL " "suffix [suffix] [suffix] [...] " {
+	list of dnssl specific options
 .B };
 .fi
 
@@ -486,6 +495,18 @@ The maximum duration how long the RDNSS entries are used for name resolution. A 
 The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
 The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale
 RDNSS info gets removed in a timely fashion, this should not be greater than
+2*MaxRtrAdvInterval.
+
+Default: 2*MaxRtrAdvInterval
+
+.SH DNSSL SPECIFIC OPTIONS
+
+.TP
+.BR "AdvDNSSLLifetime " seconds | infinity;
+The maximum duration how long the DNSSL entries are used for name resolution.
+A value of 0 means the suffix should no longer be used.
+The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale
+DNSSL info gets removed in a timely fashion, this should not be greater than
 2*MaxRtrAdvInterval.
 
 Default: 2*MaxRtrAdvInterval

@@ -111,6 +111,14 @@ interface eth0
                 AdvRDNSSLifetime 30;
         };
 
+#
+# DNS Search Lists
+#
+        DNSSL branch.example.com example.com
+        {
+                AdvDNSSLLifetime 30;
+        };
+
 
 };
 

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.21 2010/12/14 11:23:16 psavola Exp $
+ *   $Id: radvdump.c,v 1.22 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -288,6 +288,8 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			break;
 		case ND_OPT_RDNSS_INFORMATION:
 			break;
+		case ND_OPT_DNSSL_INFORMATION:
+			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA",
 				(int)*opt_str);
@@ -311,7 +313,10 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 		struct nd_opt_prefix_info *pinfo;
 		struct nd_opt_route_info_local *rinfo;
 		struct nd_opt_rdnss_info_local *rdnss_info;
+		struct nd_opt_dnssl_info_local *dnssl_info;
 		char prefix_str[INET6_ADDRSTRLEN];
+		char suffix[256];
+		int offset, label_len;
 
 		if (orig_len < 2)
 		{
@@ -426,6 +431,49 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 				printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
 			
 			printf("\t}; # End of RDNSS definition\n\n");
+			break;
+		case ND_OPT_DNSSL_INFORMATION:
+			dnssl_info = (struct nd_opt_dnssl_info_local *) opt_str;
+
+			printf("\n\tDNSSL");
+
+			for (offset = 0;offset < (dnssl_info->nd_opt_dnssli_len-1)*8;) {
+				label_len = dnssl_info->nd_opt_dnssli_suffixes[offset++];
+
+				if (label_len == 0) {
+					/*
+					 * Ignore empty suffixes. They're
+					 * probably just padding...
+					 */
+					if (suffix[0] == '\0')
+						continue;
+
+					printf(" %s", suffix);
+
+					suffix[0] = '\0';
+					continue;
+				}
+
+				if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2)) {
+					flog(LOG_ERR, "oversized suffix in DNSSL option from %s",
+							addr_str);
+					break;
+				}
+
+				if (suffix[0] != '\0')
+					strcat(suffix, ".");
+				strncat(suffix, &dnssl_info->nd_opt_dnssli_suffixes[offset], label_len);
+				offset += label_len;
+			}
+
+			printf("\n\t{\n");
+			/* as AdvDNSSLLifetime may depend on MaxRtrAdvInterval, it could change */
+			if (ntohl(dnssl_info->nd_opt_dnssli_lifetime) == 0xffffffff)
+				printf("\t\tAdvDNSSLLifetime infinity; # (0xffffffff)\n");
+			else
+				printf("\t\tAdvDNSSLLifetime %u;\n", ntohl(dnssl_info->nd_opt_dnssli_lifetime));
+			
+			printf("\t}; # End of DNSSL definition\n\n");
 			break;
 		default:
 			break;

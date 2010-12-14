@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.35 2010/12/14 11:23:16 psavola Exp $
+ *   $Id: send.c,v 1.36 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -91,6 +91,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	struct AdvPrefix *prefix;
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
+	struct AdvDNSSL *dnssl;
 
 	unsigned char buff[MSG_SIZE_SEND];
 	size_t len = 0;
@@ -263,6 +264,60 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		send_ra_inc_len(&len, sizeof(*rdnssinfo) - (3-rdnss->AdvRDNSSNumber)*sizeof(struct in6_addr));
 
 		rdnss = rdnss->next;
+	}
+	
+	dnssl = iface->AdvDNSSLList;
+	
+	/*
+	 *	add dnssl options
+	 */
+
+	while(dnssl)
+	{
+		struct nd_opt_dnssl_info_local *dnsslinfo;
+		int i;
+		char *buff_ptr;
+
+		dnsslinfo = (struct nd_opt_dnssl_info_local *) (buff + len);
+
+		dnsslinfo->nd_opt_dnssli_type		= ND_OPT_DNSSL_INFORMATION;
+		dnsslinfo->nd_opt_dnssli_len 		= 1; /* more further down */
+		dnsslinfo->nd_opt_dnssli_reserved	= 0;
+
+		dnsslinfo->nd_opt_dnssli_lifetime	= htonl(dnssl->AdvDNSSLLifetime);
+
+		buff_ptr = dnsslinfo->nd_opt_dnssli_suffixes;
+		for (i = 0; i < dnssl->AdvDNSSLNumber; i++) {
+			char *label;
+			int label_len;
+
+			label = dnssl->AdvDNSSLSuffixes[i];
+
+			while (label[0] != '\0') {
+				if (strchr(label, '.') == NULL)
+					label_len = strlen(label);
+				else
+					label_len = strchr(label, '.') - label;
+
+				*buff_ptr++ = label_len;
+
+				memcpy(buff_ptr, label, label_len);
+				buff_ptr += label_len;
+
+				label += label_len;
+
+				if (label[0] == '.')
+					label++;
+				else
+					*buff_ptr++ = 0;
+			}
+		}
+
+		dnsslinfo->nd_opt_dnssli_len		+= ((buff_ptr-dnsslinfo->nd_opt_dnssli_suffixes)+7)/8;
+
+		send_ra_inc_len(&len, dnsslinfo->nd_opt_dnssli_len * 8);
+
+		dnssl = dnssl->next;
 	}
 	
 	/*

@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.18 2009/06/19 07:34:07 psavola Exp $
+ *   $Id: scanner.l,v 1.19 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -34,7 +34,7 @@ addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
 addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
 addr		({addr1}|{addr2}|{addr3}|"::")
 whitespace	([ \t])+
-string         [a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]{1,15}
+string		[a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]{1,255}
 %%
 
 #.*$			{/* ignore comments */}
@@ -45,6 +45,7 @@ interface		{ return T_INTERFACE; }
 prefix			{ return T_PREFIX; }
 route			{ return T_ROUTE; }
 RDNSS			{ return T_RDNSS; }
+DNSSL			{ return T_DNSSL; }
 clients			{ return T_CLIENTS; }
 
 IgnoreIfMissing		{ return T_IgnoreIfMissing; }
@@ -83,6 +84,8 @@ AdvRouteLifetime	{ return T_AdvRouteLifetime; }
 AdvRDNSSPreference 	{ return T_AdvRDNSSPreference; }
 AdvRDNSSOpen		{ return T_AdvRDNSSOpenFlag; }
 AdvRDNSSLifetime	{ return T_AdvRDNSSLifetime; }
+
+AdvDNSSLLifetime	{ return T_AdvDNSSLLifetime; }
 
 MinDelayBetweenRAs      { return T_MinDelayBetweenRAs; }
 
@@ -129,11 +132,11 @@ medium		{ yylval.snum = 0; return SIGNEDNUMBER; }
 high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 {string}	{
-			static char name[IFNAMSIZ];
+			static char string[256];
 				
-			strncpy(name, yytext, IFNAMSIZ-1);
-			name[IFNAMSIZ-1] = '\0';
-			yylval.str = name;
+			strncpy(string, yytext, sizeof(string));
+			string[sizeof(string)-1] = '\0';
+			yylval.str = string;
 			return STRING;
 		}
 

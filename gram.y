@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.24 2010/12/14 11:23:16 psavola Exp $
+ *   $Id: gram.y,v 1.25 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -24,6 +24,7 @@ struct Interface *iface = NULL;
 struct AdvPrefix *prefix = NULL;
 struct AdvRoute *route = NULL;
 struct AdvRDNSS *rdnss = NULL;
+struct AdvDNSSL *dnssl = NULL;
 
 extern char *conf_file;
 extern int num_lines;
@@ -62,6 +63,7 @@ static void yyerror(char *msg);
 %token		T_PREFIX
 %token		T_ROUTE
 %token		T_RDNSS
+%token		T_DNSSL
 %token		T_CLIENTS
 
 %token	<str>	STRING
@@ -110,6 +112,8 @@ static void yyerror(char *msg);
 %token		T_AdvRDNSSOpenFlag
 %token		T_AdvRDNSSLifetime
 
+%token		T_AdvDNSSLLifetime
+
 %token		T_AdvMobRtrSupportFlag
 
 %token		T_BAD_TOKEN
@@ -119,6 +123,7 @@ static void yyerror(char *msg);
 %type	<ainfo> clientslist v6addrlist
 %type	<rinfo>	routedef 
 %type	<rdnssinfo> rdnssdef 
+%type	<dnsslinfo> dnssldef 
 %type   <num>	number_or_infinity
 
 %union {
@@ -130,6 +135,7 @@ static void yyerror(char *msg);
 	struct AdvPrefix	*pinfo;
 	struct AdvRoute		*rinfo;
 	struct AdvRDNSS		*rdnssinfo;
+	struct AdvDNSSL		*dnsslinfo;
 	struct Clients		*ainfo;
 };
 
@@ -217,6 +223,7 @@ ifaceparam 	: ifaceval
 		| clientslist 	{ ADD_TO_LL(struct Clients, ClientList, $1); }
 		| routedef 	{ ADD_TO_LL(struct AdvRoute, AdvRouteList, $1); }
 		| rdnssdef 	{ ADD_TO_LL(struct AdvRDNSS, AdvRDNSSList, $1); }
+		| dnssldef 	{ ADD_TO_LL(struct AdvDNSSL, AdvDNSSLList, $1); }
 		;
 
 ifaceval	: T_MinRtrAdvInterval NUMBER ';'
@@ -622,6 +629,90 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		}
 		;
 
+dnssldef	: dnsslhead '{' optional_dnsslplist '}' ';'
+		{
+			$$ = dnssl;
+			dnssl = NULL;
+		}
+		;
+
+dnsslsuffixes	: dnsslsuffixes dnsslsuffix
+		| dnsslsuffix
+		;
+
+dnsslsuffix	: STRING
+		{
+			char *ch;
+			for (ch = $1;*ch != '\0';ch++) {
+				if (*ch >= 'A' && *ch <= 'Z')
+					continue;
+				if (*ch >= 'a' && *ch <= 'z')
+					continue;
+				if (*ch >= '0' && *ch <= '9')
+					continue;
+				if (*ch == '-' || *ch == '.')
+					continue;
+
+				flog(LOG_CRIT, "Invalid domain suffix specified");
+				ABORT;
+			}
+
+			if (!dnssl) {
+				/* first domain found */
+				dnssl = malloc(sizeof(struct AdvDNSSL));
+				
+				if (dnssl == NULL) {
+					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+					ABORT;
+				}
+
+				dnssl_init_defaults(dnssl, iface);
+			}
+			
+			dnssl->AdvDNSSLNumber++;
+			dnssl->AdvDNSSLSuffixes =
+				realloc(dnssl->AdvDNSSLSuffixes,
+					dnssl->AdvDNSSLNumber * sizeof(char*));
+			if (dnssl->AdvDNSSLSuffixes == NULL) {
+				flog(LOG_CRIT, "realloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			dnssl->AdvDNSSLSuffixes[dnssl->AdvDNSSLNumber - 1] = strdup($1);
+		}
+		;
+		
+dnsslhead	: T_DNSSL dnsslsuffixes
+		{
+			if (!dnssl) {
+				flog(LOG_CRIT, "No domain specified in DNSSL section");
+				ABORT;
+			}
+		}
+		;
+		
+optional_dnsslplist: /* empty */
+		| dnsslplist 
+		;
+		
+dnsslplist	: dnsslplist dnsslparms
+		| dnsslparms
+		;
+
+
+dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
+		{
+			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
+				flog(LOG_ERR, "AdvDNSSLLifetime must be at least MaxRtrAdvInterval");
+				ABORT;
+			}
+			if ($2 > 2*(iface->MaxRtrAdvInterval))
+				flog(LOG_WARNING, "Warning: AdvDNSSLLifetime <= 2*MaxRtrAdvInterval would allow stale DNS suffixes to be deleted faster");
+
+			dnssl->AdvDNSSLLifetime = $2;
+		}
+		;
+
 number_or_infinity      : NUMBER
                         {
                                 $$ = $1; 
@@ -648,6 +739,14 @@ void cleanup(void)
 
 	if (rdnss)
 		free(rdnss);
+
+	if (dnssl) {
+		int i;
+		for (i = 0;i < dnssl->AdvDNSSLNumber;i++)
+			free(dnssl->AdvDNSSLSuffixes[i]);
+		free(dnssl->AdvDNSSLSuffixes);
+		free(dnssl);
+	}
 }
 
 static void

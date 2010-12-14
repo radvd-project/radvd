@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.23 2010/12/14 11:23:16 psavola Exp $
+ *   $Id: defaults.h,v 1.24 2010/12/14 11:41:17 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -64,6 +64,9 @@
 
 /* RDNSS */
 #define DFLT_AdvRDNSSLifetime(iface)			(iface)->MaxRtrAdvInterval
+
+/* DNSSL */
+#define DFLT_AdvDNSSLLifetime(iface)			(iface)->MaxRtrAdvInterval
 
 /* Protocol (RFC4861) constants: */
 
@@ -178,6 +181,19 @@ struct nd_opt_rdnss_info_local
 #define ND_OPT_RDNSSI_PREF_SHIFT	4
 #endif
 #define ND_OPT_RDNSSI_PREF_MASK		(0xf << ND_OPT_RDNSSI_PREF_SHIFT)
+
+#undef ND_OPT_DNSSL_INFORMATION
+#define  ND_OPT_DNSSL_INFORMATION	31
+
+/* */
+struct nd_opt_dnssl_info_local
+{
+	uint8_t   			nd_opt_dnssli_type;
+	uint8_t   			nd_opt_dnssli_len;
+	uint16_t   			nd_opt_dnssli_reserved;
+	uint32_t			nd_opt_dnssli_lifetime;
+	char				nd_opt_dnssli_suffixes[];
+};
 
 /* Flags */
 
