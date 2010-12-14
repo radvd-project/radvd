@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.18 2006/08/24 11:41:39 psavola Exp $
+ *   $Id: interface.c,v 1.19 2010/12/14 11:00:57 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -153,13 +153,6 @@ check_iface(struct Interface *iface)
 		flog(LOG_ERR, 
 			"AdvReachableTime for %s (%u) must not be greater than %u",
 			iface->Name, iface->AdvReachableTime, MAX_AdvReachableTime);
-		res = -1;
-	}
-
-	if (iface->AdvCurHopLimit > MAX_AdvCurHopLimit)
-	{
-		flog(LOG_ERR, "AdvCurHopLimit for %s (%u) must not be greater than %u",
-			iface->Name, iface->AdvCurHopLimit, MAX_AdvCurHopLimit);
 		res = -1;
 	}
 
