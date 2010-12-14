@@ -1,4 +1,4 @@
-$Id: TODO,v 1.35 2010/05/04 09:11:26 psavola Exp $
+$Id: TODO,v 1.36 2010/12/14 12:40:18 psavola Exp $
 
                        NOTE WELL
                        =========
@@ -51,8 +51,7 @@ this.
 Use getifaddrs() instead of ioctl SIOCGIFADDR and other friends.  The
 problem with this is that e.g. RHL73's glibc didn't support getifaddrs(),
 and before glibc 2.3.3 getifaddrs() didn't use netlink so it didn't work
-well with IPv6.  So, some kind of compat library would be needed if this
-would be used...
+well with IPv6.  These old compat concerns are likely moot now..
 
 Consider whether radvd should work around missing/broken interfaces by
 default, especially if a previously working interface gets disabled.
