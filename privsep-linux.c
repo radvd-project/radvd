@@ -1,5 +1,5 @@
 /*
- *   $Id: privsep-linux.c,v 1.3 2008/01/24 17:08:46 psavola Exp $
+ *   $Id: privsep-linux.c,v 1.4 2010/12/14 11:13:41 psavola Exp $
  *
  *   Authors:
  *    Jim Paris			<jim@jtan.com>
@@ -53,6 +53,8 @@ privsep_read_loop(void)
 		if (ret <= 0) {
 			/* Error or EOF, give up */
 			close(pfd);
+			flog(LOG_ERR, "Exiting, privsep_read_loop had readn error: %s\n",
+			     strerror(errno));
 			_exit(0);
 		}
 		if (ret != sizeof(cmd)) {
@@ -161,6 +163,7 @@ privsep_init(void)
 
 		privsep_read_loop();
 		close(pfd);
+		flog(LOG_ERR, "Exiting, privsep_read_loop is complete.\n");
 		_exit(0);
 	}
 
