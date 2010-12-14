@@ -1,10 +1,10 @@
 /*
- *   $Id: defaults.h,v 1.24 2010/12/14 11:41:17 psavola Exp $
+ *   $Id: defaults.h,v 1.25 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s), 
+ *   This software is Copyright 1996,1997 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -16,9 +16,9 @@
 #ifndef DEFAULTS_H
 #define DEFAULTS_H
 
-#include <config.h>
-#include <includes.h>
-#include <radvd.h>
+#include "config.h"
+#include "includes.h"
+#include "radvd.h"
 
 /* maximum message size for incoming and outgoing RSs and RAs */
 #define MSG_SIZE_RECV			1500
@@ -40,7 +40,7 @@
 #define DFLT_AdvLinkMTU			0
 #define DFLT_AdvReachableTime		0
 #define DFLT_AdvRetransTimer		0
-#define DFLT_AdvCurHopLimit		64	/* as per RFC 1700 or the 
+#define DFLT_AdvCurHopLimit		64	/* as per RFC 1700 or the
 						   next incarnation of it :) */
 #define DFLT_AdvDefaultLifetime(iface)	MAX2(1, (int)(3.0 * (iface)->MaxRtrAdvInterval))
 #define DFLT_MinDelayBetweenRAs		MIN_DELAY_BETWEEN_RAS

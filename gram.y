@@ -1,11 +1,11 @@
 /*
- *   $Id: gram.y,v 1.25 2010/12/14 11:41:17 psavola Exp $
+ *   $Id: gram.y,v 1.26 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996-2000 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -14,10 +14,10 @@
  *
  */
 %{
-#include <config.h>
-#include <includes.h>
-#include <radvd.h>
-#include <defaults.h>
+#include "config.h"
+#include "includes.h"
+#include "radvd.h"
+#include "defaults.h"
 
 extern struct Interface *IfaceList;
 struct Interface *iface = NULL;
@@ -119,11 +119,11 @@ static void yyerror(char *msg);
 %token		T_BAD_TOKEN
 
 %type	<str>	name
-%type	<pinfo> prefixdef 
+%type	<pinfo> prefixdef
 %type	<ainfo> clientslist v6addrlist
-%type	<rinfo>	routedef 
-%type	<rdnssinfo> rdnssdef 
-%type	<dnsslinfo> dnssldef 
+%type	<rinfo>	routedef
+%type	<rdnssinfo> rdnssdef
+%type	<dnsslinfo> dnssldef
 %type   <num>	number_or_infinity
 
 %union {
@@ -159,7 +159,7 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 					ABORT;
 				}
 				iface2 = iface2->next;
-			}			
+			}
 
 			if (check_device(sock, iface) < 0) {
 				if (iface->IgnoreIfMissing) {
@@ -205,7 +205,7 @@ ifacehead	: T_INTERFACE name
 			iface->Name[IFNAMSIZ-1] = '\0';
 		}
 		;
-	
+
 name		: STRING
 		{
 			/* check vality */
@@ -364,7 +364,7 @@ prefixdef	: prefixhead '{' optional_prefixplist '}' ';'
 			    prefix->AdvValidLifetime)
 			{
 				flog(LOG_ERR, "AdvValidLifeTime must be "
-					"greater than AdvPreferredLifetime in %s, line %d", 
+					"greater than AdvPreferredLifetime in %s, line %d",
 					conf_file, num_lines);
 				ABORT;
 			}
@@ -391,7 +391,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 		{
 			struct in6_addr zeroaddr;
 			prefix = malloc(sizeof(struct AdvPrefix));
-			
+
 			if (prefix == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
@@ -451,7 +451,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 		;
 
 optional_prefixplist: /* empty */
-		| prefixplist 
+		| prefixplist
 		;
 
 prefixplist	: prefixplist prefixparms
@@ -470,7 +470,7 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 		{
 			if (prefix->AutoSelected && $2 == 0)
 				flog(LOG_WARNING, "prefix automatically selected, AdvRouterAddr always enabled, ignoring config line %d", num_lines);
-			else  
+			else
 				prefix->AdvRouterAddr = $2;
 		}
 		| T_AdvValidLifetime number_or_infinity ';'
@@ -504,7 +504,7 @@ routedef	: routehead '{' optional_routeplist '}' ';'
 routehead	: T_ROUTE IPV6ADDR '/' NUMBER
 		{
 			route = malloc(sizeof(struct AdvRoute));
-			
+
 			if (route == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
@@ -526,7 +526,7 @@ routehead	: T_ROUTE IPV6ADDR '/' NUMBER
 
 
 optional_routeplist: /* empty */
-		| routeplist 
+		| routeplist
 		;
 
 routeplist	: routeplist routeparms
@@ -543,7 +543,7 @@ routeparms	: T_AdvRoutePreference SIGNEDNUMBER ';'
 			route->AdvRouteLifetime = $2;
 		}
 		;
-		
+
 rdnssdef	: rdnsshead '{' optional_rdnssplist '}' ';'
 		{
 			$$ = rdnss;
@@ -560,7 +560,7 @@ rdnssaddr	: IPV6ADDR
 			if (!rdnss) {
 				/* first IP found */
 				rdnss = malloc(sizeof(struct AdvRDNSS));
-				
+
 				if (rdnss == NULL) {
 					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 					ABORT;
@@ -568,7 +568,7 @@ rdnssaddr	: IPV6ADDR
 
 				rdnss_init_defaults(rdnss, iface);
 			}
-			
+
 			switch (rdnss->AdvRDNSSNumber) {
 				case 0:
 					memcpy(&rdnss->AdvRDNSSAddr1, $1, sizeof(struct in6_addr));
@@ -586,10 +586,10 @@ rdnssaddr	: IPV6ADDR
 					flog(LOG_CRIT, "Too many addresses in RDNSS section");
 					ABORT;
 			}
-			
+
 		}
 		;
-		
+
 rdnsshead	: T_RDNSS rdnssaddrs
 		{
 			if (!rdnss) {
@@ -598,11 +598,11 @@ rdnsshead	: T_RDNSS rdnssaddrs
 			}
 		}
 		;
-		
+
 optional_rdnssplist: /* empty */
-		| rdnssplist 
+		| rdnssplist
 		;
-		
+
 rdnssplist	: rdnssplist rdnssparms
 		| rdnssparms
 		;
@@ -660,7 +660,7 @@ dnsslsuffix	: STRING
 			if (!dnssl) {
 				/* first domain found */
 				dnssl = malloc(sizeof(struct AdvDNSSL));
-				
+
 				if (dnssl == NULL) {
 					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 					ABORT;
@@ -668,7 +668,7 @@ dnsslsuffix	: STRING
 
 				dnssl_init_defaults(dnssl, iface);
 			}
-			
+
 			dnssl->AdvDNSSLNumber++;
 			dnssl->AdvDNSSLSuffixes =
 				realloc(dnssl->AdvDNSSLSuffixes,
@@ -681,7 +681,7 @@ dnsslsuffix	: STRING
 			dnssl->AdvDNSSLSuffixes[dnssl->AdvDNSSLNumber - 1] = strdup($1);
 		}
 		;
-		
+
 dnsslhead	: T_DNSSL dnsslsuffixes
 		{
 			if (!dnssl) {
@@ -690,11 +690,11 @@ dnsslhead	: T_DNSSL dnsslsuffixes
 			}
 		}
 		;
-		
+
 optional_dnsslplist: /* empty */
-		| dnsslplist 
+		| dnsslplist
 		;
-		
+
 dnsslplist	: dnsslplist dnsslparms
 		| dnsslparms
 		;
@@ -715,7 +715,7 @@ dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 
 number_or_infinity      : NUMBER
                         {
-                                $$ = $1; 
+                                $$ = $1;
                         }
                         | INFINITY
                         {
@@ -730,7 +730,7 @@ void cleanup(void)
 {
 	if (iface)
 		free(iface);
-	
+
 	if (prefix)
 		free(prefix);
 

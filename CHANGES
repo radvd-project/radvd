@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.105 2010/12/14 11:41:17 psavola Exp $
+$Id: CHANGES,v 1.106 2010/12/14 11:58:21 psavola Exp $
 
 14/12/2010	Deprecate old, pre-RFC5006 parameters.
 		Support RFC6106 by adding DNS Search List support.
@@ -7,6 +7,7 @@ $Id: CHANGES,v 1.105 2010/12/14 11:41:17 psavola Exp $
 14/12/2010      Integrate cleanup patches from Reuben Hawkins:
                 - 14/05: patch configure.in to allow OSX 10.6 builds
                 - 06/06: fix fscanf parsing on Linux 
+		- 10/12: Fix whitespaces; #includes; CLEANFILES
 		From Ben Greear:
                 - 05/11: Print errors on all exit() codepaths.
 		From Iain J. Watson:
