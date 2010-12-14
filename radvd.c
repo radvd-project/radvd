@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.42 2010/03/10 07:57:36 psavola Exp $
+ *   $Id: radvd.c,v 1.43 2010/12/14 11:13:41 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -185,22 +185,28 @@ main(int argc, char *argv[])
 		/* username will be switched later */
 	}
 	
-	if (log_open(log_method, pname, logfile, facility) < 0)
+	if (log_open(log_method, pname, logfile, facility) < 0) {
+		perror("log_open");
 		exit(1);
+	}
 
 	flog(LOG_INFO, "version %s started", VERSION);
 
 	/* get a raw socket for sending and receiving ICMPv6 messages */
 	sock = open_icmpv6_socket();
-	if (sock < 0)
+	if (sock < 0) {
+		perror("open_icmpv6_socket");
 		exit(1);
+	}
 
 	/* check that 'other' cannot write the file
          * for non-root, also that self/own group can't either
          */
 	if (check_conffile_perm(username, conf_file) < 0) {
-		if (get_debuglevel() == 0)
+		if (get_debuglevel() == 0) {
+			flog(LOG_ERR, "Exiting, permissions on conf_file invalid.\n");
 			exit(1);
+		}
 		else
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
@@ -216,8 +222,10 @@ main(int argc, char *argv[])
 	}
 
 	/* parse config file */
-	if (readin_config(conf_file) < 0)
+	if (readin_config(conf_file) < 0) {
+		flog(LOG_ERR, "Exiting, failed to read config file.\n");
 		exit(1);
+	}
 
 	/* drop root privileges if requested. */
 	if (username) {
@@ -227,8 +235,10 @@ main(int argc, char *argv[])
 				flog(LOG_WARNING, "Failed to initialize privsep.");
 		}
 
-		if (drop_root_privileges(username) < 0)
+		if (drop_root_privileges(username) < 0) {
+			perror("drop_root_privileges");
 			exit(1);
+		}
 	}
 
 	if ((fd = open(pidfile, O_RDONLY, 0)) > 0)
@@ -274,8 +284,10 @@ main(int argc, char *argv[])
 		/* reopen logfiles, but don't log to stderr unless explicitly requested */
 		if (log_method == L_STDERR_SYSLOG)
 			log_method = L_SYSLOG;
-		if (log_open(log_method, pname, logfile, facility) < 0)
+		if (log_open(log_method, pname, logfile, facility) < 0) {
+			perror("log_open");
 			exit(1);
+		}
 
 	}
 
@@ -317,6 +329,7 @@ main(int argc, char *argv[])
 
 		if (sigterm_received || sigint_received) {
 			stop_adverts();
+			flog(LOG_WARNING, "Exiting, sigterm or sigint received.\n");
 			break;
 		}
 
@@ -428,8 +441,10 @@ void reload_config(void)
 	flog(LOG_INFO, "attempting to reread config file");
 
 	dlog(LOG_DEBUG, 4, "reopening log");
-	if (log_reopen() < 0)
+	if (log_reopen() < 0) {
+		perror("log_reopen");
 		exit(1);
+	}
 
 	/* disable timers, free interface and prefix structures */
 	for(iface=IfaceList; iface; iface=iface->next)
@@ -486,8 +501,10 @@ void reload_config(void)
 	IfaceList = NULL;
 
 	/* reread config file */
-	if (readin_config(conf_file) < 0)
+	if (readin_config(conf_file) < 0) {
+		perror("readin_config failed.");
 		exit(1);
+	}
 
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();

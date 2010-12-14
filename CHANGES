@@ -1,8 +1,10 @@
-$Id: CHANGES,v 1.101 2010/12/14 11:10:21 psavola Exp $
+$Id: CHANGES,v 1.102 2010/12/14 11:13:41 psavola Exp $
 
 14/12/2010      Integrate cleanup patches from Reuben Hawkins:
                 - 14/05: patch configure.in to allow OSX 10.6 builds
                 - 06/06: fix fscanf parsing on Linux 
+		From Ben Greear:
+                - 05/11: Print errors on all exit() codepaths.
 
 04/05/2010	Fix a segmentation fault on reload_config() timer list
 		corruption that only occurs with multiple interfaces.

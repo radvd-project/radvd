@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.19 2010/01/28 13:34:26 psavola Exp $
+ *   $Id: radvdump.c,v 1.20 2010/12/14 11:13:41 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -85,13 +85,17 @@ main(int argc, char *argv[])
 		}
 	}
 	
-	if (log_open(L_STDERR, pname, NULL, 0) < 0)
+	if (log_open(L_STDERR, pname, NULL, 0) < 0) {
+		perror("log_open");
 		exit(1);
+	}
 
 	/* get a raw socket for sending and receiving ICMPv6 messages */
 	sock = open_icmpv6_socket();
-	if (sock < 0)
+	if (sock < 0) {
+		perror("open_icmpv6_socket");
 		exit(1);
+	}
 		
 	for(;;)
 	{
