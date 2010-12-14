@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.99 2010/12/14 10:57:48 psavola Exp $
+$Id: CHANGES,v 1.100 2010/12/14 10:59:12 psavola Exp $
+
+14/05/2010      Patch configure.in to allow OSX 10.6 builds. From Reuben
+                Hawkins.
 
 04/05/2010	Fix a segmentation fault on reload_config() timer list
 		corruption that only occurs with multiple interfaces.
