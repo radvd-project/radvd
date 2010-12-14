@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.22 2010/01/28 13:34:26 psavola Exp $
+ *   $Id: defaults.h,v 1.23 2010/12/14 11:23:16 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -63,8 +63,6 @@
 #define DFLT_AdvRoutePreference		0 /* medium*/
 
 /* RDNSS */
-#define DFLT_AdvRDNSSPreference				8 /* medium */
-#define DFLT_AdvRDNSSOpenFlag				0
 #define DFLT_AdvRDNSSLifetime(iface)			(iface)->MaxRtrAdvInterval
 
 /* Protocol (RFC4861) constants: */

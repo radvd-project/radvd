@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.20 2010/12/14 11:13:41 psavola Exp $
+ *   $Id: radvdump.c,v 1.21 2010/12/14 11:23:16 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -419,15 +419,6 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			}
 			
 			printf("\n\t{\n");
-			if (!edefs 
-			    || ((rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_PREF_MASK) >> ND_OPT_RDNSSI_PREF_SHIFT) != DFLT_AdvRDNSSPreference)
-				printf("\t\tAdvRDNSSPreference %d;\n", 
-				  (rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_PREF_MASK) >> ND_OPT_RDNSSI_PREF_SHIFT);
-
-			if (!edefs 
-			    || ((rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S) == 0 ) == DFLT_AdvRDNSSOpenFlag)
-				printf("\t\tAdvRDNSSOpen %s;\n", rdnss_info->nd_opt_rdnssi_pref_flag_reserved & ND_OPT_RDNSSI_FLAG_S ? "on" : "off");
-
 			/* as AdvRDNSSLifetime may depend on MaxRtrAdvInterval, it could change */
 			if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
 				printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");

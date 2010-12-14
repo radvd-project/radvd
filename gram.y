@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.23 2009/11/07 18:42:14 psavola Exp $
+ *   $Id: gram.y,v 1.24 2010/12/14 11:23:16 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -603,11 +603,11 @@ rdnssplist	: rdnssplist rdnssparms
 
 rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		{
-			rdnss->AdvRDNSSPreference = $2;
+			flog(LOG_WARNING, "Ignoring deprecated RDNSS preference.");
 		}
 		| T_AdvRDNSSOpenFlag SWITCH ';'
 		{
-			rdnss->AdvRDNSSOpenFlag = $2;
+			flog(LOG_WARNING, "Ignoring deprecated RDNSS open flag.");
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{

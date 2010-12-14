@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.29 2010/01/28 13:34:26 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.30 2010/12/14 11:23:16 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -473,22 +473,12 @@ Default: medium
 
 .TP
 .BR "AdvRDNSSPreference " integer;
-
-The preference of the DNS server, compared to other DNS servers advertised and used.
-0 to 7 means less important than manually configured nameservers in resolv.conf, while 12 to 15 means more important.
-
-NOTE: This feature was removed from the final RFC but can still be used for experimental purposes.
-
-Default: 8
-
 .TP
 .BR "AdvRDNSSOpen " on | off;
 
-"Service Open" flag. When set, indicates that RDNSS continues to be available to hosts even if they moved to a different subnet.
-
-NOTE: This feature was removed from the final RFC but can still be used for experimental purposes.
-
-Default: off
+These features were present in the draft specification but were removed
+from RFC5006. They are still accepted in the configuration but
+ignored.
 
 .TP
 .BR "AdvRDNSSLifetime " seconds | infinity;
