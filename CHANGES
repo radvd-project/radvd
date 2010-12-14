@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.106 2010/12/14 11:58:21 psavola Exp $
+$Id: CHANGES,v 1.107 2010/12/14 12:29:43 psavola Exp $
 
 14/12/2010	Deprecate old, pre-RFC5006 parameters.
 		Support RFC6106 by adding DNS Search List support.
@@ -12,6 +12,8 @@ $Id: CHANGES,v 1.106 2010/12/14 11:58:21 psavola Exp $
                 - 05/11: Print errors on all exit() codepaths.
 		From Iain J. Watson:
 		- 09/12: Add '-c' flag to test configuration.
+		From Pierre Ossman (idea):
+                - 13/12: Remove automake-generated files.
 
 04/05/2010	Fix a segmentation fault on reload_config() timer list
 		corruption that only occurs with multiple interfaces.
