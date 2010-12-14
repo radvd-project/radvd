@@ -1,7 +1,8 @@
-$Id: CHANGES,v 1.100 2010/12/14 10:59:12 psavola Exp $
+$Id: CHANGES,v 1.101 2010/12/14 11:10:21 psavola Exp $
 
-14/05/2010      Patch configure.in to allow OSX 10.6 builds. From Reuben
-                Hawkins.
+14/12/2010      Integrate cleanup patches from Reuben Hawkins:
+                - 14/05: patch configure.in to allow OSX 10.6 builds
+                - 06/06: fix fscanf parsing on Linux 
 
 04/05/2010	Fix a segmentation fault on reload_config() timer list
 		corruption that only occurs with multiple interfaces.
