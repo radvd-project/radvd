@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.43 2010/12/14 11:13:41 psavola Exp $
+ *   $Id: radvd.c,v 1.44 2010/12/14 11:19:37 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -22,12 +22,13 @@
 struct Interface *IfaceList = NULL;
 
 char usage_str[] =
-	"[-hsv] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
+	"[-hsvc] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
 	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
 
 #ifdef HAVE_GETOPT_LONG
 struct option prog_opt[] = {
 	{"debug", 1, 0, 'd'},
+	{"configtest", 0, 0, 'c'},
 	{"config", 1, 0, 'C'},
 	{"pidfile", 1, 0, 'p'},
 	{"logfile", 1, 0, 'l'},
@@ -77,6 +78,7 @@ main(int argc, char *argv[])
 	int facility, fd;
 	char *username = NULL;
 	char *chrootdir = NULL;
+	int configtest = 0;
 	int singleprocess = 0;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
@@ -94,9 +96,9 @@ main(int argc, char *argv[])
 
 	/* parse args */
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt_long(argc, argv, "d:C:l:m:p:t:u:vhs", prog_opt, &opt_idx)) > 0)
+	while ((c = getopt_long(argc, argv, "d:C:l:m:p:t:u:vhcs", prog_opt, &opt_idx)) > 0)
 #else
-	while ((c = getopt(argc, argv, "d:C:l:m:p:t:u:vhs")) > 0)
+	while ((c = getopt(argc, argv, "d:C:l:m:p:t:u:vhcs")) > 0)
 #endif
 	{
 		switch (c) {
@@ -151,6 +153,9 @@ main(int argc, char *argv[])
 		case 'v':
 			version();
 			break;
+		case 'c':
+			configtest = 1;
+			break;
 		case 's':
 			singleprocess = 1;
 			break;
@@ -185,12 +190,18 @@ main(int argc, char *argv[])
 		/* username will be switched later */
 	}
 	
+	if (configtest) {
+		log_method = L_STDERR;
+	}
+
 	if (log_open(log_method, pname, logfile, facility) < 0) {
 		perror("log_open");
 		exit(1);
 	}
 
-	flog(LOG_INFO, "version %s started", VERSION);
+	if (!configtest) {
+		flog(LOG_INFO, "version %s started", VERSION);
+	}
 
 	/* get a raw socket for sending and receiving ICMPv6 messages */
 	sock = open_icmpv6_socket();
@@ -225,6 +236,11 @@ main(int argc, char *argv[])
 	if (readin_config(conf_file) < 0) {
 		flog(LOG_ERR, "Exiting, failed to read config file.\n");
 		exit(1);
+	}
+
+	if (configtest) {
+		fprintf(stderr, "Syntax OK\n");
+		exit(0);
 	}
 
 	/* drop root privileges if requested. */
