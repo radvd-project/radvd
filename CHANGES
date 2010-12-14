@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.98 2010/03/10 07:57:36 psavola Exp $
+$Id: CHANGES,v 1.99 2010/12/14 10:57:48 psavola Exp $
+
+04/05/2010	Fix a segmentation fault on reload_config() timer list
+		corruption that only occurs with multiple interfaces.
 
 10/03/2010	Fix radvd skipping multiple interfaces when
                 UnicastOnly is on or AdvSendAdvert is off.

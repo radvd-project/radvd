@@ -1,5 +1,5 @@
 /*
- *   $Id: timer.c,v 1.9 2005/10/18 19:17:29 lutchann Exp $
+ *   $Id: timer.c,v 1.10 2010/12/14 10:57:48 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -147,7 +147,7 @@ alarm_handler(int sig)
 	 */
 
 	/* unused timers are initialized to LONG_MAX so we skip them */
-	while (tm->expires.tv_sec != LONG_MAX && check_time_diff(tm, tv))
+	while (tm->next && tm->prev && tm->expires.tv_sec != LONG_MAX && check_time_diff(tm, tv))
 	{		
 		tm->prev->next = tm->next;
 		tm->next->prev = tm->prev;
