@@ -1,5 +1,5 @@
 /*
- *   $Id: device-linux.c,v 1.25 2008/01/24 17:08:46 psavola Exp $
+ *   $Id: device-linux.c,v 1.26 2010/12/14 11:10:21 psavola Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>	 
@@ -198,6 +198,7 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 	FILE *fp;
 	unsigned int if_idx, allrouters_ok=0;
 	char addr[32+1];
+	char buffer[301] = {""}, *str;
 	int ret=0;
 
 	if ((fp = fopen(PATH_PROC_NET_IGMP6, "r")) == NULL)
@@ -207,13 +208,18 @@ int check_allrouters_membership(int sock, struct Interface *iface)
 		return (-1);	
 	}
 	
-	while ( (ret=fscanf(fp, "%u %*s %32[0-9A-Fa-f] %*x %*x %*x\n", &if_idx, addr)) != EOF) {
+	str = fgets(buffer, 300, fp);
+
+	while (str && (ret = sscanf(str, "%u %*s %32[0-9A-Fa-f]", &if_idx, addr)) ) {
 		if (ret == 2) {
 			if (iface->if_index == if_idx) {
-				if (strncmp(addr, ALL_ROUTERS_MCAST, sizeof(addr)) == 0)
+				if (strncmp(addr, ALL_ROUTERS_MCAST, sizeof(addr)) == 0){
 					allrouters_ok = 1;
+					break;
+				}
 			}
 		}
+		str = fgets(buffer, 300, fp);
 	}
 
 	fclose(fp);
