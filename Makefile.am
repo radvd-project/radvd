@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.7 2009/08/25 05:41:56 psavola Exp $
+#   $Id: Makefile.am,v 1.8 2010/12/14 11:58:21 psavola Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -42,7 +42,7 @@ EXTRA_DIST = radvd.8.man radvdump.8.man radvd.conf.5.man VERSION CHANGES \
 	COPYRIGHT INTRO.html copyright.blurb radvd.conf.example
 BUILT_SOURCES = device.c
 
-CLEANFILES = radvd.8 radvdump.8 radvd.conf.5
+CLEANFILES = radvd.8 radvdump.8 radvd.conf.5 gram.c gram.h scanner.c
 DISTCLEANFILES = device.c
 
 SUFFIXES = .man

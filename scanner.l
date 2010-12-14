@@ -1,11 +1,11 @@
 /*
- *   $Id: scanner.l,v 1.19 2010/12/14 11:41:17 psavola Exp $
+ *   $Id: scanner.l,v 1.20 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996-2000 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -14,10 +14,10 @@
  *
  */
 %{
-#include <config.h>
-#include <includes.h>
-#include <radvd.h>
-#include <gram.h>
+#include "config.h"
+#include "includes.h"
+#include "radvd.h"
+#include "gram.h"
 
 extern char *conf_file;
 
@@ -133,7 +133,7 @@ high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 {string}	{
 			static char string[256];
-				
+
 			strncpy(string, yytext, sizeof(string));
 			string[sizeof(string)-1] = '\0';
 			yylval.str = string;

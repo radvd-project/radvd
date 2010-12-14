@@ -1,11 +1,11 @@
 /*
- *   $Id: radvd.h,v 1.32 2010/12/14 11:41:17 psavola Exp $
+ *   $Id: radvd.h,v 1.33 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s), 
+ *   This software is Copyright 1996,1997 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -17,9 +17,9 @@
 #ifndef RADV_H
 #define RADV_H
 
-#include <config.h>
-#include <includes.h>
-#include <defaults.h>
+#include "config.h"
+#include "includes.h"
+#include "defaults.h"
 
 #define CONTACT_EMAIL	"Pekka Savola <pekkas@netcore.fi>"
 
@@ -37,7 +37,7 @@ struct timer_lst {
 	void			(*handler)(void *);
 	void *			data;
 	struct timer_lst	*next;
-	struct timer_lst	*prev;	
+	struct timer_lst	*prev;
 };
 
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
@@ -110,7 +110,7 @@ struct Clients {
 struct AdvPrefix {
 	struct in6_addr		Prefix;
 	uint8_t			PrefixLen;
-	
+
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
 	uint32_t		AdvValidLifetime;
@@ -132,7 +132,7 @@ struct AdvPrefix {
 struct AdvRoute {
 	struct in6_addr		Prefix;
 	uint8_t			PrefixLen;
-	
+
 	int			AdvRoutePreference;
 	uint32_t		AdvRouteLifetime;
 
@@ -147,8 +147,8 @@ struct AdvRDNSS {
 	struct in6_addr		AdvRDNSSAddr1;
 	struct in6_addr		AdvRDNSSAddr2;
 	struct in6_addr		AdvRDNSSAddr3;
-	
-	struct AdvRDNSS 	*next; 
+
+	struct AdvRDNSS 	*next;
 };
 
 struct AdvDNSSL {
@@ -156,7 +156,7 @@ struct AdvDNSSL {
 
 	int			AdvDNSSLNumber;
 	char			**AdvDNSSLSuffixes;
-	
+
 	struct AdvDNSSL 	*next;
 };
 
@@ -175,7 +175,7 @@ struct HomeAgentInfo {
 	uint16_t		flags_reserved;
 	uint16_t		preference;
 	uint16_t		lifetime;
-};	
+};
 
 
 /* gram.y */
@@ -191,7 +191,7 @@ void reload_config(void);
 /* timer.c */
 void set_timer(struct timer_lst *tm, double);
 void clear_timer(struct timer_lst *tm);
-void init_timer(struct timer_lst *, void (*)(void *), void *); 
+void init_timer(struct timer_lst *, void (*)(void *), void *);
 
 /* log.c */
 int log_open(int, char *, char*, int);
@@ -263,7 +263,7 @@ int privsep_interface_retranstimer(const char *iface, uint32_t rettimer);
  * This is only an approximation because the kernel version that libc was compiled against
  * could be older or newer than the one being run.  But this should not be a problem --
  * we just keep using the old kernel interface.
- * 
+ *
  * these are placed here because they're needed in all of socket.c, recv.c and send.c
  */
 #ifdef __linux__

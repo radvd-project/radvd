@@ -1,11 +1,11 @@
 /*
- *   $Id: radvd.c,v 1.45 2010/12/14 11:41:17 psavola Exp $
+ *   $Id: radvd.c,v 1.46 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996-2000 by the above mentioned author(s), 
+ *   This software is Copyright 1996-2000 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -14,10 +14,10 @@
  *
  */
 
-#include <config.h>
-#include <includes.h>
-#include <radvd.h>
-#include <pathnames.h>
+#include "config.h"
+#include "includes.h"
+#include "radvd.h"
+#include "pathnames.h"
 
 struct Interface *IfaceList = NULL;
 
@@ -177,19 +177,19 @@ main(int argc, char *argv[])
 			fprintf(stderr, "Chroot as root is not safe, exiting\n");
 			exit(1);
 		}
-		
+
 		if (chroot(chrootdir) == -1) {
 			perror("chroot");
 			exit (1);
 		}
-		
+
 		if (chdir("/") == -1) {
 			perror("chdir");
 			exit (1);
 		}
 		/* username will be switched later */
 	}
-	
+
 	if (configtest) {
 		log_method = L_STDERR;
 	}
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 		else
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
-	
+
 	/* if we know how to do it, check whether forwarding is enabled */
 	if (check_ip6_forwarding()) {
 		if (get_debuglevel() == 0) {
@@ -282,7 +282,7 @@ main(int argc, char *argv[])
 		flog(LOG_ERR, "cannot create radvd pid file, terminating: %s", strerror(errno));
 		exit(1);
 	}
-	
+
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
@@ -296,7 +296,7 @@ main(int argc, char *argv[])
 
 		/* close old logfiles, including stderr */
 		log_close();
-		
+
 		/* reopen logfiles, but don't log to stderr unless explicitly requested */
 		if (log_method == L_STDERR_SYSLOG)
 			log_method = L_SYSLOG;
@@ -322,9 +322,9 @@ main(int argc, char *argv[])
 	signal(SIGINT, sigint_handler);
 
 	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
-	
+
 	write(fd, pidstr, strlen(pidstr));
-	
+
 	close(fd);
 
 	config_interface();
@@ -337,10 +337,10 @@ main(int argc, char *argv[])
 		int len, hoplimit;
 		struct sockaddr_in6 rcv_addr;
 		struct in6_pktinfo *pkt_info = NULL;
-		
+
 		len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
 		if (len > 0)
-			process(sock, IfaceList, msg, len, 
+			process(sock, IfaceList, msg, len,
 				&rcv_addr, pkt_info, hoplimit);
 
 		if (sigterm_received || sigint_received) {
@@ -351,11 +351,11 @@ main(int argc, char *argv[])
 
 		if (sighup_received)
 		{
-			reload_config();		
+			reload_config();
 			sighup_received = 0;
 		}
 	}
-	
+
 	unlink(pidfile);
 	exit(0);
 }
@@ -371,7 +371,7 @@ timer_handler(void *data)
 	if (send_ra_forall(sock, iface, NULL) != 0)
 		return;
 
-	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval); 
+	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 
 	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
 	{
@@ -473,7 +473,7 @@ void reload_config(void)
 		}
 	}
 
-	iface=IfaceList; 
+	iface=IfaceList;
 	while(iface)
 	{
 		struct Interface *next_iface = iface->next;
@@ -483,16 +483,16 @@ void reload_config(void)
 		struct AdvDNSSL *dnssl;
 
 		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
-		
+
 		prefix = iface->AdvPrefixList;
 		while (prefix)
 		{
 			struct AdvPrefix *next_prefix = prefix->next;
-			
+
 			free(prefix);
 			prefix = next_prefix;
 		}
-		
+
 		route = iface->AdvRouteList;
 		while (route)
 		{
@@ -501,18 +501,18 @@ void reload_config(void)
 			free(route);
 			route = next_route;
 		}
-		
+
 		rdnss = iface->AdvRDNSSList;
-		while (rdnss) 
+		while (rdnss)
 		{
 			struct AdvRDNSS *next_rdnss = rdnss->next;
-			
+
 			free(rdnss);
 			rdnss = next_rdnss;
-		}	 
+		}
 
 		dnssl = iface->AdvDNSSLList;
-		while (dnssl) 
+		while (dnssl)
 		{
 			struct AdvDNSSL *next_dnssl = dnssl->next;
 			int i;
@@ -584,7 +584,7 @@ drop_root_privileges(const char *username)
 	pw = getpwnam(username);
 	if (pw) {
 		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
-			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d", 
+			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d",
 					username, pw->pw_uid, pw->pw_gid);
 			return (-1);
 		}
@@ -615,7 +615,7 @@ check_conffile_perm(const char *username, const char *conf_file)
 
 	if (!username)
 		username = "root";
-	
+
 	pw = getpwnam(username);
 
 	if (stat(conf_file, st) || pw == NULL)
@@ -669,12 +669,12 @@ check_ip6_forwarding(void)
 			"perhaps the kernel interface has changed?");
 		return(0);	/* this is of advisory value only */
 	}
-	
+
 	if (value != 1) {
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
 		return(-1);
 	}
-		
+
 	return(0);
 }
 
@@ -692,7 +692,7 @@ readin_config(char *fname)
 		flog(LOG_ERR, "error parsing or activating the config file: %s", fname);
 		return (-1);
 	}
-	
+
 	fclose(yyin);
 	return 0;
 }
@@ -709,13 +709,13 @@ version(void)
 	fprintf(stderr, "Please send bug reports or suggestions to %s.\n",
 		CONTACT_EMAIL);
 
-	exit(1);	
+	exit(1);
 }
 
 void
 usage(void)
 {
 	fprintf(stderr, "usage: %s %s\n", pname, usage_str);
-	exit(1);	
+	exit(1);
 }
 

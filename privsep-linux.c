@@ -1,12 +1,12 @@
 /*
- *   $Id: privsep-linux.c,v 1.4 2010/12/14 11:13:41 psavola Exp $
+ *   $Id: privsep-linux.c,v 1.5 2010/12/14 11:58:21 psavola Exp $
  *
  *   Authors:
  *    Jim Paris			<jim@jtan.com>
  *    Pedro Roque		<roque@di.fc.ul.pt>
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *
- *   This software is Copyright 1996,1997,2008 by the above mentioned author(s), 
+ *   This software is Copyright 1996,1997,2008 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -15,10 +15,10 @@
  *
  */
 
-#include <config.h>
-#include <includes.h>
-#include <radvd.h>
-#include <pathnames.h>
+#include "config.h"
+#include "includes.h"
+#include "radvd.h"
+#include "pathnames.h"
 
 int privsep_set(const char *iface, const char *var, uint32_t val);
 void privsep_read_loop(void);
