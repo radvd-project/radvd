@@ -1,4 +1,7 @@
-$Id: CHANGES,v 1.103 2010/12/14 11:19:37 psavola Exp $
+$Id: CHANGES,v 1.104 2010/12/14 11:23:16 psavola Exp $
+
+14/12/2010	Deprecate old, pre-RFC5006 parameters.
+		From Pierre Ossman.
 
 14/12/2010      Integrate cleanup patches from Reuben Hawkins:
                 - 14/05: patch configure.in to allow OSX 10.6 builds

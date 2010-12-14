@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.34 2010/01/28 13:34:26 psavola Exp $
+ *   $Id: send.c,v 1.35 2010/12/14 11:23:16 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -250,10 +250,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 
 		rdnssinfo->nd_opt_rdnssi_type	     = ND_OPT_RDNSS_INFORMATION;
 		rdnssinfo->nd_opt_rdnssi_len	     = 1 + 2*rdnss->AdvRDNSSNumber;
-		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved = 
-		((rdnss->AdvRDNSSPreference << ND_OPT_RDNSSI_PREF_SHIFT) & ND_OPT_RDNSSI_PREF_MASK);
-		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved |=
-		((rdnss->AdvRDNSSOpenFlag)?ND_OPT_RDNSSI_FLAG_S:0);
+		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved = 0;
 
 		rdnssinfo->nd_opt_rdnssi_lifetime	= htonl(rdnss->AdvRDNSSLifetime);
 			

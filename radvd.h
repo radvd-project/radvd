@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.30 2009/09/07 07:59:57 psavola Exp $
+ *   $Id: radvd.h,v 1.31 2010/12/14 11:23:16 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -141,8 +141,6 @@ struct AdvRoute {
 /* Option for DNS configuration */
 struct AdvRDNSS {
 	int 			AdvRDNSSNumber;
-	uint8_t			AdvRDNSSPreference;
-	int 			AdvRDNSSOpenFlag;
 	uint32_t		AdvRDNSSLifetime;
 	struct in6_addr		AdvRDNSSAddr1;
 	struct in6_addr		AdvRDNSSAddr2;
