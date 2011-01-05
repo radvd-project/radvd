@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.32 2011/01/04 19:24:45 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.33 2011/01/05 08:19:23 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -14,7 +14,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "19 Jun 2009" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "4 Jan 2011" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd

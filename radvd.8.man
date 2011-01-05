@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.8.man,v 1.14 2010/12/14 12:39:48 psavola Exp $
+.\"   $Id: radvd.8.man,v 1.15 2011/01/05 08:19:23 psavola Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@
 .\"
 .\"
 .\"
-.TH RADVD 8 "24 Jan 2008" "radvd @VERSION@" ""
+.TH RADVD 8 "14 Dec 2010" "radvd @VERSION@" ""
 .SH NAME
 radvd \- router advertisement daemon for IPv6
 .SH SYNOPSIS
