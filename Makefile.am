@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.8 2010/12/14 11:58:21 psavola Exp $
+#   $Id: Makefile.am,v 1.9 2011/01/07 04:51:01 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -58,6 +58,10 @@ SUFFIXES = .man
 
 dist-hook:
 	rm -f $(distdir)/device.c	
+	rm -f $(distdir)/prevsep.c	
+	rm -f $(distdir)/scanner.c	
+	rm -f $(distdir)/gram.c	
+	rm -f $(distdir)/gram.h
 	mkdir $(distdir)/redhat
 	cp -p $(srcdir)/redhat/radvd.init $(srcdir)/redhat/radvd.spec \
 		$(srcdir)/redhat/radvd.sysconfig $(distdir)/redhat
