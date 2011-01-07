@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.9 2011/01/07 04:51:01 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.10 2011/01/07 09:25:06 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -43,7 +43,7 @@ EXTRA_DIST = radvd.8.man radvdump.8.man radvd.conf.5.man VERSION CHANGES \
 BUILT_SOURCES = device.c
 
 CLEANFILES = radvd.8 radvdump.8 radvd.conf.5 gram.c gram.h scanner.c
-DISTCLEANFILES = device.c
+DISTCLEANFILES = device.c privsep.c
 
 SUFFIXES = .man
 
@@ -57,13 +57,15 @@ SUFFIXES = .man
 		$< > $@
 
 dist-hook:
-	rm -f $(distdir)/device.c	
-	rm -f $(distdir)/prevsep.c	
-	rm -f $(distdir)/scanner.c	
-	rm -f $(distdir)/gram.c	
+	rm -f $(distdir)/device.c
+	rm -f $(distdir)/prevsep.c
+	rm -f $(distdir)/scanner.c
+	rm -f $(distdir)/gram.c
 	rm -f $(distdir)/gram.h
 	mkdir $(distdir)/redhat
-	cp -p $(srcdir)/redhat/radvd.init $(srcdir)/redhat/radvd.spec \
-		$(srcdir)/redhat/radvd.sysconfig $(distdir)/redhat
+	cp -p $(srcdir)/redhat/radvd.init $(distdir)/redhat
+	cp -p $(srcdir)/redhat/radvd.spec $(distdir)/redhat
+	cp -p $(srcdir)/redhat/radvd.sysconfig $(distdir)/redhat
+	cp -p $(srcdir)/redhat/radvd.conf.empty $(distdir)/redhat
 
 scanner.o: gram.h
