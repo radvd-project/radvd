@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.37 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: send.c,v 1.38 2011/01/07 17:26:27 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -341,7 +341,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	 * add Source Link-layer Address option
 	 */
 
-	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len != -1)
+	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0)
 	{
 		uint8_t *ucp;
 		unsigned int i;
