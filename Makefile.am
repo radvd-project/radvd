@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.11 2011/01/07 17:19:11 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.12 2011/01/08 04:08:30 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -58,7 +58,7 @@ SUFFIXES = .man
 
 dist-hook:
 	rm -f $(distdir)/device.c
-	rm -f $(distdir)/prevsep.c
+	rm -f $(distdir)/privsep.c
 	rm -f $(distdir)/scanner.c
 	rm -f $(distdir)/gram.c
 	rm -f $(distdir)/gram.h
