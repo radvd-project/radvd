@@ -1,4 +1,4 @@
-$Id: CHANGES,v 1.110 2011/01/12 23:41:43 reubenhwk Exp $
+$Id: CHANGES,v 1.111 2011/01/12 23:55:07 reubenhwk Exp $
 12/01/2011	Release 1.7.
 
 07/01/2011	make dist (for building tar.gz source packages) fixed.
