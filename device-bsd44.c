@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.26 2011/01/22 00:53:16 reubenhwk Exp $
+ *   $Id: device-bsd44.c,v 1.27 2011/01/22 01:03:33 reubenhwk Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -34,6 +34,9 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	struct ifreq ifr;
 	struct AdvPrefix *prefix;
 	char zero[sizeof(iface->if_addr)];
+
+	if(if_nametoindex(iface->Name) == 0)
+		goto ret;
 
  	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
