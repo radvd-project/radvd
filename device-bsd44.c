@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.27 2011/01/22 01:03:33 reubenhwk Exp $
+ *   $Id: device-bsd44.c,v 1.28 2011/01/22 17:54:32 reubenhwk Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -35,8 +35,10 @@ setup_deviceinfo(int sock, struct Interface *iface)
 	struct AdvPrefix *prefix;
 	char zero[sizeof(iface->if_addr)];
 
-	if(if_nametoindex(iface->Name) == 0)
+	if(if_nametoindex(iface->Name) == 0){
+		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
 		goto ret;
+	}
 
  	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
@@ -141,7 +143,7 @@ ret:
  */
 int setup_linklocal_addr(int sock, struct Interface *iface)
 {
-	struct ifaddrs *addresses, *ifa;
+	struct ifaddrs *addresses = 0, *ifa;
 
 	if (getifaddrs(&addresses) != 0)
 	{
@@ -177,9 +179,10 @@ int setup_linklocal_addr(int sock, struct Interface *iface)
 		freeifaddrs(addresses);
 		return 0;
 	}
-	freeifaddrs(addresses);
 
 ret:
+	if(addresses)
+		freeifaddrs(addresses);
 	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 	return -1;
 }
