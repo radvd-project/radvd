@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.25 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: device-bsd44.c,v 1.26 2011/01/22 00:53:16 reubenhwk Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -29,7 +29,7 @@ static uint8_t ll_prefix[] = { 0xfe, 0x80 };
 int
 setup_deviceinfo(int sock, struct Interface *iface)
 {
-	struct ifaddrs *addresses, *ifa;
+	struct ifaddrs *addresses = 0, *ifa;
 
 	struct ifreq ifr;
 	struct AdvPrefix *prefix;
@@ -127,7 +127,8 @@ ret:
 	iface->if_maxmtu = -1;
 	iface->if_hwaddr_len = -1;
 	iface->if_prefix_len = -1;
-	freeifaddrs(addresses);
+	if (addresses != 0)
+		freeifaddrs(addresses);
 	return -1;
 }
 
