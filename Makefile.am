@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.12 2011/01/08 04:08:30 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.13 2011/01/29 18:39:16 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -39,7 +39,8 @@ radvdump_SOURCES = $(COMMON_SRC) radvdump.c
 
 man_MANS = radvd.8 radvdump.8 radvd.conf.5
 EXTRA_DIST = radvd.8.man radvdump.8.man radvd.conf.5.man VERSION CHANGES \
-	COPYRIGHT INTRO.html copyright.blurb radvd.conf.example
+	COPYRIGHT INTRO.html copyright.blurb radvd.conf.example \
+	redhat/radvd.init redhat/radvd.spec redhat/radvd.sysconfig redhat/radvd.conf.empty
 BUILT_SOURCES = device.c
 
 CLEANFILES = radvd.8 radvdump.8 radvd.conf.5 gram.c gram.h scanner.c
@@ -62,10 +63,5 @@ dist-hook:
 	rm -f $(distdir)/scanner.c
 	rm -f $(distdir)/gram.c
 	rm -f $(distdir)/gram.h
-	mkdir $(distdir)/redhat
-	cp -p $(srcdir)/redhat/radvd.init $(distdir)/redhat
-	cp -p $(srcdir)/redhat/radvd.spec $(distdir)/redhat
-	cp -p $(srcdir)/redhat/radvd.sysconfig $(distdir)/redhat
-	cp -p $(srcdir)/redhat/radvd.conf.empty $(distdir)/redhat
 
 scanner.o: gram.h
