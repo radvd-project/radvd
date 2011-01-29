@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.46 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: radvd.c,v 1.47 2011/01/29 18:54:35 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -21,11 +21,24 @@
 
 struct Interface *IfaceList = NULL;
 
-char usage_str[] =
-	"[-hsvc] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
-	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
-
 #ifdef HAVE_GETOPT_LONG
+
+char usage_str[] = {
+"\n"
+"  -c, --configtest       Parse the config file and exit.\n"
+"  -C, --config=PATH      Sets the config file.  Default is /etc/radvd.conf.\n"
+"  -d, --debug=NUM        Sets the debug level.  Values can be 1, 2, 3, 4 or 5.\n"
+"  -f, --facility=NUM     Sets the logging facility.\n"
+"  -h, --help             Show this help screen.\n"
+"  -l, --logfile=PATH     Sets the log file.\n"
+"  -m, --logmethod=X      Sets the log method to one of: syslog, stderr, stderr_syslog, logfile, or none.\n"
+"  -p, --pidfile=PATH     Sets the pid file.\n"
+"  -s, --singleprocess    Use privsep.\n"
+"  -t, --chrootdir=PATH   Chroot to the specified path.\n"
+"  -u, --username=USER    Switch to the specified user.\n"
+"  -v, --version          Print the version and quit.\n"
+};
+
 struct option prog_opt[] = {
 	{"debug", 1, 0, 'd'},
 	{"configtest", 0, 0, 'c'},
@@ -41,6 +54,13 @@ struct option prog_opt[] = {
 	{"singleprocess", 0, 0, 's'},
 	{NULL, 0, 0, 0}
 };
+
+#else
+
+char usage_str[] =
+	"[-hsvc] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
+	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
+
 #endif
 
 extern FILE *yyin;
@@ -95,10 +115,11 @@ main(int argc, char *argv[])
 	pidfile = PATH_RADVD_PID;
 
 	/* parse args */
+#define OPTIONS_STR "d:C:l:m:p:t:u:vhcs"
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt_long(argc, argv, "d:C:l:m:p:t:u:vhcs", prog_opt, &opt_idx)) > 0)
+	while ((c = getopt_long(argc, argv, OPTIONS_STR, prog_opt, &opt_idx)) > 0)
 #else
-	while ((c = getopt(argc, argv, "d:C:l:m:p:t:u:vhcs")) > 0)
+	while ((c = getopt(argc, argv, OPTIONS_STR)) > 0)
 #endif
 	{
 		switch (c) {
