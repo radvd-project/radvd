@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.47 2011/01/29 18:54:35 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.48 2011/01/29 23:00:41 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -344,7 +344,12 @@ main(int argc, char *argv[])
 
 	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
 
-	write(fd, pidstr, strlen(pidstr));
+	ret = write(fd, pidstr, strlen(pidstr));
+	if (ret != strlen(pidstr))
+	{
+		flog(LOG_ERR, "cannot write radvd pid file, terminating: %s", strerror(errno));
+		exit(1);
+	}
 
 	close(fd);
 
@@ -675,7 +680,11 @@ check_ip6_forwarding(void)
 #ifdef __linux__
 	fp = fopen(PROC_SYS_IP6_FORWARDING, "r");
 	if (fp) {
-		fscanf(fp, "%d", &value);
+		int rc = fscanf(fp, "%d", &value);
+		if(rc != 1){
+			flog(LOG_ERR, "cannot read value from %s: %s", PROC_SYS_IP6_FORWARDING, strerror(errno));
+			exit(1);
+		}
 		fclose(fp);
 	}
 	else
