@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.15 2011/01/29 18:16:25 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.16 2011/01/29 21:54:18 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.15 2011/01/29 18:16:25 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.16 2011/01/29 21:54:18 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -167,3 +167,18 @@ AC_SUBST(LOG_FACILITY)
 
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(Makefile)
+
+
+echo
+echo "Your build configuration:"
+echo
+echo "	CFLAGS = $CFLAGS"
+echo "	LDFLAGS = $LDFLAGS"
+echo "	Arch = ${arch}"
+echo "	prefix: $prefix"
+echo "	PID file: $PATH_RADVD_PID"
+echo "	Log file: $PATH_RADVD_LOG"
+echo "	Config file: $PATH_RADVD_CONF"
+echo "	Radvd version: $VERSION"
+echo
+
