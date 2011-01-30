@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.48 2011/01/29 23:00:41 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.49 2011/01/30 22:57:13 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -589,7 +589,12 @@ sigterm_handler(int sig)
 
 	dlog(LOG_DEBUG, 4, "sigterm_handler called");
 
-	sigterm_received = 1;
+	++sigterm_received;
+
+	if(sigterm_received > 1){
+		dlog(LOG_ERR, 1, "sigterm_handler called %d times...aborting...", sigterm_received);
+		abort();
+	}
 }
 
 void
@@ -600,7 +605,12 @@ sigint_handler(int sig)
 
 	dlog(LOG_DEBUG, 4, "sigint_handler called");
 
-	sigint_received = 1;
+	++sigint_received;
+
+	if(sigint_received > 1){
+		dlog(LOG_ERR, 1, "sigint_handler called %d times...aborting...", sigint_received);
+		abort();
+	}
 }
 
 int
