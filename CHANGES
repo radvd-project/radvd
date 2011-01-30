@@ -1,3 +1,7 @@
+30/01/2011	Added detailed output to radvd --help for the long options.
+		Two sigterms or sigints calls abort.
+		build system cleanup work.
+
 22/01/2011	Fixed crash and memory leak in device-bsd44.c when an
 		interface defined in the config file doesn't exist.
 		Patch submitted by Manual Kasper.
