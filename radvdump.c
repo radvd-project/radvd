@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.23 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: radvdump.c,v 1.24 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
 	for(;;)
 	{
-	        len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+	        len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
    	     	if (len > 0)
        	 	{
 			struct icmp6_hdr *icmph;

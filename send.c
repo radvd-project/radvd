@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.38 2011/01/07 17:26:27 reubenhwk Exp $
+ *   $Id: send.c,v 1.39 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -27,13 +27,13 @@
  *
  */
 int
-send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
+send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 {
 	struct Clients *current;
 
 	/* If no list of clients was specified for this interface, we broadcast */
 	if (iface->ClientList == NULL)
-		return send_ra(sock, iface, dest);
+		return send_ra(iface, dest);
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
 	for (current = iface->ClientList; current; current = current->next)
@@ -47,7 +47,7 @@ send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
 		dlog(LOG_DEBUG, 5, "Sending RA to %s", address_text);
-		send_ra(sock, iface, &(current->Address));
+		send_ra(iface, &(current->Address));
 
 		/* If we should only send the RA to a specific address, we are done */
 		if (dest != NULL)
@@ -78,7 +78,7 @@ send_ra_inc_len(size_t *len, int add)
 }
 
 int
-send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
+send_ra(struct Interface *iface, struct in6_addr *dest)
 {
 	uint8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 	struct sockaddr_in6 addr;
@@ -98,7 +98,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	ssize_t err;
 
 	/* First we need to check that the interface hasn't been removed or deactivated */
-	if(check_device(sock, iface) < 0) {
+	if(check_device(iface) < 0) {
 		if (iface->IgnoreIfMissing)  /* a bit more quiet warning message.. */
 			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
 		else {
@@ -123,7 +123,7 @@ send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	}
 
 	/* Make sure that we've joined the all-routers multicast group */
-	if (check_allrouters_membership(sock, iface) < 0)
+	if (check_allrouters_membership(iface) < 0)
 		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
 
 	dlog(LOG_DEBUG, 3, "sending RA on %s", iface->Name);

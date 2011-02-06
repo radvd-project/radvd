@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.49 2011/01/30 22:57:13 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.50 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -364,9 +364,9 @@ main(int argc, char *argv[])
 		struct sockaddr_in6 rcv_addr;
 		struct in6_pktinfo *pkt_info = NULL;
 
-		len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+		len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
 		if (len > 0)
-			process(sock, IfaceList, msg, len,
+			process(IfaceList, msg, len,
 				&rcv_addr, pkt_info, hoplimit);
 
 		if (sigterm_received || sigint_received) {
@@ -394,7 +394,7 @@ timer_handler(void *data)
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	if (send_ra_forall(sock, iface, NULL) != 0)
+	if (send_ra_forall(iface, NULL) != 0)
 		return;
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
@@ -445,7 +445,7 @@ kickoff_adverts(void)
 			continue;
 
 		/* send an initial advertisement */
-		if (send_ra_forall(sock, iface, NULL) == 0) {
+		if (send_ra_forall(iface, NULL) == 0) {
 
 			iface->init_racount++;
 
@@ -470,7 +470,7 @@ stop_adverts(void)
 			if (iface->AdvSendAdvert) {
 				/* send a final advertisement with zero Router Lifetime */
 				iface->AdvDefaultLifetime = 0;
-				send_ra_forall(sock, iface, NULL);
+				send_ra_forall(iface, NULL);
 			}
 		}
 	}

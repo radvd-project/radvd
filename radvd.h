@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.33 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: radvd.h,v 1.34 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -31,6 +31,8 @@
 #define L_LOGFILE	4
 
 #define LOG_TIME_FORMAT "%b %d %H:%M:%S"
+
+extern int sock;
 
 struct timer_lst {
 	struct timeval		expires;
@@ -203,11 +205,11 @@ void set_debuglevel(int);
 int get_debuglevel(void);
 
 /* device.c */
-int setup_deviceinfo(int, struct Interface *);
-int check_device(int, struct Interface *);
-int setup_linklocal_addr(int, struct Interface *);
-int setup_allrouters_membership(int, struct Interface *);
-int check_allrouters_membership(int, struct Interface *);
+int setup_deviceinfo(struct Interface *);
+int check_device(struct Interface *);
+int setup_linklocal_addr(struct Interface *);
+int setup_allrouters_membership(struct Interface *);
+int check_allrouters_membership(struct Interface *);
 int get_v4addr(const char *, unsigned int *);
 int set_interface_var(const char *, const char *, const char *, uint32_t);
 int set_interface_linkmtu(const char *, uint32_t);
@@ -227,15 +229,15 @@ int check_iface(struct Interface *);
 int open_icmpv6_socket(void);
 
 /* send.c */
-int send_ra(int, struct Interface *iface, struct in6_addr *dest);
-int send_ra_forall(int, struct Interface *iface, struct in6_addr *dest);
+int send_ra(struct Interface *iface, struct in6_addr *dest);
+int send_ra_forall(struct Interface *iface, struct in6_addr *dest);
 
 /* process.c */
-void process(int sock, struct Interface *, unsigned char *, int,
+void process(struct Interface *, unsigned char *, int,
 	struct sockaddr_in6 *, struct in6_pktinfo *, int);
 
 /* recv.c */
-int recv_rs_ra(int, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
 
 /* util.c */
 void mdelay(double);

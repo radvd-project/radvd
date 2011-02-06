@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.21 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: process.c,v 1.22 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,7 +18,7 @@
 #include "includes.h"
 #include "radvd.h"
 
-static void process_rs(int, struct Interface *, unsigned char *msg,
+static void process_rs(struct Interface *, unsigned char *msg,
 		       int len, struct sockaddr_in6 *);
 static void process_ra(struct Interface *, unsigned char *msg, int len,
 	struct sockaddr_in6 *);
@@ -26,7 +26,7 @@ static int  addr_match(struct in6_addr *a1, struct in6_addr *a2,
 	int prefixlen);
 
 void
-process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
+process(struct Interface *ifacel, unsigned char *msg, int len,
 	struct sockaddr_in6 *addr, struct in6_pktinfo *pkt_info, int hoplimit)
 {
 	struct Interface *iface;
@@ -130,7 +130,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
-		process_rs(sock, iface, msg, len, addr);
+		process_rs(iface, msg, len, addr);
 	}
 	else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
@@ -139,7 +139,7 @@ process(int sock, struct Interface *ifacel, unsigned char *msg, int len,
 }
 
 static void
-process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
+process_rs(struct Interface *iface, unsigned char *msg, int len,
 	struct sockaddr_in6 *addr)
 {
 	double delay;
@@ -192,7 +192,7 @@ process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
 
 	if (iface->UnicastOnly) {
 		mdelay(delay);
-		send_ra_forall(sock, iface, &addr->sin6_addr);
+		send_ra_forall(iface, &addr->sin6_addr);
 	}
 	else if ((tv.tv_sec + tv.tv_usec / 1000000.0) - (iface->last_multicast_sec +
 	          iface->last_multicast_usec / 1000000.0) < iface->MinDelayBetweenRAs) {
@@ -205,7 +205,7 @@ process_rs(int sock, struct Interface *iface, unsigned char *msg, int len,
 	else {
 		/* no RA sent in a while, send an immediate multicast reply */
 		clear_timer(&iface->tm);
-		if (send_ra_forall(sock, iface, NULL) == 0) {
+		if (send_ra_forall(iface, NULL) == 0) {
 			next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 			set_timer(&iface->tm, next);
 		}

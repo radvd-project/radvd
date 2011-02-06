@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.26 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: gram.y,v 1.27 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -29,7 +29,6 @@ struct AdvDNSSL *dnssl = NULL;
 extern char *conf_file;
 extern int num_lines;
 extern char *yytext;
-extern int sock;
 
 static void cleanup(void);
 static void yyerror(char *msg);
@@ -161,7 +160,7 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				iface2 = iface2->next;
 			}
 
-			if (check_device(sock, iface) < 0) {
+			if (check_device(iface) < 0) {
 				if (iface->IgnoreIfMissing) {
 					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
 				}
@@ -170,16 +169,16 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 					ABORT;
 				}
 			}
-			if (setup_deviceinfo(sock, iface) < 0)
+			if (setup_deviceinfo(iface) < 0)
 				if (!iface->IgnoreIfMissing)
 				ABORT;
 			if (check_iface(iface) < 0)
 				if (!iface->IgnoreIfMissing)
 				ABORT;
-			if (setup_linklocal_addr(sock, iface) < 0)
+			if (setup_linklocal_addr(iface) < 0)
 				if (!iface->IgnoreIfMissing)
 				ABORT;
-			if (setup_allrouters_membership(sock, iface) < 0)
+			if (setup_allrouters_membership(iface) < 0)
 				if (!iface->IgnoreIfMissing)
 				ABORT;
 

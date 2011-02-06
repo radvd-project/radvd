@@ -1,5 +1,5 @@
 /*
- *   $Id: device-bsd44.c,v 1.28 2011/01/22 17:54:32 reubenhwk Exp $
+ *   $Id: device-bsd44.c,v 1.29 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Craig Metz		<cmetz@inner.net>
@@ -27,7 +27,7 @@ static uint8_t ll_prefix[] = { 0xfe, 0x80 };
  * the defined prefixes
  */
 int
-setup_deviceinfo(int sock, struct Interface *iface)
+setup_deviceinfo(struct Interface *iface)
 {
 	struct ifaddrs *addresses = 0, *ifa;
 
@@ -141,7 +141,7 @@ ret:
  * Saves the first link local address seen on the specified interface to iface->if_addr
  *
  */
-int setup_linklocal_addr(int sock, struct Interface *iface)
+int setup_linklocal_addr(struct Interface *iface)
 {
 	struct ifaddrs *addresses = 0, *ifa;
 
@@ -187,12 +187,12 @@ ret:
 	return -1;
 }
 
-int setup_allrouters_membership(int sock, struct Interface *iface)
+int setup_allrouters_membership(struct Interface *iface)
 {
 	return (0);
 }
 
-int check_allrouters_membership(int sock, struct Interface *iface)
+int check_allrouters_membership(struct Interface *iface)
 {
 	return (0);
 }
