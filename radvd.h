@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.34 2011/02/06 03:41:38 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.35 2011/02/07 00:26:48 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -20,17 +20,9 @@
 #include "config.h"
 #include "includes.h"
 #include "defaults.h"
+#include "log.h"
 
 #define CONTACT_EMAIL	"Pekka Savola <pekkas@netcore.fi>"
-
-/* for log.c */
-#define	L_NONE		0
-#define L_SYSLOG	1
-#define L_STDERR	2
-#define L_STDERR_SYSLOG	3
-#define L_LOGFILE	4
-
-#define LOG_TIME_FORMAT "%b %d %H:%M:%S"
 
 extern int sock;
 
@@ -194,15 +186,6 @@ void reload_config(void);
 void set_timer(struct timer_lst *tm, double);
 void clear_timer(struct timer_lst *tm);
 void init_timer(struct timer_lst *, void (*)(void *), void *);
-
-/* log.c */
-int log_open(int, char *, char*, int);
-void flog(int, char *, ...);
-void dlog(int, int, char *, ...);
-int log_close(void);
-int log_reopen(void);
-void set_debuglevel(int);
-int get_debuglevel(void);
 
 /* device.c */
 int setup_deviceinfo(struct Interface *);

@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.20 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: scanner.l,v 1.21 2011/02/07 00:26:48 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -13,10 +13,13 @@
  *   may request it from <pekkas@netcore.fi>.
  *
  */
+
+%option nounput noinput
+
 %{
 #include "config.h"
 #include "includes.h"
-#include "radvd.h"
+#include "log.h"
 #include "gram.h"
 
 extern char *conf_file;

@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.13 2011/01/29 18:39:16 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.14 2011/02/07 00:26:48 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -22,7 +22,7 @@ INCLUDES=-I$(srcdir) -I.
 
 ########################################################################
 
-COMMON_SRC = log.c socket.c recv.c util.c radvd.h defaults.h pathnames.h \
+COMMON_SRC = log.c socket.c recv.c util.c radvd.h log.h defaults.h pathnames.h \
 	includes.h
 
 sbin_PROGRAMS = radvd radvdump
