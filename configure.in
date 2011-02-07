@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.16 2011/01/29 21:54:18 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.17 2011/02/07 00:39:32 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.16 2011/01/29 21:54:18 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.17 2011/02/07 00:39:32 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -124,10 +124,6 @@ if test "$hdrfound" = no
 then
  # deprecated
  AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes)
-fi
-if test "$hdrfound" = no
-then
-   AC_MSG_RESULT(no)
 fi
 unset hdrfound
 
