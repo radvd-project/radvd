@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.17 2011/02/07 00:39:32 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.18 2011/02/11 00:27:02 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,12 +13,13 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.17 2011/02/07 00:39:32 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.18 2011/02/11 00:27:02 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
 VERSION=`cat ${srcdir}/VERSION | grep -v '^#' | tr -d '\012'`
 AM_INIT_AUTOMAKE(radvd,$VERSION,true)
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
 
 case $host in
     *darwin*)

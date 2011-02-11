@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.14 2011/02/07 00:26:48 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.15 2011/02/11 00:27:02 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -49,7 +49,8 @@ DISTCLEANFILES = device.c privsep.c
 SUFFIXES = .man
 
 .man:
-	$(SED) 	-e 's,@''VERSION''@,$(VERSION),g' \
+	$(AM_V_GEN)$(SED) \
+		-e 's,@''VERSION''@,$(VERSION),g' \
 		-e 's,@''sbindir''@,$(sbindir),g' \
 		-e 's,@''PATH_RADVD_CONF''@,$(PATH_RADVD_CONF),g' \
 		-e 's,@''PATH_RADVD_PID''@,$(PATH_RADVD_PID),g' \
