@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.20 2011/02/11 16:29:33 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.21 2011/02/11 17:24:09 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.20 2011/02/11 16:29:33 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.21 2011/02/11 17:24:09 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -86,7 +86,8 @@ AC_MSG_CHECKING(where to find configfile)
 AC_ARG_WITH(configfile,
 [  --with-configfile       Path to the radvd config file [SYSCONF/radvd.conf]],
 	PATH_RADVD_CONF=$withval,
-	PATH_RADVD_CONF=${sysconfdir}/radvd.conf)
+	[eval PATH_RADVD_CONF=${sysconfdir}/radvd.conf])
+PATH_RADVD_CONF=$(echo $PATH_RADVD_CONF | sed 's/NONE//1')
 AC_MSG_RESULT($PATH_RADVD_CONF)
 
 dnl Checking which syslog facility to use
