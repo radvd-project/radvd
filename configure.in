@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.18 2011/02/11 00:27:02 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.19 2011/02/11 01:47:53 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.18 2011/02/11 00:27:02 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.19 2011/02/11 01:47:53 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -117,22 +117,20 @@ unset ac_cv_lib_inet6_inet_ntop
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS( \
+	getopt.h \
+	ifaddrs.h \
+	machine/limits.h \
+	machine/param.h \
+	net/if_arp.h \
+	net/if_dl.h \
+	net/if_types.h \
+	sys/param.h \
+	sys/sockio.h \
+	sys/time.h \
+	time.h \
+)
 AC_HEADER_TIME
-
-AC_CHECK_HEADER(netinet/ip6.h, hdrfound=yes, hdrfound=no)
-if test "$hdrfound" = no
-then
- # deprecated
- AC_CHECK_HEADER(netinet/ipv6.h, hdrfound=yes)
-fi
-unset hdrfound
-
-AC_CHECK_HEADERS(ifaddrs.h sys/sockio.h getopt.h inttypes.h)
-AC_CHECK_HEADERS(net/if_dl.h net/if_types.h net/if_arp.h)
-AC_CHECK_HEADERS(sys/param.h)
-AC_CHECK_HEADERS(machine/param.h)
-AC_CHECK_HEADERS(machine/limits.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -165,17 +163,18 @@ AC_SUBST(LOG_FACILITY)
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(Makefile)
 
+cat << EOF
 
-echo
-echo "Your build configuration:"
-echo
-echo "	CFLAGS = $CFLAGS"
-echo "	LDFLAGS = $LDFLAGS"
-echo "	Arch = ${arch}"
-echo "	prefix: $prefix"
-echo "	PID file: $PATH_RADVD_PID"
-echo "	Log file: $PATH_RADVD_LOG"
-echo "	Config file: $PATH_RADVD_CONF"
-echo "	Radvd version: $VERSION"
-echo
+Your build configuration:
+
+	CFLAGS = $CFLAGS
+	LDFLAGS = $LDFLAGS
+	Arch = ${arch}
+	prefix: $prefix
+	PID file: $PATH_RADVD_PID
+	Log file: $PATH_RADVD_LOG
+	Config file: $PATH_RADVD_CONF
+	Radvd version: $VERSION
+
+EOF
 
