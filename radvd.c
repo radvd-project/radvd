@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.50 2011/02/06 03:41:38 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.51 2011/02/15 07:03:34 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -85,11 +85,11 @@ void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
+void main_loop(void);
 
 int
 main(int argc, char *argv[])
 {
-	unsigned char msg[MSG_SIZE_RECV];
 	char pidstr[16];
 	ssize_t ret;
 	int c, log_method;
@@ -355,9 +355,15 @@ main(int argc, char *argv[])
 
 	config_interface();
 	kickoff_adverts();
+	main_loop();
+	unlink(pidfile);
 
-	/* enter loop */
+	return 0;
+}
 
+void main_loop(void)
+{
+	unsigned char msg[MSG_SIZE_RECV];
 	for (;;)
 	{
 		int len, hoplimit;
@@ -381,9 +387,6 @@ main(int argc, char *argv[])
 			sighup_received = 0;
 		}
 	}
-
-	unlink(pidfile);
-	exit(0);
 }
 
 void
