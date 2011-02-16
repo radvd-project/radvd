@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.22 2011/02/06 03:41:38 reubenhwk Exp $
+ *   $Id: process.c,v 1.23 2011/02/16 17:46:45 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -33,9 +33,11 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 	struct icmp6_hdr *icmph;
 	char addr_str[INET6_ADDRSTRLEN];
 
+	print_addr(&addr->sin6_addr, addr_str);
+
 	if ( ! pkt_info )
 	{
-		flog(LOG_WARNING, "received packet with no pkt_info!" );
+		flog(LOG_WARNING, "received packet with no pkt_info from %s!", addr_str );
 		return;
 	}
 
@@ -45,8 +47,8 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (len < sizeof(struct icmp6_hdr))
 	{
-		flog(LOG_WARNING, "received icmpv6 packet with invalid length: %d",
-			len);
+		flog(LOG_WARNING, "received icmpv6 packet with invalid length (%d) from %s",
+			len, addr_str);
 		return;
 	}
 
@@ -66,13 +68,13 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 	if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
 		if (len < sizeof(struct nd_router_advert)) {
-			flog(LOG_WARNING, "received icmpv6 RA packet with invalid length: %d",
-				len);
+			flog(LOG_WARNING, "received icmpv6 RA packet with invalid length (%d) from %s",
+				len, addr_str);
 			return;
 		}
 
 		if (!IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
-			flog(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address");
+			flog(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address from %s", addr_str);
 			return;
 		}
 	}
@@ -80,16 +82,16 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
 		if (len < sizeof(struct nd_router_solicit)) {
-			flog(LOG_WARNING, "received icmpv6 RS packet with invalid length: %d",
-				len);
+			flog(LOG_WARNING, "received icmpv6 RS packet with invalid length (%d) from %s",
+				len, addr_str);
 			return;
 		}
 	}
 
 	if (icmph->icmp6_code != 0)
 	{
-		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code: %d",
-			icmph->icmp6_code);
+		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code (%d) from %s",
+			icmph->icmp6_code, addr_str);
 		return;
 	}
 
@@ -130,10 +132,12 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
+		flog(LOG_WARNING, "received RS from %s", addr_str);
 		process_rs(iface, msg, len, addr);
 	}
 	else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
+		flog(LOG_WARNING, "received RA from %s", addr_str);
 		process_ra(iface, msg, len, addr);
 	}
 }
