@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.51 2011/02/15 07:03:34 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.52 2011/02/16 07:25:12 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -638,7 +638,7 @@ drop_root_privileges(const char *username)
 int
 check_conffile_perm(const char *username, const char *conf_file)
 {
-	struct stat *st = NULL;
+	struct stat stbuf;
 	struct passwd *pw = NULL;
 	FILE *fp = fopen(conf_file, "r");
 
@@ -648,38 +648,28 @@ check_conffile_perm(const char *username, const char *conf_file)
 	}
 	fclose(fp);
 
-	st = malloc(sizeof(struct stat));
-	if (st == NULL)
-		goto errorout;
-
 	if (!username)
 		username = "root";
 
 	pw = getpwnam(username);
 
-	if (stat(conf_file, st) || pw == NULL)
-		goto errorout;
+	if (stat(conf_file, &stbuf) || pw == NULL)
+		return (-1);
 
-	if (st->st_mode & S_IWOTH) {
+	if (stbuf.st_mode & S_IWOTH) {
                 flog(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
-		goto errorout;
+		return (-1);
         }
 
 	/* for non-root: must not be writable by self/own group */
 	if (strncmp(username, "root", 5) != 0 &&
-	    ((st->st_mode & S_IWGRP && pw->pw_gid == st->st_gid) ||
-	     (st->st_mode & S_IWUSR && pw->pw_uid == st->st_uid))) {
+	    ((stbuf.st_mode & S_IWGRP && pw->pw_gid == stbuf.st_gid) ||
+	     (stbuf.st_mode & S_IWUSR && pw->pw_uid == stbuf.st_uid))) {
                 flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
-		goto errorout;
+		return (-1);
         }
 
-	free(st);
         return 0;
-
-errorout:
-	if (st)
-		free(st);
-	return(-1);
 }
 
 int
