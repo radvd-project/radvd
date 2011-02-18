@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.29 2011/02/18 17:07:45 reubenhwk Exp $
+ *   $Id: gram.y,v 1.30 2011/02/18 17:10:06 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -812,7 +812,7 @@ int countbits(int b)
 {
 	int count;
 
-	for (count = 0; b != 0; count++){
+	for (count = 0; b != 0; count++) {
 		b &= b - 1; // this clears the LSB-most set bit
 	}
 
