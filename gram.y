@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.28 2011/02/18 17:01:58 reubenhwk Exp $
+ *   $Id: gram.y,v 1.29 2011/02/18 17:07:45 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -417,7 +417,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				if (getifaddrs(&ifap) != 0)
 					flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
 
-			        for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+				for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
 					struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)ifa->ifa_addr;
 					struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
 					char buf[INET6_ADDRSTRLEN];
@@ -425,12 +425,12 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 					if (strncmp(ifa->ifa_name, iface->Name, IFNAMSIZ))
 						continue;
 
-                			if (ifa->ifa_addr->sa_family != AF_INET6)
-			                        continue;
+					if (ifa->ifa_addr->sa_family != AF_INET6)
+						continue;
 
 					s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
 
-	                		if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
+					if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
 						continue;
 
 					prefix = malloc(sizeof(struct AdvPrefix));
@@ -795,54 +795,54 @@ dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 		}
 		;
 
-number_or_infinity      : NUMBER
-                        {
-                                $$ = $1;
-                        }
-                        | INFINITY
-                        {
-                                $$ = (uint32_t)~0;
-                        }
-                        ;
+number_or_infinity	: NUMBER
+			{
+				$$ = $1;
+			}
+			| INFINITY
+			{
+				$$ = (uint32_t)~0;
+			}
+			;
 
 %%
 
 static
 int countbits(int b)
 {
-    int count;
+	int count;
 
-    for (count = 0; b != 0; count++){
-        b &= b - 1; // this clears the LSB-most set bit
-    }
+	for (count = 0; b != 0; count++){
+		b &= b - 1; // this clears the LSB-most set bit
+	}
 
-    return (count);
+	return (count);
 }
 
 static
 int count_mask(struct sockaddr_in6 *m)
 {
-    struct in6_addr *in6 = &m->sin6_addr;
-    int i;
-    int count = 0;
+	struct in6_addr *in6 = &m->sin6_addr;
+	int i;
+	int count = 0;
 
-    for (i = 0; i < 16; ++i) {
-        count += countbits(in6->s6_addr[i]);
-    }
-    return count;
+	for (i = 0; i < 16; ++i) {
+		count += countbits(in6->s6_addr[i]);
+	}
+	return count;
 }
 
 static
 struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
 {
-    struct in6_addr prefix = *addr;
-    int i = 0;
+	struct in6_addr prefix = *addr;
+	int i = 0;
 
-    for (; i < 16; ++i) {
-        prefix.s6_addr[i] &= mask->s6_addr[i];
-    }
+	for (; i < 16; ++i) {
+		prefix.s6_addr[i] &= mask->s6_addr[i];
+	}
 
-    return prefix;
+	return prefix;
 }
 
 static
