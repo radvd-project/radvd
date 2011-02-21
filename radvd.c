@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.52 2011/02/16 07:25:12 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.53 2011/02/21 17:28:38 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,6 +18,7 @@
 #include "includes.h"
 #include "radvd.h"
 #include "pathnames.h"
+#include <poll.h>
 
 struct Interface *IfaceList = NULL;
 
@@ -356,6 +357,7 @@ main(int argc, char *argv[])
 	config_interface();
 	kickoff_adverts();
 	main_loop();
+	stop_adverts();
 	unlink(pidfile);
 
 	return 0;
@@ -363,20 +365,40 @@ main(int argc, char *argv[])
 
 void main_loop(void)
 {
-	unsigned char msg[MSG_SIZE_RECV];
-	for (;;)
-	{
-		int len, hoplimit;
-		struct sockaddr_in6 rcv_addr;
-		struct in6_pktinfo *pkt_info = NULL;
+	struct pollfd fds[1];
 
-		len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
-		if (len > 0)
-			process(IfaceList, msg, len,
-				&rcv_addr, pkt_info, hoplimit);
+	memset(fds, 0, sizeof(fds));
+
+	fds[0].fd = sock;
+	fds[0].events = POLLIN;
+	fds[0].revents = 0;
+
+	for (;;) {
+		int rc;
+
+		rc = poll(fds, 1, -1);
+
+		if (rc > 0) {
+			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "Exiting, on sock error.\n");
+				break;
+			}
+
+			if (fds[0].revents & POLLIN) {
+				int len, hoplimit;
+				struct sockaddr_in6 rcv_addr;
+				struct in6_pktinfo *pkt_info = NULL;
+				unsigned char msg[MSG_SIZE_RECV];
+
+				len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
+				if (len > 0) {
+					process(IfaceList, msg, len,
+						&rcv_addr, pkt_info, hoplimit);
+				}
+			}
+		}
 
 		if (sigterm_received || sigint_received) {
-			stop_adverts();
 			flog(LOG_WARNING, "Exiting, sigterm or sigint received.\n");
 			break;
 		}
