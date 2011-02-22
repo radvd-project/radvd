@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.30 2011/02/18 17:10:06 reubenhwk Exp $
+ *   $Id: gram.y,v 1.31 2011/02/22 00:18:57 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -384,9 +384,8 @@ prefixdef	: prefixhead optional_prefixplist ';'
 						memcpy( prefix->Prefix.s6_addr + 2, &dst, sizeof( dst ) );
 					}
 				}
-
-				$$ = prefix;
 			}
+			$$ = prefix;
 			prefix = NULL;
 		}
 		;
