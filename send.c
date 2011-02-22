@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.39 2011/02/06 03:41:38 reubenhwk Exp $
+ *   $Id: send.c,v 1.40 2011/02/22 00:20:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -130,13 +130,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	if (dest == NULL)
 	{
-		struct timeval tv;
-
 		dest = (struct in6_addr *)all_hosts_addr;
-		gettimeofday(&tv, NULL);
-
-		iface->last_multicast_sec = tv.tv_sec;
-		iface->last_multicast_usec = tv.tv_usec;
+		gettimeofday(&iface->last_multicast, NULL);
 	}
 
 	memset((void *)&addr, 0, sizeof(addr));

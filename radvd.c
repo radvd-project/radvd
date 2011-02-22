@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.53 2011/02/21 17:28:38 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.54 2011/02/22 00:20:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -95,7 +95,6 @@ main(int argc, char *argv[])
 	ssize_t ret;
 	int c, log_method;
 	char *logfile, *pidfile;
-	sigset_t oset, nset;
 	int facility, fd;
 	char *username = NULL;
 	char *chrootdir = NULL;
@@ -330,15 +329,8 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 *	config signal handlers, also make sure ALRM isn't blocked and raise a warning if so
-	 *      (some stupid scripts/pppd appears to do this...)
+	 *	config signal handlers
 	 */
-	sigemptyset(&nset);
-	sigaddset(&nset, SIGALRM);
-	sigprocmask(SIG_UNBLOCK, &nset, &oset);
-	if (sigismember(&oset, SIGALRM))
-		flog(LOG_WARNING, "SIGALRM has been unblocked. Your startup environment might be wrong.");
-
 	signal(SIGHUP, sighup_handler);
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigint_handler);
@@ -374,9 +366,27 @@ void main_loop(void)
 	fds[0].revents = 0;
 
 	for (;;) {
+		struct Interface *next = NULL;
+		struct Interface *iface;
+		int timeout = -1;
 		int rc;
 
-		rc = poll(fds, 1, -1);
+		if (IfaceList) {
+			timeout = next_time_msec(IfaceList);
+			next = IfaceList;
+			for (iface = IfaceList; iface; iface = iface->next) {
+				int t;
+				t = next_time_msec(iface);
+				if (timeout > t) {
+					timeout = t;
+					next = iface;
+				}
+			}
+		}
+
+		dlog(LOG_DEBUG, 3, "polling for %g seconds.", timeout/1000.0);
+
+		rc = poll(fds, 1, timeout);
 
 		if (rc > 0) {
 			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
@@ -396,6 +406,13 @@ void main_loop(void)
 						&rcv_addr, pkt_info, hoplimit);
 				}
 			}
+		}
+		else if ( rc == 0 ) {
+			if (next)
+				timer_handler(next);
+		}
+		else if ( rc == -1 ) {
+			flog(LOG_ERR, "poll error: %s", strerror(errno));
 		}
 
 		if (sigterm_received || sigint_received) {
@@ -419,8 +436,9 @@ timer_handler(void *data)
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	if (send_ra_forall(iface, NULL) != 0)
+	if (send_ra_forall(iface, NULL) != 0) {
 		return;
+	}
 
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 
@@ -430,7 +448,7 @@ timer_handler(void *data)
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
 	}
 
-	set_timer(&iface->tm, next);
+	iface->next_multicast = next_timeval(next);
 }
 
 void
@@ -461,10 +479,12 @@ kickoff_adverts(void)
 
 	for(iface=IfaceList; iface; iface=iface->next)
 	{
+		double next;
+
 		if( iface->UnicastOnly )
 			continue;
 
-		init_timer(&iface->tm, timer_handler, (void *) iface);
+		gettimeofday(&iface->last_multicast, NULL);
 
 		if (!iface->AdvSendAdvert)
 			continue;
@@ -474,9 +494,8 @@ kickoff_adverts(void)
 
 			iface->init_racount++;
 
-			set_timer(&iface->tm,
-				  min(MAX_INITIAL_RTR_ADVERT_INTERVAL,
-				      iface->MaxRtrAdvInterval));
+			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
+			iface->next_multicast = next_timeval(next);
 		}
 	}
 }
@@ -511,17 +530,6 @@ void reload_config(void)
 	if (log_reopen() < 0) {
 		perror("log_reopen");
 		exit(1);
-	}
-
-	/* disable timers, free interface and prefix structures */
-	for(iface=IfaceList; iface; iface=iface->next)
-	{
-		/* check that iface->tm was set in the first place */
-		if (iface->tm.next && iface->tm.prev)
-		{
-			dlog(LOG_DEBUG, 4, "disabling timer for %s", iface->Name);
-			clear_timer(&iface->tm);
-		}
 	}
 
 	iface=IfaceList;

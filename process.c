@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.23 2011/02/16 17:46:45 reubenhwk Exp $
+ *   $Id: process.c,v 1.24 2011/02/22 00:20:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -191,28 +191,24 @@ process_rs(struct Interface *iface, unsigned char *msg, int len,
 
 	gettimeofday(&tv, NULL);
 
-	delay = MAX_RA_DELAY_TIME*rand()/(RAND_MAX+1.0);
-	dlog(LOG_DEBUG, 3, "random mdelay for %s: %.2f", iface->Name, delay);
+	delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX +1.0);
 
 	if (iface->UnicastOnly) {
+		dlog(LOG_DEBUG, 3, "random mdelay for %s: %g seconds.", iface->Name, delay/1000.0);
 		mdelay(delay);
 		send_ra_forall(iface, &addr->sin6_addr);
 	}
-	else if ((tv.tv_sec + tv.tv_usec / 1000000.0) - (iface->last_multicast_sec +
-	          iface->last_multicast_usec / 1000000.0) < iface->MinDelayBetweenRAs) {
-		/* last RA was sent only a few moments ago, don't send another immediately */
-		clear_timer(&iface->tm);
-		next = iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) +
-		       (iface->last_multicast_sec + iface->last_multicast_usec / 1000000.0) + delay/1000.0;
-		set_timer(&iface->tm, next);
+	else if ( timevaldiff(&tv, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs ) {
+		/* last RA was sent only a few moments ago, don't send another immediately. */
+		dlog(LOG_DEBUG, 3, "random mdelay for %s: %g seconds.", iface->Name, delay/1000.0);
+		next = iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) + (iface->last_multicast.tv_sec + iface->last_multicast.tv_usec / 1000000.0) + delay/1000.0;
+		iface->next_multicast = next_timeval(next);
 	}
 	else {
-		/* no RA sent in a while, send an immediate multicast reply */
-		clear_timer(&iface->tm);
-		if (send_ra_forall(iface, NULL) == 0) {
-			next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
-			set_timer(&iface->tm, next);
-		}
+		/* no RA sent in a while, send a multicast reply */
+		send_ra_forall(iface, NULL);
+		next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
+		iface->next_multicast = next_timeval(next);
 	}
 }
 

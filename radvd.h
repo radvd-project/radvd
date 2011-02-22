@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.35 2011/02/07 00:26:48 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.36 2011/02/22 00:20:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -25,14 +25,6 @@
 #define CONTACT_EMAIL	"Pekka Savola <pekkas@netcore.fi>"
 
 extern int sock;
-
-struct timer_lst {
-	struct timeval		expires;
-	void			(*handler)(void *);
-	void *			data;
-	struct timer_lst	*next;
-	struct timer_lst	*prev;
-};
 
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 
@@ -86,9 +78,8 @@ struct Interface {
 	struct AdvRDNSS		*AdvRDNSSList;
 	struct AdvDNSSL		*AdvDNSSLList;
 	struct Clients		*ClientList;
-	struct timer_lst	tm;
-	time_t			last_multicast_sec;
-	suseconds_t		last_multicast_usec;
+	struct timeval		last_multicast;
+	struct timeval		next_multicast;
 
 	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
 	int			HasFailed;
@@ -183,9 +174,10 @@ int check_ip6_forwarding(void);
 void reload_config(void);
 
 /* timer.c */
-void set_timer(struct timer_lst *tm, double);
-void clear_timer(struct timer_lst *tm);
-void init_timer(struct timer_lst *, void (*)(void *), void *);
+struct timeval next_timeval(double next);
+int timevaldiff(struct timeval const *a, struct timeval const *b);
+int next_time_msec(struct Interface const * iface);
+int expired(struct Interface const * iface);
 
 /* device.c */
 int setup_deviceinfo(struct Interface *);
