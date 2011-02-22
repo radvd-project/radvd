@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.15 2011/02/11 00:27:02 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.16 2011/02/22 15:48:02 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -28,8 +28,9 @@ COMMON_SRC = log.c socket.c recv.c util.c radvd.h log.h defaults.h pathnames.h \
 sbin_PROGRAMS = radvd radvdump
 
 radvd_SOURCES = $(COMMON_SRC) radvd.c timer.c send.c process.c interface.c \
-	device.c device-common.c privsep.c gram.y gram.h scanner.l
-radvd_LDADD = -lfl
+	device-common.c gram.y gram.h scanner.l
+radvd_LDADD = @DEVICE@ @PRIVSEP@ -lfl
+radvd_DEPENDENCIES = @DEVICE@ @PRIVSEP@
 EXTRA_radvd_SOURCES = device-linux.c device-bsd44.c privsep-linux.c privsep-bsd44.c
 YFLAGS = -d
 CFLAGS = @CFLAGS@ -Wall -Wpointer-arith  -Wcast-qual -Wcast-align -Wstrict-prototypes \
@@ -41,10 +42,8 @@ man_MANS = radvd.8 radvdump.8 radvd.conf.5
 EXTRA_DIST = radvd.8.man radvdump.8.man radvd.conf.5.man VERSION CHANGES \
 	COPYRIGHT INTRO.html copyright.blurb radvd.conf.example \
 	redhat/radvd.init redhat/radvd.spec redhat/radvd.sysconfig redhat/radvd.conf.empty
-BUILT_SOURCES = device.c
 
 CLEANFILES = radvd.8 radvdump.8 radvd.conf.5 gram.c gram.h scanner.c
-DISTCLEANFILES = device.c privsep.c
 
 SUFFIXES = .man
 
@@ -59,8 +58,6 @@ SUFFIXES = .man
 		$< > $@
 
 dist-hook:
-	rm -f $(distdir)/device.c
-	rm -f $(distdir)/privsep.c
 	rm -f $(distdir)/scanner.c
 	rm -f $(distdir)/gram.c
 	rm -f $(distdir)/gram.h

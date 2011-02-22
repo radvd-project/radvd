@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.21 2011/02/11 17:24:09 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.22 2011/02/22 15:48:02 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.21 2011/02/11 17:24:09 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.22 2011/02/22 15:48:02 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -146,8 +146,8 @@ AC_MSG_RESULT(no))
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
 
-AC_LINK_FILES(device-${arch}.c, device.c)
-AC_LINK_FILES(privsep-${arch}.c, privsep.c)
+AC_SUBST(DEVICE, device-${arch}.${OBJEXT})
+AC_SUBST(PRIVSEP, privsep-${arch}.${OBJEXT})
 
 AC_SUBST(VERSION)
 AC_SUBST(PATH_RADVD_CONF)
