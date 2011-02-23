@@ -1,5 +1,5 @@
 dnl
-dnl  $Id: configure.in,v 1.22 2011/02/22 15:48:02 reubenhwk Exp $
+dnl  $Id: configure.in,v 1.23 2011/02/23 04:53:04 reubenhwk Exp $
 dnl
 dnl   Authors:
 dnl    Lars Fenneberg		<lf@elemental.net>	 
@@ -13,7 +13,7 @@ dnl   may request it from <pekkas@netcore.fi>.
 dnl
 dnl
 
-AC_REVISION ($Id: configure.in,v 1.22 2011/02/22 15:48:02 reubenhwk Exp $)
+AC_REVISION ($Id: configure.in,v 1.23 2011/02/23 04:53:04 reubenhwk Exp $)
 AC_INIT(radvd.c)
 
 AC_CANONICAL_SYSTEM
@@ -47,6 +47,34 @@ esac
 
 dnl Determine CC and preset CFLAGS
 AC_PROG_CC
+
+dnl Determine of netlink is available
+AC_MSG_CHECKING(netlink)
+AC_TRY_COMPILE([
+#include <asm/types.h>
+#include <sys/socket.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+],[
+int
+main(int argc, char * argv[])
+{
+        int sock;
+        struct sockaddr_nl snl;
+
+        sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+
+        snl.nl_family = AF_NETLINK;
+        snl.nl_groups = RTMGRP_LINK;
+
+        return 0;
+}
+],[
+AC_DEFINE(HAVE_NETLINK, 1, [Linux netlink])
+AC_MSG_RESULT(yes)
+],[
+AC_MSG_RESULT(no)
+])
 
 dnl Needed for normal compile
 AC_PROG_INSTALL
