@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.16 2011/02/22 15:48:02 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.17 2011/02/24 04:39:56 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -29,7 +29,7 @@ sbin_PROGRAMS = radvd radvdump
 
 radvd_SOURCES = $(COMMON_SRC) radvd.c timer.c send.c process.c interface.c \
 	device-common.c gram.y gram.h scanner.l
-radvd_LDADD = @DEVICE@ @PRIVSEP@ -lfl
+radvd_LDADD = @DEVICE@ @PRIVSEP@ @LEXLIB@
 radvd_DEPENDENCIES = @DEVICE@ @PRIVSEP@
 EXTRA_radvd_SOURCES = device-linux.c device-bsd44.c privsep-linux.c privsep-bsd44.c
 YFLAGS = -d
