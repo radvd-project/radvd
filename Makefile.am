@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.18 2011/02/24 05:44:19 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.19 2011/02/25 04:17:23 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -53,20 +53,20 @@ radvd_SOURCES = \
 	send.c \
 	timer.c
 
-radvd_LDADD = \
-	@DEVICE@ \
-	@LEXLIB@ \
-	@PRIVSEP@
-
-radvd_DEPENDENCIES = \
-	@DEVICE@ \
-	@PRIVSEP@
-
 EXTRA_radvd_SOURCES = \
 	device-bsd44.c \
 	device-linux.c \
+	netlink.c \
+	netlink.h \
 	privsep-bsd44.c \
 	privsep-linux.c
+
+radvd_LDADD = \
+	@CONDITIONAL_SOURCES@ \
+	@LEXLIB@
+
+radvd_DEPENDENCIES = \
+	@CONDITIONAL_SOURCES@
 
 YFLAGS = -d
 

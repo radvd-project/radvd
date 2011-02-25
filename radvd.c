@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.54 2011/02/22 00:20:40 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.55 2011/02/25 04:17:23 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -18,6 +18,11 @@
 #include "includes.h"
 #include "radvd.h"
 #include "pathnames.h"
+
+#ifdef HAVE_NETLINK
+#include "netlink.h"
+#endif
+
 #include <poll.h>
 
 struct Interface *IfaceList = NULL;
@@ -357,13 +362,23 @@ main(int argc, char *argv[])
 
 void main_loop(void)
 {
-	struct pollfd fds[1];
+	struct pollfd fds[2];
 
 	memset(fds, 0, sizeof(fds));
 
 	fds[0].fd = sock;
 	fds[0].events = POLLIN;
 	fds[0].revents = 0;
+
+#if HAVE_NETLINK
+	fds[1].fd = netlink_socket();
+	fds[1].events = POLLIN;
+	fds[1].revents = 0;
+#else
+	fds[1].fd = -1;
+	fds[1].events = 0;
+	fds[1].revents = 0;
+#endif
 
 	for (;;) {
 		struct Interface *next = NULL;
@@ -386,15 +401,13 @@ void main_loop(void)
 
 		dlog(LOG_DEBUG, 3, "polling for %g seconds.", timeout/1000.0);
 
-		rc = poll(fds, 1, timeout);
+		rc = poll(fds, sizeof(fds)/sizeof(fds[0]), timeout);
 
 		if (rc > 0) {
 			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-				flog(LOG_WARNING, "Exiting, on sock error.\n");
-				break;
+				flog(LOG_WARNING, "socket error on fds[0].fd");
 			}
-
-			if (fds[0].revents & POLLIN) {
+			else if (fds[0].revents & POLLIN) {
 				int len, hoplimit;
 				struct sockaddr_in6 rcv_addr;
 				struct in6_pktinfo *pkt_info = NULL;
@@ -406,6 +419,14 @@ void main_loop(void)
 						&rcv_addr, pkt_info, hoplimit);
 				}
 			}
+#ifdef HAVE_NETLINK
+			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[1].fd");
+			}
+			else if (fds[1].revents & POLLIN) {
+				process_netlink_msg(fds[1].fd);
+			}
+#endif
 		}
 		else if ( rc == 0 ) {
 			if (next)
