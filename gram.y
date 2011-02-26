@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.32 2011/02/26 15:58:04 reubenhwk Exp $
+ *   $Id: gram.y,v 1.33 2011/02/26 16:40:47 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -396,6 +396,11 @@ prefixdef	: prefixhead optional_prefixplist ';'
 					struct ifaddrs *ifap = 0, *ifa = 0;
 					struct AdvPrefix *next = iface->AdvPrefixList;
 
+					if (prefix->PrefixLen != 64) {
+						flog(LOG_ERR, "Only /64 is allowed with Base6Interface.  %s:%d", conf_file, num_lines);
+						ABORT;
+					}
+
 					if (getifaddrs(&ifap) != 0)
 						flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
 
@@ -418,15 +423,15 @@ prefixdef	: prefixhead optional_prefixplist ';'
 							continue;
 
 						base6prefix = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
-						for (i = 0; i < 16; ++i) {
+						for (i = 0; i < 8; ++i) {
+							prefix->Prefix.s6_addr[i] &= ~mask->sin6_addr.s6_addr[i];
 							prefix->Prefix.s6_addr[i] |= base6prefix.s6_addr[i];
 						}
+						memset(&prefix->Prefix.s6_addr[8], 0, 8);
 						prefix->AdvRouterAddr = 1;
 						prefix->AutoSelected = 1;
 						prefix->next = next;
 						next = prefix;
-
-						prefix->PrefixLen = 64;
 
 						if (inet_ntop(ifa->ifa_addr->sa_family, (void *)&(prefix->Prefix), buf, sizeof(buf)) == NULL)
 							flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, conf_file, num_lines);
