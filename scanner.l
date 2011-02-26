@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.21 2011/02/07 00:26:48 reubenhwk Exp $
+ *   $Id: scanner.l,v 1.22 2011/02/26 15:59:45 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -76,6 +76,7 @@ AdvIntervalOpt		{ return T_AdvIntervalOpt; }
 AdvHomeAgentInfo	{ return T_AdvHomeAgentInfo; }
 UnicastOnly		{ return T_UnicastOnly; }
 
+Base6Interface		{ return T_Base6Interface; }
 Base6to4Interface	{ return T_Base6to4Interface; }
 
 HomeAgentPreference	{ return T_HomeAgentPreference; }

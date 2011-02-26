@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.36 2011/02/22 00:20:40 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.37 2011/02/26 15:59:45 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -108,6 +108,9 @@ struct AdvPrefix {
 	char			if6to4[IFNAMSIZ];
 	int			enabled;
 	int			AutoSelected;
+
+	/* Select prefixes from this interface. */
+	char			if6[IFNAMSIZ];
 
 	struct AdvPrefix	*next;
 };
