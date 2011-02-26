@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.31 2011/02/22 00:18:57 reubenhwk Exp $
+ *   $Id: gram.y,v 1.32 2011/02/26 15:58:04 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -101,6 +101,7 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 %token		T_AdvIntervalOpt
 %token		T_AdvHomeAgentInfo
 
+%token		T_Base6Interface
 %token		T_Base6to4Interface
 %token		T_UnicastOnly
 
@@ -371,6 +372,11 @@ prefixdef	: prefixhead optional_prefixplist ';'
 					ABORT;
 				}
 
+				if ( prefix->if6[0] && prefix->if6to4[0]) {
+					flog(LOG_ERR, "Base6Interface and Base6to4Interface are mutually exclusive at this time.");
+					ABORT;
+				}
+
 				if ( prefix->if6to4[0] )
 				{
 					if (get_v4addr(prefix->if6to4, &dst) < 0)
@@ -383,6 +389,58 @@ prefixdef	: prefixhead optional_prefixplist ';'
 						*((uint16_t *)(prefix->Prefix.s6_addr)) = htons(0x2002);
 						memcpy( prefix->Prefix.s6_addr + 2, &dst, sizeof( dst ) );
 					}
+				}
+
+				if ( prefix->if6[0] )
+				{
+					struct ifaddrs *ifap = 0, *ifa = 0;
+					struct AdvPrefix *next = iface->AdvPrefixList;
+
+					if (getifaddrs(&ifap) != 0)
+						flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
+
+					for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+						struct sockaddr_in6 *s6 = 0;
+						struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
+						struct in6_addr base6prefix;
+						char buf[INET6_ADDRSTRLEN];
+						int i;
+
+						if (strncmp(ifa->ifa_name, prefix->if6, IFNAMSIZ))
+							continue;
+
+						if (ifa->ifa_addr->sa_family != AF_INET6)
+							continue;
+
+						s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
+
+						if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
+							continue;
+
+						base6prefix = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
+						for (i = 0; i < 16; ++i) {
+							prefix->Prefix.s6_addr[i] |= base6prefix.s6_addr[i];
+						}
+						prefix->AdvRouterAddr = 1;
+						prefix->AutoSelected = 1;
+						prefix->next = next;
+						next = prefix;
+
+						prefix->PrefixLen = 64;
+
+						if (inet_ntop(ifa->ifa_addr->sa_family, (void *)&(prefix->Prefix), buf, sizeof(buf)) == NULL)
+							flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, conf_file, num_lines);
+						else
+							dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s from interface %s",
+								buf, prefix->PrefixLen, iface->Name, ifa->ifa_name);
+
+						/* Taking only one prefix from the Base6Interface.  Taking more than one would require allocating new
+						   prefixes and building a list.  I'm not sure how to do that from here. So for now, break. */
+						break;
+					}
+
+					if (ifap)
+						freeifaddrs(ifap);
 				}
 			}
 			$$ = prefix;
@@ -560,6 +618,18 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					prefix->AdvPreferredLifetime = $2;
 			}
 		}
+		| T_Base6Interface name ';'
+		{
+			if (prefix) {
+				if (prefix->AutoSelected) {
+					flog(LOG_ERR, "automatically selecting the prefix and Base6to4Interface are mutually exclusive");
+					ABORT;
+				} /* fallthrough */
+				dlog(LOG_DEBUG, 4, "using prefixes on interface %s for prefixes on interface %s", $2, iface->Name);
+				strncpy(prefix->if6, $2, IFNAMSIZ-1);
+				prefix->if6[IFNAMSIZ-1] = '\0';
+			}
+		}
 		| T_Base6to4Interface name ';'
 		{
 			if (prefix) {
@@ -567,7 +637,7 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					flog(LOG_ERR, "automatically selecting the prefix and Base6to4Interface are mutually exclusive");
 					ABORT;
 				} /* fallthrough */
-				dlog(LOG_DEBUG, 4, "using interface %s for 6to4", $2);
+				dlog(LOG_DEBUG, 4, "using interface %s for 6to4 prefixes on interface %s", $2, iface->Name);
 				strncpy(prefix->if6to4, $2, IFNAMSIZ-1);
 				prefix->if6to4[IFNAMSIZ-1] = '\0';
 			}
