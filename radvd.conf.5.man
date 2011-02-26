@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.33 2011/01/05 08:19:23 psavola Exp $
+.\"   $Id: radvd.conf.5.man,v 1.34 2011/02/26 16:42:29 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -53,7 +53,7 @@ extensions.
 Special prefix "::/64" is also supported on systems that implement getifaddrs()
 (on other systems, configuration activation fails and radvd exits).
 When configured, radvd
-picks one non-link-local prefix assigned to the interface and starts advertising
+picks all non-link-local prefix assigned to the interface and starts advertising
 it.  This may be applicable in non-6to4 scenarios where the upstream prefix might
 change.  This option is incompatible with Base6to4Interface option.
 AdvRouterAddr option is always enabled when this configuration is used.
@@ -421,6 +421,14 @@ See RFC 4862.
 Note: RFC4861's suggested default value is significantly longer: 7 days.
 
 Default: 14400 seconds (4 hours)
+
+.TP
+.BR "Base6Interface " name 
+
+If this options is specified, this prefix will be combined with the
+IPv6 address of the interface specified by
+.B name.  
+The resulting prefix length will be 64.
 
 .TP
 .BR "Base6to4Interface " name 
