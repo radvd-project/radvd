@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.24 2011/02/22 00:20:40 reubenhwk Exp $
+ *   $Id: process.c,v 1.25 2011/02/28 10:53:07 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -414,6 +414,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_DNSSL_INFORMATION:
 			dnsslinfo = (struct nd_opt_dnssl_info_local *) opt_str;
+			suffix[0] = '\0';
 			for (offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
 				label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];
 

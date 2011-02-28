@@ -1,5 +1,5 @@
 /*
- *   $Id: radvdump.c,v 1.24 2011/02/06 03:41:38 reubenhwk Exp $
+ *   $Id: radvdump.c,v 1.25 2011/02/28 10:53:07 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -436,6 +436,7 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 			dnssl_info = (struct nd_opt_dnssl_info_local *) opt_str;
 
 			printf("\n\tDNSSL");
+			suffix[0] = '\0';
 
 			for (offset = 0;offset < (dnssl_info->nd_opt_dnssli_len-1)*8;) {
 				label_len = dnssl_info->nd_opt_dnssli_suffixes[offset++];
