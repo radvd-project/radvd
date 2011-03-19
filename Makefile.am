@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.19 2011/02/25 04:17:23 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.20 2011/03/19 08:01:50 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -68,10 +68,9 @@ radvd_LDADD = \
 radvd_DEPENDENCIES = \
 	@CONDITIONAL_SOURCES@
 
-YFLAGS = -d
+AM_YFLAGS = -d
 
-CFLAGS = \
-	@CFLAGS@ \
+AM_CFLAGS = \
 	-Wall \
 	-Wcast-align \
 	-Wcast-qual \
