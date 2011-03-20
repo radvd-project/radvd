@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.37 2011/02/26 15:59:45 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.38 2011/03/20 22:48:50 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -46,6 +46,8 @@ struct Interface {
 	int			if_hwaddr_len;
 	int			if_prefix_len;
 	int			if_maxmtu;
+
+	int			cease_adv;
 
 	int			IgnoreIfMissing;
 	int			AdvSendAdvert;
@@ -100,6 +102,7 @@ struct AdvPrefix {
 	int			AdvAutonomousFlag;
 	uint32_t		AdvValidLifetime;
 	uint32_t		AdvPreferredLifetime;
+	int			DeprecatePrefixFlag;
 
 	/* Mobile IPv6 extensions */
 	int             	AdvRouterAddr;

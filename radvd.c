@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.55 2011/02/25 04:17:23 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.56 2011/03/20 22:48:50 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -534,7 +534,7 @@ stop_adverts(void)
 		if( ! iface->UnicastOnly ) {
 			if (iface->AdvSendAdvert) {
 				/* send a final advertisement with zero Router Lifetime */
-				iface->AdvDefaultLifetime = 0;
+				iface->cease_adv = 1;
 				send_ra_forall(iface, NULL);
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.22 2010/12/14 11:58:21 psavola Exp $
+ *   $Id: interface.c,v 1.23 2011/03/20 22:48:50 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -22,6 +22,8 @@ void
 iface_init_defaults(struct Interface *iface)
 {
 	memset(iface, 0, sizeof(struct Interface));
+
+	iface->cease_adv	  = 0;
 
 	iface->HasFailed	  = 0;
 	iface->IgnoreIfMissing	  = DFLT_IgnoreIfMissing;
@@ -55,6 +57,7 @@ prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->AdvRouterAddr = DFLT_AdvRouterAddr;
 	prefix->AdvValidLifetime = DFLT_AdvValidLifetime;
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
+	prefix->DeprecatePrefixFlag = DFLT_DeprecatePrefixFlag;
 	prefix->if6to4[0] = 0;
 	prefix->enabled = 1;
 }

@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.40 2011/02/22 00:20:40 reubenhwk Exp $
+ *   $Id: send.c,v 1.41 2011/03/20 22:48:50 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -155,8 +155,12 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	radvert->nd_ra_flags_reserved   |=
 		(iface->AdvHomeAgentFlag)?ND_RA_FLAG_HOME_AGENT:0;
 
-	/* if forwarding is disabled, send zero router lifetime */
-	radvert->nd_ra_router_lifetime	 =  !check_ip6_forwarding() ? htons(iface->AdvDefaultLifetime) : 0;
+	if (iface->cease_adv) {
+		radvert->nd_ra_router_lifetime = 0;
+	} else {
+		/* if forwarding is disabled, send zero router lifetime */
+		radvert->nd_ra_router_lifetime	 =  !check_ip6_forwarding() ? htons(iface->AdvDefaultLifetime) : 0;
+	}
 	radvert->nd_ra_flags_reserved   |=
 		(iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
 
@@ -191,8 +195,15 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 			pinfo->nd_opt_pi_flags_reserved |=
 				(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
 
-			pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
-			pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
+			if (iface->cease_adv && prefix->DeprecatePrefixFlag) {
+				/* RFC4862, 5.5.3, step e) */
+				pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
+				pinfo->nd_opt_pi_preferred_time = 0;
+			} else {
+
+				pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
+				pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
+			}
 			pinfo->nd_opt_pi_reserved2	= 0;
 
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
