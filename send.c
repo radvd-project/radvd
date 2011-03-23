@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.41 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: send.c,v 1.42 2011/03/23 03:31:34 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -234,7 +234,11 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		rinfo->nd_opt_ri_flags_reserved  =
 			(route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-		rinfo->nd_opt_ri_lifetime	= htonl(route->AdvRouteLifetime);
+		if (iface->cease_adv && route->RemoveRouteFlag) {
+			rinfo->nd_opt_ri_lifetime	= 0;
+		} else {
+			rinfo->nd_opt_ri_lifetime	= htonl(route->AdvRouteLifetime);
+		}
 
 		memcpy(&rinfo->nd_opt_ri_prefix, &route->Prefix,
 		       sizeof(struct in6_addr));

@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.23 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: interface.c,v 1.24 2011/03/23 03:31:34 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -69,6 +69,7 @@ route_init_defaults(struct AdvRoute *route, struct Interface *iface)
 
 	route->AdvRouteLifetime = DFLT_AdvRouteLifetime(iface);
 	route->AdvRoutePreference = DFLT_AdvRoutePreference;
+	route->RemoveRouteFlag = DFLT_RemoveRouteFlag;
 }
 
 void

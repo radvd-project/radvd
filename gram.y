@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.34 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: gram.y,v 1.35 2011/03/23 03:31:34 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -111,6 +111,7 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 
 %token		T_AdvRoutePreference
 %token		T_AdvRouteLifetime
+%token		T_RemoveRoute
 
 %token		T_AdvRDNSSPreference
 %token		T_AdvRDNSSOpenFlag
@@ -703,6 +704,10 @@ routeparms	: T_AdvRoutePreference SIGNEDNUMBER ';'
 		| T_AdvRouteLifetime number_or_infinity ';'
 		{
 			route->AdvRouteLifetime = $2;
+		}
+		| T_RemoveRoute SWITCH ';'
+		{
+			route->RemoveRouteFlag = $2;
 		}
 		;
 

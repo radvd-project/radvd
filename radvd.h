@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.38 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.39 2011/03/23 03:31:34 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -126,6 +126,7 @@ struct AdvRoute {
 
 	int			AdvRoutePreference;
 	uint32_t		AdvRouteLifetime;
+	int			RemoveRouteFlag;
 
 	struct AdvRoute		*next;
 };

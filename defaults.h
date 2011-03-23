@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.26 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: defaults.h,v 1.27 2011/03/23 03:31:34 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -62,6 +62,7 @@
 #define DFLT_AdvRouteLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
 
 #define DFLT_AdvRoutePreference		0 /* medium*/
+#define DFLT_RemoveRouteFlag		1
 
 /* RDNSS */
 #define DFLT_AdvRDNSSLifetime(iface)			(iface)->MaxRtrAdvInterval

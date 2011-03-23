@@ -1,3 +1,5 @@
+22/03/2011	Adding RemoveRoute options (from Mark Smith)
+
 20/03/2011	Added DeprecatePrefix option (from Mark Smith)
 
 28/02/2011	fixed Debian Bug#615625: radvd: Error in DNSSL parsing

@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.35 2011/03/20 22:48:50 reubenhwk Exp $
+.\"   $Id: radvd.conf.5.man,v 1.36 2011/03/23 03:31:34 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -494,6 +494,13 @@ The preference associated with the default router, as either "low",
 "medium", or "high".
 
 Default: medium
+
+.TP
+.BR RemoveRoute " " on | off 
+
+Upon shutdown, announce this route with a zero second lifetime. This should cause the route to be immediately removed from the receiving end-nodes' route table.
+
+Default: on
 
 .SH RDNSS SPECIFIC OPTIONS
 
