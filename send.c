@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.42 2011/03/23 03:31:34 reubenhwk Exp $
+ *   $Id: send.c,v 1.43 2011/03/25 07:04:14 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -263,7 +263,11 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		rdnssinfo->nd_opt_rdnssi_len	     = 1 + 2*rdnss->AdvRDNSSNumber;
 		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved = 0;
 
-		rdnssinfo->nd_opt_rdnssi_lifetime	= htonl(rdnss->AdvRDNSSLifetime);
+		if (iface->cease_adv && rdnss->FlushRDNSSFlag) {
+			rdnssinfo->nd_opt_rdnssi_lifetime	= 0;
+		} else {
+			rdnssinfo->nd_opt_rdnssi_lifetime	= htonl(rdnss->AdvRDNSSLifetime);
+		}
 
 		memcpy(&rdnssinfo->nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1,
 		       sizeof(struct in6_addr));

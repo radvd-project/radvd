@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.36 2011/03/23 03:31:34 reubenhwk Exp $
+.\"   $Id: radvd.conf.5.man,v 1.37 2011/03/25 07:04:14 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -505,23 +505,26 @@ Default: on
 .SH RDNSS SPECIFIC OPTIONS
 
 .TP
-.BR "AdvRDNSSPreference " integer;
+.BR "AdvRDNSSPreference " integer
 .TP
-.BR "AdvRDNSSOpen " on | off;
+.BR "AdvRDNSSOpen " on | off
 
 These features were present in the draft specification but were removed
 from RFC5006. They are still accepted in the configuration but
 ignored.
 
 .TP
-.BR "AdvRDNSSLifetime " seconds | infinity;
-The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
-The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver should no longer be used.
-The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale
-RDNSS info gets removed in a timely fashion, this should not be greater than
-2*MaxRtrAdvInterval.
+.BR "AdvRDNSSLifetime " seconds | infinity
+The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver must no longer be used. The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale RDNSS info gets removed in a timely fashion, this should not be greater than 2*MaxRtrAdvInterval.
 
 Default: 2*MaxRtrAdvInterval
+
+.TP
+.BR FlushRDNSS " " on | off
+
+Upon shutdown, announce the RDNSS entries with a zero second lifetime. This should cause the RDNSS addresses to be immediately removed from the end-nodes' list of Recursive DNS Servers.
+
+Default: on
 
 .SH DNSSL SPECIFIC OPTIONS
 

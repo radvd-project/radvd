@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.35 2011/03/23 03:31:34 reubenhwk Exp $
+ *   $Id: gram.y,v 1.36 2011/03/25 07:04:14 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -116,6 +116,7 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 %token		T_AdvRDNSSPreference
 %token		T_AdvRDNSSOpenFlag
 %token		T_AdvRDNSSLifetime
+%token		T_FlushRDNSS
 
 %token		T_AdvDNSSLLifetime
 
@@ -793,6 +794,10 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 				flog(LOG_WARNING, "Warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
 
 			rdnss->AdvRDNSSLifetime = $2;
+		}
+		| T_FlushRDNSS SWITCH ';'
+		{
+			rdnss->FlushRDNSSFlag = $2;
 		}
 		;
 

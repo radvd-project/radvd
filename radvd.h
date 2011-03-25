@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.39 2011/03/23 03:31:34 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.40 2011/03/25 07:04:14 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -136,6 +136,7 @@ struct AdvRoute {
 struct AdvRDNSS {
 	int 			AdvRDNSSNumber;
 	uint32_t		AdvRDNSSLifetime;
+	int			FlushRDNSSFlag;
 	struct in6_addr		AdvRDNSSAddr1;
 	struct in6_addr		AdvRDNSSAddr2;
 	struct in6_addr		AdvRDNSSAddr3;
