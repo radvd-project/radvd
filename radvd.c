@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.56 2011/03/20 22:48:50 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.57 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -78,10 +78,12 @@ int sock = -1;
 volatile int sighup_received = 0;
 volatile int sigterm_received = 0;
 volatile int sigint_received = 0;
+volatile int sigusr1_received = 0;
 
 void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void sigint_handler(int sig);
+void sigusr1_handler(int sig);
 void timer_handler(void *data);
 void config_interface(void);
 void kickoff_adverts(void);
@@ -339,6 +341,7 @@ main(int argc, char *argv[])
 	signal(SIGHUP, sighup_handler);
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigint_handler);
+	signal(SIGUSR1, sigusr1_handler);
 
 	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
 
@@ -446,6 +449,13 @@ void main_loop(void)
 			reload_config();
 			sighup_received = 0;
 		}
+
+		if (sigusr1_received)
+		{
+			reset_prefix_lifetimes();
+			sigusr1_received = 0;
+		}
+
 	}
 }
 
@@ -501,6 +511,9 @@ kickoff_adverts(void)
 	for(iface=IfaceList; iface; iface=iface->next)
 	{
 		double next;
+
+
+		gettimeofday(&iface->last_ra_time, NULL);
 
 		if( iface->UnicastOnly )
 			continue;
@@ -665,6 +678,45 @@ sigint_handler(int sig)
 		dlog(LOG_ERR, 1, "sigint_handler called %d times...aborting...", sigint_received);
 		abort();
 	}
+}
+
+
+void reset_prefix_lifetimes(void)
+{
+	struct Interface *iface;
+	struct AdvPrefix *prefix;
+
+
+	flog(LOG_INFO, "Resetting prefix lifetimes\n");
+	
+	for (iface = IfaceList; iface; iface = iface->next) 
+	{
+		for (prefix = iface->AdvPrefixList; prefix;
+							prefix = prefix->next) 
+		{
+			if (prefix->DecrementLifetimesFlag)
+			{
+				prefix->curr_validlft =
+						prefix->AdvValidLifetime;
+				prefix->curr_preferredlft =
+						prefix->AdvPreferredLifetime;
+			}
+		}
+		
+	}
+
+}
+
+void sigusr1_handler(int sig)
+{
+
+	/* Linux has "one-shot" signals, reinstall the signal handler */
+	signal(SIGUSR1, sigusr1_handler);
+
+	dlog(LOG_DEBUG, 4, "sigusr1_handler called");
+
+	sigusr1_received = 1;
+
 }
 
 int

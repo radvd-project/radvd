@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.25 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: interface.c,v 1.26 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -58,8 +58,12 @@ prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->AdvValidLifetime = DFLT_AdvValidLifetime;
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
 	prefix->DeprecatePrefixFlag = DFLT_DeprecatePrefixFlag;
+	prefix->DecrementLifetimesFlag = DFLT_DecrementLifetimesFlag;
 	prefix->if6to4[0] = 0;
 	prefix->enabled = 1;
+
+	prefix->curr_validlft = prefix->AdvValidLifetime;
+	prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
 }
 
 void

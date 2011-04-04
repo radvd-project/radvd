@@ -1,5 +1,5 @@
 /*
- *   $Id: process.c,v 1.25 2011/02/28 10:53:07 reubenhwk Exp $
+ *   $Id: process.c,v 1.26 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -333,7 +333,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 				{
 					print_addr(&prefix->Prefix, prefix_str);
 
-					if (valid != prefix->AdvValidLifetime)
+					if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime)
 					{
 						flog(LOG_WARNING, "our AdvValidLifetime on"
 						 " %s for %s doesn't agree with %s",
@@ -342,7 +342,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 						 addr_str
 						 );
 					}
-					if (preferred != prefix->AdvPreferredLifetime)
+					if (!prefix->DecrementLifetimesFlag && preferred != prefix->AdvPreferredLifetime)
 					{
 						flog(LOG_WARNING, "our AdvPreferredLifetime on"
 						 " %s for %s doesn't agree with %s",

@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.40 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.41 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -48,6 +48,8 @@ struct Interface {
 	int			if_maxmtu;
 
 	int			cease_adv;
+
+	struct timeval		last_ra_time;
 
 	int			IgnoreIfMissing;
 	int			AdvSendAdvert;
@@ -103,6 +105,10 @@ struct AdvPrefix {
 	uint32_t		AdvValidLifetime;
 	uint32_t		AdvPreferredLifetime;
 	int			DeprecatePrefixFlag;
+	int			DecrementLifetimesFlag;
+
+	uint32_t		curr_validlft;
+	uint32_t		curr_preferredlft;
 
 	/* Mobile IPv6 extensions */
 	int             	AdvRouterAddr;
@@ -180,6 +186,7 @@ int yylex(void);
 /* radvd.c */
 int check_ip6_forwarding(void);
 void reload_config(void);
+void reset_prefix_lifetimes(void);
 
 /* timer.c */
 struct timeval next_timeval(double next);

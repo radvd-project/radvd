@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.28 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: defaults.h,v 1.29 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -57,6 +57,7 @@
 #define DFLT_AdvPreferredLifetime	14400 /* seconds */
 #define DFLT_AdvAutonomousFlag		1
 #define DFLT_DeprecatePrefixFlag	0
+#define DFLT_DecrementLifetimesFlag	0
 
 /* Each route has an associated: */
 #define DFLT_AdvRouteLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)

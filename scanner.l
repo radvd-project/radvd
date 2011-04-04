@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.25 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: scanner.l,v 1.26 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -70,6 +70,7 @@ AdvAutonomous		{ return T_AdvAutonomous; }
 AdvValidLifetime	{ return T_AdvValidLifetime; }
 AdvPreferredLifetime	{ return T_AdvPreferredLifetime; }
 DeprecatePrefix		{ return T_DeprecatePrefix; }
+DecrementLifetimes	{ return T_DecrementLifetimes; }
 
 AdvRouterAddr		{ return T_AdvRouterAddr; }
 AdvHomeAgentFlag	{ return T_AdvHomeAgentFlag; }

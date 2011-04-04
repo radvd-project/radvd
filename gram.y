@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.36 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: gram.y,v 1.37 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -96,6 +96,7 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 %token		T_AdvValidLifetime
 %token		T_AdvPreferredLifetime
 %token		T_DeprecatePrefix
+%token		T_DecrementLifetimes
 
 %token		T_AdvRouterAddr
 %token		T_AdvHomeAgentFlag
@@ -605,11 +606,13 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					struct AdvPrefix *p = prefix;
 					do {
 						p->AdvValidLifetime = $2;
+						p->curr_validlft = $2;
 						p = p->next;
 					} while (p && p->AutoSelected);
 				}
 				else
 					prefix->AdvValidLifetime = $2;
+					prefix->curr_validlft = $2;
 			}
 		}
 		| T_AdvPreferredLifetime number_or_infinity ';'
@@ -619,16 +622,22 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					struct AdvPrefix *p = prefix;
 					do {
 						p->AdvPreferredLifetime = $2;
+						p->curr_preferredlft = $2;
 						p = p->next;
 					} while (p && p->AutoSelected);
 				}
 				else
 					prefix->AdvPreferredLifetime = $2;
+					prefix->curr_preferredlft = $2;
 			}
 		}
 		| T_DeprecatePrefix SWITCH ';'
 		{
 			prefix->DeprecatePrefixFlag = $2;
+		}
+		| T_DecrementLifetimes SWITCH ';'
+		{
+			prefix->DecrementLifetimesFlag = $2;
 		}
 		| T_Base6Interface name ';'
 		{

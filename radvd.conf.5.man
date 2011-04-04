@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.37 2011/03/25 07:04:14 reubenhwk Exp $
+.\"   $Id: radvd.conf.5.man,v 1.38 2011/04/04 14:24:58 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -428,6 +428,17 @@ Default: 14400 seconds (4 hours)
 Upon shutdown, this option will cause radvd to deprecate the prefix by announcing it in the radvd shutdown RA with a zero preferred lifetime and a valid lifetime slightly greater than 2 hours. This will encourage end-nodes using this prefix to deprecate any associated addresses immediately. Note that this option should only be used when only one router is announcing the prefix onto the link, otherwise end-nodes will deprecate associated addresses despite the prefix still being valid for preferred use.
 
 See RFC4862, section 5.5.3., "Router Advertisement Processing", part (e).
+
+Default: off
+
+.TP
+.BR DecrementLifetimes " " on | off
+
+This option causes radvd to decrement the values of the preferred and valid lifetimes for the prefix over time. The lifetimes are decremented by the number of seconds since the last RA. If radvd receives a SIGUSR1 signal, it will reset the values of the preferred and valid lifetimes back to the initial values used by radvd when it started. If radvd never receives a SIGUSR1 signal, it will continue to decrement the lifetimes until the preferred lifetime reaches zero. After a final RA with a zero value preferred lifetime, radvd will cease to announce the prefix. If a SIGUSR1 signal then causes the lifetimes to be reset, the prefix will then re-appear in the RAs.
+
+This option is intended to be used in conjunction with a DHCPv6 client that is using the Identity Association for Prefix Delegation (IA_PD) option to acquire a prefix from a Delegating Router for use by a Requesting Router. In this scenario, the prefix(es) from within the delegated prefix that are announced by radvd would age in parallel with and at the same rate as the delegated prefix, and expire at approximately the same time, if the delegated prefix's life isn't extended.
+
+See RFC3633, "IPv6 Prefix Options for Dynamic Host Configuration Protocol (DHCP) version 6".
 
 Default: off
 

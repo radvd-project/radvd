@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.43 2011/03/25 07:04:14 reubenhwk Exp $
+ *   $Id: send.c,v 1.44 2011/04/04 14:24:58 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -77,6 +77,29 @@ send_ra_inc_len(size_t *len, int add)
 	}
 }
 
+static time_t time_diff_secs(const struct timeval *time_x,
+			     const struct timeval *time_y)
+{
+	time_t secs_diff;
+
+	secs_diff = time_x->tv_sec - time_y->tv_sec;
+	if ((time_x->tv_usec - time_y->tv_usec) >= 500000)
+		secs_diff++;
+
+	return secs_diff;
+	
+}
+
+static void decrement_lifetime(const time_t secs, uint32_t *lifetime)
+{
+
+	if (*lifetime > secs) {
+		*lifetime -= secs;	
+	} else {
+		*lifetime = 0;
+	}
+}
+
 int
 send_ra(struct Interface *iface, struct in6_addr *dest)
 {
@@ -92,6 +115,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 	struct AdvDNSSL *dnssl;
+	struct timeval time_now;
+	time_t secs_since_last_ra;
 
 	unsigned char buff[MSG_SIZE_SEND];
 	size_t len = 0;
@@ -133,6 +158,14 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		dest = (struct in6_addr *)all_hosts_addr;
 		gettimeofday(&iface->last_multicast, NULL);
 	}
+
+	gettimeofday(&time_now, NULL);
+	secs_since_last_ra = time_diff_secs(&time_now, &iface->last_ra_time);
+	if (secs_since_last_ra < 0) {
+		secs_since_last_ra = 0;
+		flog(LOG_WARNING, "gettimeofday() went backwards!");
+	}
+	iface->last_ra_time = time_now;
 
 	memset((void *)&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
@@ -177,7 +210,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	while(prefix)
 	{
-		if( prefix->enabled )
+		if( prefix->enabled && prefix->curr_preferredlft > 0 )
 		{
 			struct nd_opt_prefix_info *pinfo;
 
@@ -200,9 +233,16 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 				pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
 				pinfo->nd_opt_pi_preferred_time = 0;
 			} else {
+				if (prefix->DecrementLifetimesFlag) {
+					decrement_lifetime(secs_since_last_ra,
+								&prefix->curr_validlft);
+					
+					decrement_lifetime(secs_since_last_ra,
+								&prefix->curr_preferredlft);
+				}
+				pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
+				pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
 
-				pinfo->nd_opt_pi_valid_time	= htonl(prefix->AdvValidLifetime);
-				pinfo->nd_opt_pi_preferred_time = htonl(prefix->AdvPreferredLifetime);
 			}
 			pinfo->nd_opt_pi_reserved2	= 0;
 
