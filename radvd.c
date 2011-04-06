@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.57 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.58 2011/04/06 13:48:37 psavola Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -841,7 +841,7 @@ version(void)
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
 	fprintf(stderr, "  default pidfile		\"%s\"\n", PATH_RADVD_PID);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
-	fprintf(stderr, "  default syslog facililty	%d\n", LOG_FACILITY);
+	fprintf(stderr, "  default syslog facility	%d\n", LOG_FACILITY);
 	fprintf(stderr, "Please send bug reports or suggestions to %s.\n",
 		CONTACT_EMAIL);
 
