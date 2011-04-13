@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.58 2011/04/06 13:48:37 psavola Exp $
+ *   $Id: radvd.c,v 1.59 2011/04/13 14:44:33 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -685,6 +685,7 @@ void reset_prefix_lifetimes(void)
 {
 	struct Interface *iface;
 	struct AdvPrefix *prefix;
+	char pfx_str[INET6_ADDRSTRLEN];
 
 
 	flog(LOG_INFO, "Resetting prefix lifetimes\n");
@@ -696,6 +697,9 @@ void reset_prefix_lifetimes(void)
 		{
 			if (prefix->DecrementLifetimesFlag)
 			{
+				print_addr(&prefix->Prefix, pfx_str);
+				dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
+				dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_validlft, prefix->AdvValidLifetime);
 				prefix->curr_validlft =
 						prefix->AdvValidLifetime;
 				prefix->curr_preferredlft =

@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.44 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: send.c,v 1.45 2011/04/13 14:44:33 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -98,6 +98,16 @@ static void decrement_lifetime(const time_t secs, uint32_t *lifetime)
 	} else {
 		*lifetime = 0;
 	}
+}
+
+static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len)
+{
+	char pfx_str[INET6_ADDRSTRLEN];
+
+	print_addr(pfx, pfx_str);
+
+	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime 0", pfx_str, pfx_len, if_name);
+
 }
 
 int
@@ -239,6 +249,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 					
 					decrement_lifetime(secs_since_last_ra,
 								&prefix->curr_preferredlft);
+					if (prefix->curr_preferredlft == 0)
+						cease_adv_pfx_msg(iface->Name, &prefix->Prefix, prefix->PrefixLen);
 				}
 				pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
 				pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
