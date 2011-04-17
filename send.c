@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.45 2011/04/13 14:44:33 reubenhwk Exp $
+ *   $Id: send.c,v 1.46 2011/04/17 22:25:01 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -106,7 +106,7 @@ static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const i
 
 	print_addr(pfx, pfx_str);
 
-	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime 0", pfx_str, pfx_len, if_name);
+	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
 
 }
 

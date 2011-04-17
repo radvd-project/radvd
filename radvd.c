@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.59 2011/04/13 14:44:33 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.60 2011/04/17 22:25:01 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -688,7 +688,7 @@ void reset_prefix_lifetimes(void)
 	char pfx_str[INET6_ADDRSTRLEN];
 
 
-	flog(LOG_INFO, "Resetting prefix lifetimes\n");
+	flog(LOG_INFO, "Resetting prefix lifetimes");
 	
 	for (iface = IfaceList; iface; iface = iface->next) 
 	{
