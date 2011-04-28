@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.26 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: scanner.l,v 1.27 2011/04/28 15:08:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -94,6 +94,7 @@ AdvRDNSSLifetime	{ return T_AdvRDNSSLifetime; }
 FlushRDNSS		{ return T_FlushRDNSS; }
 
 AdvDNSSLLifetime	{ return T_AdvDNSSLLifetime; }
+FlushDNSSL		{ return T_FlushDNSSL; }
 
 MinDelayBetweenRAs      { return T_MinDelayBetweenRAs; }
 

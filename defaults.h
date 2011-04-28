@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.29 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: defaults.h,v 1.30 2011/04/28 15:08:40 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -71,6 +71,7 @@
 
 /* DNSSL */
 #define DFLT_AdvDNSSLLifetime(iface)			(iface)->MaxRtrAdvInterval
+#define DFLT_FlushDNSSLFlag		1
 
 /* Protocol (RFC4861) constants: */
 

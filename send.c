@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.46 2011/04/17 22:25:01 reubenhwk Exp $
+ *   $Id: send.c,v 1.47 2011/04/28 15:08:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -350,7 +350,11 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		dnsslinfo->nd_opt_dnssli_len 		= 1; /* more further down */
 		dnsslinfo->nd_opt_dnssli_reserved	= 0;
 
-		dnsslinfo->nd_opt_dnssli_lifetime	= htonl(dnssl->AdvDNSSLLifetime);
+		if (iface->cease_adv && dnssl->FlushDNSSLFlag) {
+			dnsslinfo->nd_opt_dnssli_lifetime	= 0;
+		} else {
+			dnsslinfo->nd_opt_dnssli_lifetime	= htonl(dnssl->AdvDNSSLLifetime);
+		}
 
 		buff_ptr = dnsslinfo->nd_opt_dnssli_suffixes;
 		for (i = 0; i < dnssl->AdvDNSSLNumber; i++) {

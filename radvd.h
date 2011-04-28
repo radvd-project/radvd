@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.h,v 1.41 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: radvd.h,v 1.42 2011/04/28 15:08:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -154,6 +154,7 @@ struct AdvDNSSL {
 	uint32_t		AdvDNSSLLifetime;
 
 	int			AdvDNSSLNumber;
+	int			FlushDNSSLFlag;
 	char			**AdvDNSSLSuffixes;
 
 	struct AdvDNSSL 	*next;

@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.38 2011/04/04 14:24:58 reubenhwk Exp $
+.\"   $Id: radvd.conf.5.man,v 1.39 2011/04/28 15:08:40 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -548,6 +548,13 @@ DNSSL info gets removed in a timely fashion, this should not be greater than
 2*MaxRtrAdvInterval.
 
 Default: 2*MaxRtrAdvInterval
+
+.TP
+.BR FlushDNSSL " " on | off
+
+Upon shutdown, announce the DNSSL entries with a zero second lifetime. This should cause the DNSSL entries to be immediately removed from the end-nodes' DNS search list.
+
+Default: on
 
 .SH EXAMPLES
 

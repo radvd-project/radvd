@@ -1,5 +1,5 @@
 /*
- *   $Id: interface.c,v 1.26 2011/04/04 14:24:58 reubenhwk Exp $
+ *   $Id: interface.c,v 1.27 2011/04/28 15:08:40 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -92,6 +92,7 @@ dnssl_init_defaults(struct AdvDNSSL *dnssl, struct Interface *iface)
 	memset(dnssl, 0, sizeof(struct AdvDNSSL));
 
 	dnssl->AdvDNSSLLifetime = DFLT_AdvDNSSLLifetime(iface);
+	dnssl->FlushDNSSLFlag = DFLT_FlushDNSSLFlag;
 }
 
 int
