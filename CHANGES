@@ -1,4 +1,7 @@
-04/04/2011	Adding DecrementLifetimes patch (from Mark Smith)
+04/05/2011	radvd is useful for advertising ULA's without having a
+		router too (from Ludwig Nussel)
+
+28/04/2011	Adding DecrementLifetimes patch (from Mark Smith)
 
 25/03/2011	Renaming RemoveRoute to FlushRoute (from Mark Smith)
 
