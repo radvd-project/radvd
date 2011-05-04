@@ -1,5 +1,5 @@
 /*
- *   $Id: defaults.h,v 1.30 2011/04/28 15:08:40 reubenhwk Exp $
+ *   $Id: defaults.h,v 1.31 2011/05/04 18:03:57 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>
@@ -31,7 +31,7 @@
 
 /* For each multicast interface: */
 
-#define DFLT_IgnoreIfMissing		0
+#define DFLT_IgnoreIfMissing		1
 #define DFLT_AdvSendAdv			0
 #define DFLT_MaxRtrAdvInterval		600
 #define DFLT_MinRtrAdvInterval(iface)	(0.33 * (iface)->MaxRtrAdvInterval)
