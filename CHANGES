@@ -1,7 +1,7 @@
 04/05/2011	- radvd is useful for advertising ULA's without having a
 		router too (from Ludwig Nussel)
 		- Bumping version number to 1.8alpha in VERSION for testing
-		- making IgnoreInterface default to on
+		- making IgnoreIfMissing default to on
 
 28/04/2011	Adding DecrementLifetimes patch (from Mark Smith)
 
