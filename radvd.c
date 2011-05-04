@@ -1,5 +1,5 @@
 /*
- *   $Id: radvd.c,v 1.60 2011/04/17 22:25:01 reubenhwk Exp $
+ *   $Id: radvd.c,v 1.61 2011/05/04 17:22:57 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -252,12 +252,7 @@ main(int argc, char *argv[])
 
 	/* if we know how to do it, check whether forwarding is enabled */
 	if (check_ip6_forwarding()) {
-		if (get_debuglevel() == 0) {
-			flog(LOG_ERR, "IPv6 forwarding seems to be disabled, exiting");
-			exit(1);
-		}
-		else
-			flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
+		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
 	/* parse config file */
@@ -786,6 +781,7 @@ check_ip6_forwarding(void)
 	int value;
 	size_t size = sizeof(value);
 	FILE *fp = NULL;
+	static int warned = 0;
 
 #ifdef __linux__
 	fp = fopen(PROC_SYS_IP6_FORWARDING, "r");
@@ -810,7 +806,8 @@ check_ip6_forwarding(void)
 		return(0);	/* this is of advisory value only */
 	}
 
-	if (value != 1) {
+	if (value != 1 && !warned) {
+		warned = 1;
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
 		return(-1);
 	}
