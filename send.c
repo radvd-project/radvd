@@ -1,5 +1,5 @@
 /*
- *   $Id: send.c,v 1.47 2011/04/28 15:08:40 reubenhwk Exp $
+ *   $Id: send.c,v 1.48 2011/05/06 07:51:54 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -77,8 +77,8 @@ send_ra_inc_len(size_t *len, int add)
 	}
 }
 
-static time_t time_diff_secs(const struct timeval *time_x,
-			     const struct timeval *time_y)
+static time_t
+time_diff_secs(const struct timeval *time_x, const struct timeval *time_y)
 {
 	time_t secs_diff;
 
@@ -90,7 +90,8 @@ static time_t time_diff_secs(const struct timeval *time_x,
 	
 }
 
-static void decrement_lifetime(const time_t secs, uint32_t *lifetime)
+static void
+decrement_lifetime(const time_t secs, uint32_t *lifetime)
 {
 
 	if (*lifetime > secs) {
