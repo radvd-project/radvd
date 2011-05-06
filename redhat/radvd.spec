@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.30 2011/05/06 14:07:01 reubenhwk Exp $
+# $Id: radvd.spec,v 1.31 2011/05/06 14:32:12 reubenhwk Exp $
 
 %define initdir %{_sysconfdir}/rc.d/init.d
 
@@ -99,6 +99,7 @@ exit 0
 %changelog
 * Fri May  6 2011 Reuben Hawkins <reubenhwk@gmail.com> 1.8-1
 - 1.8
+- IgnoreIfMissing now defaults to on
 - Added FlushRoute
 - Added DeprecatePrefix
 - Added DecrementLifetimes
