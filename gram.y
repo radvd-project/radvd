@@ -1,5 +1,5 @@
 /*
- *   $Id: gram.y,v 1.38 2011/04/28 15:08:40 reubenhwk Exp $
+ *   $Id: gram.y,v 1.39 2011/05/06 13:58:57 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -399,7 +399,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				if ( prefix->if6[0] )
 				{
 					struct ifaddrs *ifap = 0, *ifa = 0;
-					struct AdvPrefix *next = iface->AdvPrefixList;
+					struct AdvPrefix *next = prefix->next;
 
 					if (prefix->PrefixLen != 64) {
 						flog(LOG_ERR, "Only /64 is allowed with Base6Interface.  %s:%d", conf_file, num_lines);
@@ -436,7 +436,6 @@ prefixdef	: prefixhead optional_prefixplist ';'
 						prefix->AdvRouterAddr = 1;
 						prefix->AutoSelected = 1;
 						prefix->next = next;
-						next = prefix;
 
 						if (inet_ntop(ifa->ifa_addr->sa_family, (void *)&(prefix->Prefix), buf, sizeof(buf)) == NULL)
 							flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, conf_file, num_lines);
