@@ -1,3 +1,7 @@
+06/05/2011	- Fixed inf loop in Base6Interface (from Ludwig Nussel)
+		- Modified string regex in scanner.l reducing the compiled
+		size of scanner.o by a factor or 10.
+
 04/05/2011	- radvd is useful for advertising ULA's without having a
 		router too (from Ludwig Nussel)
 		- Bumping version number to 1.8alpha in VERSION for testing
