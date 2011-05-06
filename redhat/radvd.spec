@@ -1,4 +1,4 @@
-# $Id: radvd.spec,v 1.29 2011/02/18 10:30:20 psavola Exp $
+# $Id: radvd.spec,v 1.30 2011/05/06 14:07:01 reubenhwk Exp $
 
 %define initdir %{_sysconfdir}/rc.d/init.d
 
@@ -6,7 +6,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 1.7
+Version: 1.8
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD with advertising
@@ -97,6 +97,16 @@ exit 0
 %{_sbindir}/radvdump
 
 %changelog
+* Fri May  6 2011 Reuben Hawkins <reubenhwk@gmail.com> 1.8-1
+- 1.8
+- Added FlushRoute
+- Added DeprecatePrefix
+- Added DecrementLifetimes
+- Using netlink (on linux) to instantly detect changes in interface states
+- Timer code removed, replaces with poll
+- build system overhaul
+- Some bug fixes
+
 * Sat Jan  1 2011 Pekka Savola <pekkas@netcore.fi> 1.7-1
 - 1.7
 - Deprecate old, pre-RFC5006 parameters.
