@@ -1,6 +1,6 @@
 #
-# $Id: VERSION,v 1.29 2011/05/06 14:25:09 reubenhwk Exp $
+# $Id: VERSION,v 1.30 2011/05/07 01:59:18 reubenhwk Exp $
 #
 # this file is automatically processed by configure
 #
-1.8beta1
+1.8rc1
