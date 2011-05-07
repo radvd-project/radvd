@@ -1,5 +1,5 @@
 /*
- *   $Id: scanner.l,v 1.28 2011/05/06 07:43:22 reubenhwk Exp $
+ *   $Id: scanner.l,v 1.29 2011/05/07 02:09:40 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
@@ -14,7 +14,7 @@
  *
  */
 
-%option nounput noinput
+%option nounput noinput noyywrap
 
 %{
 #include "config.h"

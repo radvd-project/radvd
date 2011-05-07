@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.20 2011/03/19 08:01:50 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.21 2011/05/07 02:09:40 reubenhwk Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -62,8 +62,7 @@ EXTRA_radvd_SOURCES = \
 	privsep-linux.c
 
 radvd_LDADD = \
-	@CONDITIONAL_SOURCES@ \
-	@LEXLIB@
+	@CONDITIONAL_SOURCES@
 
 radvd_DEPENDENCIES = \
 	@CONDITIONAL_SOURCES@
