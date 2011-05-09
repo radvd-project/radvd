@@ -1,5 +1,5 @@
 .\"
-.\"   $Id: radvd.conf.5.man,v 1.39 2011/04/28 15:08:40 reubenhwk Exp $
+.\"   $Id: radvd.conf.5.man,v 1.40 2011/05/09 14:49:00 reubenhwk Exp $
 .\"
 .\"   Authors:
 .\"    Lars Fenneberg		<lf@elemental.net>
@@ -124,7 +124,7 @@ Current versions of radvd automatically try to re-enable interfaces.
 Enabling IgnoreIfMissing also quenches certain warnings in log messages
 relating to missing interfaces.
 
-Default: off
+Default: on
 
 .TP
 .BR AdvSendAdvert " " on | off
