@@ -1,5 +1,5 @@
 #
-#   $Id: Makefile.am,v 1.21 2011/05/07 02:09:40 reubenhwk Exp $
+#   $Id: Makefile.am,v 1.22 2011/05/09 11:04:12 psavola Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 
@@ -101,7 +101,8 @@ EXTRA_DIST = \
 	redhat/radvd.conf.empty \
 	redhat/radvd.init \
 	redhat/radvd.spec \
-	redhat/radvd.sysconfig
+	redhat/radvd.sysconfig \
+	redhat/radvd-tmpfs.conf
 
 CLEANFILES = \
 	gram.c \
