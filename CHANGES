@@ -1,3 +1,6 @@
+10/05/2011	removed AdvRDNSSPreference and AdvRDNSSOpen from the manpages
+		version now 1.8rc2
+
 06/05/2011	- IgnoreIfMissing now defaults to on
 		- Fixed inf loop in Base6Interface (from Ludwig Nussel)
 		- Modified string regex in scanner.l reducing the compiled
@@ -6,7 +9,6 @@
 04/05/2011	- radvd is useful for advertising ULA's without having a
 		router too (from Ludwig Nussel)
 		- Bumping version number to 1.8alpha in VERSION for testing
-		- making IgnoreIfMissing default to on
 
 28/04/2011	Adding DecrementLifetimes patch (from Mark Smith)
 
