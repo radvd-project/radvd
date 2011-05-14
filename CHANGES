@@ -1,5 +1,6 @@
+14/05/2011	Version 1.8 release
+
 10/05/2011	removed AdvRDNSSPreference and AdvRDNSSOpen from the manpages
-		version now 1.8rc2
 
 06/05/2011	- IgnoreIfMissing now defaults to on
 		- Fixed inf loop in Base6Interface (from Ludwig Nussel)
