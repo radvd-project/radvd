@@ -243,6 +243,10 @@ set_interface_var(const char *iface,
 	if (snprintf(spath, sizeof(spath), var, iface) >= sizeof(spath))
 		return -1;
 
+	/* No path traversal */
+	if (strstr(name, "..") || strchr(name, '/'))
+		return -1;
+
 	if (access(spath, F_OK) != 0)
 		return -1;
 
