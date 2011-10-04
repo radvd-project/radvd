@@ -226,7 +226,7 @@ int check_allrouters_membership(struct Interface *iface)
 
 	if (!allrouters_ok) {
 		flog(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
-		setup_allrouters_membership(iface);
+		return setup_allrouters_membership(iface);
 	}
 
 	return(0);
