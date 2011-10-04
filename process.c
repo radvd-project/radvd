@@ -194,8 +194,6 @@ process_rs(struct Interface *iface, unsigned char *msg, int len,
 	delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX +1.0);
 
 	if (iface->UnicastOnly) {
-		dlog(LOG_DEBUG, 5, "random mdelay for %s: %g seconds.", iface->Name, delay/1000.0);
-		mdelay(delay);
 		send_ra_forall(iface, &addr->sin6_addr);
 	}
 	else if ( timevaldiff(&tv, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs ) {
