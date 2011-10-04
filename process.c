@@ -310,6 +310,8 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		{
 		case ND_OPT_MTU:
 			mtu = (struct nd_opt_mtu *)opt_str;
+			if (len < sizeof(*mtu))
+				return;
 
 			if (iface->AdvLinkMTU && (ntohl(mtu->nd_opt_mtu_mtu) != iface->AdvLinkMTU))
 			{
@@ -319,6 +321,8 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_PREFIX_INFORMATION:
 			pinfo = (struct nd_opt_prefix_info *) opt_str;
+			if (len < sizeof(*pinfo))
+				return;
 			preferred = ntohl(pinfo->nd_opt_pi_preferred_time);
 			valid = ntohl(pinfo->nd_opt_pi_valid_time);
 
@@ -373,6 +377,8 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_RDNSS_INFORMATION:
 			rdnssinfo = (struct nd_opt_rdnss_info_local *) opt_str;
+			if (len < sizeof(*rdnssinfo))
+				return;
 			count = rdnssinfo->nd_opt_rdnssi_len;
 
 			/* Check the RNDSS addresses received */
@@ -413,8 +419,13 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_DNSSL_INFORMATION:
 			dnsslinfo = (struct nd_opt_dnssl_info_local *) opt_str;
+			if (len < sizeof(*dnsslinfo))
+				return;
+
 			suffix[0] = '\0';
 			for (offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
+				if (&dnsslinfo->nd_opt_dnssli_suffixes[offset] - (char*)opt_str >= len)
+					return;
 				label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];
 
 				if (label_len == 0) {
