@@ -280,7 +280,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		char prefix_str[INET6_ADDRSTRLEN];
 		char rdnss_str[INET6_ADDRSTRLEN];
 		char suffix[256];
-		int offset, label_len;
+		unsigned int offset, label_len;
 		uint32_t preferred, valid, count;
 
 		if (len < 2)
@@ -434,7 +434,14 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 					continue;
 				}
 
-				if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2)) {
+				/*
+				 * 1) must not overflow int: label + 2, offset + label_len
+				 * 2) last byte of dnssli_suffix must not overflow opt_str + len
+				 */
+				if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2) ||
+				    label_len > label_len + 2 ||
+				    &dnsslinfo->nd_opt_dnssli_suffixes[offset+label_len] - (char*)opt_str >= len ||
+				    offset + label_len < offset) {
 					flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s",
 							iface->Name, addr_str);
 					break;
