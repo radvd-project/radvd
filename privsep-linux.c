@@ -63,7 +63,7 @@ privsep_read_loop(void)
 		}
 		if (ret != sizeof(cmd)) {
 			/* Short read, ignore */
-			continue;
+			return;
 		}
 
 		cmd.iface[IFNAMSIZ-1] = '\0';
