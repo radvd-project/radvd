@@ -271,7 +271,7 @@ main(int argc, char *argv[])
 		if (!singleprocess) {
 		 	dlog(LOG_DEBUG, 3, "Initializing privsep");
 		 	if (privsep_init() < 0)
-				flog(LOG_WARNING, "Failed to initialize privsep.");
+				perror("Failed to initialize privsep.");
 		}
 
 		if (drop_root_privileges(username) < 0) {
