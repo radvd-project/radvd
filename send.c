@@ -130,6 +130,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	time_t secs_since_last_ra;
 
 	unsigned char buff[MSG_SIZE_SEND];
+	size_t buff_dest = 0;
 	size_t len = 0;
 	ssize_t err;
 
@@ -259,10 +260,10 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 			}
 			pinfo->nd_opt_pi_reserved2	= 0;
 
+			send_ra_inc_len(&len, sizeof(*pinfo));
+
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 			       sizeof(struct in6_addr));
-
-			send_ra_inc_len(&len, sizeof(*pinfo));
 		}
 
 		prefix = prefix->next;
@@ -293,9 +294,10 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 			rinfo->nd_opt_ri_lifetime	= htonl(route->AdvRouteLifetime);
 		}
 
+		send_ra_inc_len(&len, sizeof(*rinfo));
+
 		memcpy(&rinfo->nd_opt_ri_prefix, &route->Prefix,
 		       sizeof(struct in6_addr));
-		send_ra_inc_len(&len, sizeof(*rinfo));
 
 		route = route->next;
 	}
@@ -386,6 +388,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		dnsslinfo->nd_opt_dnssli_len		+= ((buff_ptr-dnsslinfo->nd_opt_dnssli_suffixes)+7)/8;
 
+		/* TODO: If buff will overflow, it's already happened.  This needs to be checked BEFORE the overflow. */
 		send_ra_inc_len(&len, dnsslinfo->nd_opt_dnssli_len * 8);
 
 		dnssl = dnssl->next;
@@ -400,12 +403,12 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		mtu = (struct nd_opt_mtu *) (buff + len);
 
+		send_ra_inc_len(&len, sizeof(*mtu));
+
 		mtu->nd_opt_mtu_type     = ND_OPT_MTU;
 		mtu->nd_opt_mtu_len      = 1;
 		mtu->nd_opt_mtu_reserved = 0;
 		mtu->nd_opt_mtu_mtu      = htonl(iface->AdvLinkMTU);
-
-		send_ra_inc_len(&len, sizeof(*mtu));
 	}
 
 	/*
@@ -419,14 +422,18 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		ucp = (uint8_t *) (buff + len);
 
+		send_ra_inc_len(&len, 2 * sizeof(uint8_t));
+
 		*ucp++  = ND_OPT_SOURCE_LINKADDR;
 		*ucp++  = (uint8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
 
-		send_ra_inc_len(&len, 2 * sizeof(uint8_t));
-
 		i = (iface->if_hwaddr_len + 7) >> 3;
-		memcpy(buff + len, iface->if_hwaddr, i);
+
+		buff_dest = len;
+
 		send_ra_inc_len(&len, i);
+
+		memcpy(buff + buff_dest, iface->if_hwaddr, i);
 	}
 
 	/*
@@ -451,8 +458,9 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		a_ival.reserved	= 0;
 		a_ival.adv_ival	= htonl(ival);
 
-		memcpy(buff + len, &a_ival, sizeof(a_ival));
+		buff_dest = len;
 		send_ra_inc_len(&len, sizeof(a_ival));
+		memcpy(buff + buff_dest, &a_ival, sizeof(a_ival));
 	}
 
 	/*
@@ -473,8 +481,9 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		ha_info.preference	= htons(iface->HomeAgentPreference);
 		ha_info.lifetime	= htons(iface->HomeAgentLifetime);
 
-		memcpy(buff + len, &ha_info, sizeof(ha_info));
+		buff_dest = len;
 		send_ra_inc_len(&len, sizeof(ha_info));
+		memcpy(buff + buff_dest, &ha_info, sizeof(ha_info));
 	}
 
 	iov.iov_len  = len;
