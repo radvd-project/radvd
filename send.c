@@ -314,6 +314,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		rdnssinfo = (struct nd_opt_rdnss_info_local *) (buff + len);
 
+		send_ra_inc_len(&len, sizeof(*rdnssinfo) - (3-rdnss->AdvRDNSSNumber)*sizeof(struct in6_addr));
+
 		rdnssinfo->nd_opt_rdnssi_type	     = ND_OPT_RDNSS_INFORMATION;
 		rdnssinfo->nd_opt_rdnssi_len	     = 1 + 2*rdnss->AdvRDNSSNumber;
 		rdnssinfo->nd_opt_rdnssi_pref_flag_reserved = 0;
@@ -330,7 +332,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		       sizeof(struct in6_addr));
 		memcpy(&rdnssinfo->nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3,
 		       sizeof(struct in6_addr));
-		send_ra_inc_len(&len, sizeof(*rdnssinfo) - (3-rdnss->AdvRDNSSNumber)*sizeof(struct in6_addr));
 
 		rdnss = rdnss->next;
 	}
