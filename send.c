@@ -187,6 +187,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	memset(buff, 0, sizeof(buff));
 	radvert = (struct nd_router_advert *) buff;
 
+	send_ra_inc_len(&len, sizeof(struct nd_router_advert));
+
 	radvert->nd_ra_type  = ND_ROUTER_ADVERT;
 	radvert->nd_ra_code  = 0;
 	radvert->nd_ra_cksum = 0;
@@ -211,8 +213,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	radvert->nd_ra_reachable  = htonl(iface->AdvReachableTime);
 	radvert->nd_ra_retransmit = htonl(iface->AdvRetransTimer);
-
-	len = sizeof(struct nd_router_advert);
 
 	prefix = iface->AdvPrefixList;
 
