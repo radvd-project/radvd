@@ -1,3 +1,5 @@
+06/10/2011	1.8.2 release
+
 04/10/2011	1) A privilege escalation flaw was found in radvd, due to a buffer overflow
 		in the process_ra() function.  ND_OPT_DNSSL_INFORMATION option parsing
 		"label_len" was not checked for negative values, leading to a "suffix"
