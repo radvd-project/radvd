@@ -228,6 +228,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 			pinfo = (struct nd_opt_prefix_info *) (buff + len);
 
+			send_ra_inc_len(&len, sizeof(*pinfo));
+
 			pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
 			pinfo->nd_opt_pi_len	     = 4;
 			pinfo->nd_opt_pi_prefix_len  = prefix->PrefixLen;
@@ -259,8 +261,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 			}
 			pinfo->nd_opt_pi_reserved2	= 0;
-
-			send_ra_inc_len(&len, sizeof(*pinfo));
 
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 			       sizeof(struct in6_addr));
