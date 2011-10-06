@@ -1,3 +1,6 @@
+06/10/2011	Updating buffer usage tracking in send_ra to track buffer usage BEFORE
+		the buffer is used rather than after in order to prevent buffer overflow
+
 06/10/2011	1.8.2 release
 
 04/10/2011	1) A privilege escalation flaw was found in radvd, due to a buffer overflow
