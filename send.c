@@ -344,13 +344,18 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	while(dnssl)
 	{
 		struct nd_opt_dnssl_info_local *dnsslinfo;
+		int const start_len = len;
 		int i;
-		char *buff_ptr;
 
 		dnsslinfo = (struct nd_opt_dnssl_info_local *) (buff + len);
 
+		send_ra_inc_len(&len, sizeof(dnsslinfo->nd_opt_dnssli_type) + 
+			sizeof(dnsslinfo->nd_opt_dnssli_len) +
+			sizeof(dnsslinfo->nd_opt_dnssli_reserved) +
+			sizeof(dnsslinfo->nd_opt_dnssli_lifetime)
+		);
+
 		dnsslinfo->nd_opt_dnssli_type		= ND_OPT_DNSSL_INFORMATION;
-		dnsslinfo->nd_opt_dnssli_len 		= 1; /* more further down */
 		dnsslinfo->nd_opt_dnssli_reserved	= 0;
 
 		if (iface->cease_adv && dnssl->FlushDNSSLFlag) {
@@ -359,7 +364,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 			dnsslinfo->nd_opt_dnssli_lifetime	= htonl(dnssl->AdvDNSSLLifetime);
 		}
 
-		buff_ptr = dnsslinfo->nd_opt_dnssli_suffixes;
 		for (i = 0; i < dnssl->AdvDNSSLNumber; i++) {
 			char *label;
 			int label_len;
@@ -372,24 +376,32 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 				else
 					label_len = strchr(label, '.') - label;
 
-				*buff_ptr++ = label_len;
+				buff_dest = len;
+				send_ra_inc_len(&len, 1);
+				buff[buff_dest] = label_len;
 
-				memcpy(buff_ptr, label, label_len);
-				buff_ptr += label_len;
+				buff_dest = len;
+				send_ra_inc_len(&len, label_len);
+				memcpy(buff + buff_dest, label, label_len);
 
 				label += label_len;
 
 				if (label[0] == '.')
 					label++;
-				else
-					*buff_ptr++ = 0;
+				else {
+					buff_dest = len;
+					send_ra_inc_len(&len, 1);
+					buff[buff_dest] = 0;
+				}
 			}
 		}
 
-		dnsslinfo->nd_opt_dnssli_len		+= ((buff_ptr-dnsslinfo->nd_opt_dnssli_suffixes)+7)/8;
+		dnsslinfo->nd_opt_dnssli_len = (len - start_len) / 8;
 
-		/* TODO: If buff will overflow, it's already happened.  This needs to be checked BEFORE the overflow. */
-		send_ra_inc_len(&len, dnsslinfo->nd_opt_dnssli_len * 8);
+		if ( (len - start_len) % 8 != 0 ) {
+			send_ra_inc_len(&len, 8 - (len - start_len) % 8);
+			++dnsslinfo->nd_opt_dnssli_len;
+		}
 
 		dnssl = dnssl->next;
 	}

@@ -200,7 +200,7 @@ struct nd_opt_dnssl_info_local
 	uint8_t   			nd_opt_dnssli_len;
 	uint16_t   			nd_opt_dnssli_reserved;
 	uint32_t			nd_opt_dnssli_lifetime;
-	char				nd_opt_dnssli_suffixes[];
+	unsigned char			nd_opt_dnssli_suffixes[];
 };
 
 /* Flags */

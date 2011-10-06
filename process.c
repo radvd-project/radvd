@@ -423,7 +423,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 			suffix[0] = '\0';
 			for (offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
-				if (&dnsslinfo->nd_opt_dnssli_suffixes[offset] - (char*)opt_str >= len)
+				if (&dnsslinfo->nd_opt_dnssli_suffixes[offset] - opt_str >= len)
 					return;
 				label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];
 
@@ -450,7 +450,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 				 */
 				if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2) ||
 				    label_len > label_len + 2 ||
-				    &dnsslinfo->nd_opt_dnssli_suffixes[offset+label_len] - (char*)opt_str >= len ||
+				    &dnsslinfo->nd_opt_dnssli_suffixes[offset+label_len] - opt_str >= len ||
 				    offset + label_len < offset) {
 					flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s",
 							iface->Name, addr_str);
@@ -459,7 +459,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 
 				if (suffix[0] != '\0')
 					strcat(suffix, ".");
-				strncat(suffix, &dnsslinfo->nd_opt_dnssli_suffixes[offset], label_len);
+				strncat(suffix, (char*)&dnsslinfo->nd_opt_dnssli_suffixes[offset], label_len);
 				offset += label_len;
 			}
 			break;
