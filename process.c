@@ -298,8 +298,9 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		}
 		else if (optlen > len)
 		{
-			flog(LOG_ERR, "option length greater than total"
-				" length in RA on %s from %s",
+			flog(LOG_ERR, "option length (%d) greater than total"
+				" length (%d) in RA on %s from %s",
+				optlen, len,
 				iface->Name, addr_str);
 			break;
 		}
