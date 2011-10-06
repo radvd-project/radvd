@@ -72,7 +72,7 @@ send_ra_inc_len(size_t *len, int add)
 	*len += add;
 	if(*len >= MSG_SIZE_SEND)
 	{
-		flog(LOG_ERR, "Too many prefixes or routes. Exiting.");
+		flog(LOG_ERR, "Too many prefixes, routes, rdnss or dnssl to fit in buffer.  Exiting.");
 		exit(1);
 	}
 }
