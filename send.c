@@ -281,6 +281,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		rinfo = (struct nd_opt_route_info_local *) (buff + len);
 
+		send_ra_inc_len(&len, sizeof(*rinfo));
+
 		rinfo->nd_opt_ri_type	     = ND_OPT_ROUTE_INFORMATION;
 		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
 		rinfo->nd_opt_ri_len	     = 3;
@@ -293,8 +295,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 		} else {
 			rinfo->nd_opt_ri_lifetime	= htonl(route->AdvRouteLifetime);
 		}
-
-		send_ra_inc_len(&len, sizeof(*rinfo));
 
 		memcpy(&rinfo->nd_opt_ri_prefix, &route->Prefix,
 		       sizeof(struct in6_addr));
