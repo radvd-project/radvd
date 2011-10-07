@@ -244,7 +244,7 @@ set_interface_var(const char *iface,
 		return -1;
 
 	/* No path traversal */
-	if (strstr(name, "..") || strchr(name, '/'))
+	if (strchr(iface, '/'))
 		return -1;
 
 	if (access(spath, F_OK) != 0)
