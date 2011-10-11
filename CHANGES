@@ -1,3 +1,5 @@
+08/10/2011	More careful checking of iface name
+
 06/10/2011	Updating buffer usage tracking in send_ra to track buffer usage BEFORE
 		the buffer is used rather than after in order to prevent buffer overflow
 
