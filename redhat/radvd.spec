@@ -6,7 +6,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 1.8.2
+Version: 1.8.3
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD with advertising
@@ -97,6 +97,10 @@ exit 0
 %{_sbindir}/radvdump
 
 %changelog
+* Fri Oct 14 2011 Reuben Hawkins <reubenhwk@gmail.com> 1.8.3-1
+- 1.8.3
+- minor fixes
+
 * Wed Oct  4 2011 Reuben Hawkins <reubenhwk@gmail.com> 1.8.2-1
 - 1.8.2
 - Security patches
