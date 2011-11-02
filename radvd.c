@@ -42,6 +42,7 @@ char usage_str[] = {
 "  -s, --singleprocess    Use privsep.\n"
 "  -t, --chrootdir=PATH   Chroot to the specified path.\n"
 "  -u, --username=USER    Switch to the specified user.\n"
+"  -n, --nodaemon         Prevent the daemonizing.\n"
 "  -v, --version          Print the version and quit.\n"
 };
 
@@ -58,13 +59,14 @@ struct option prog_opt[] = {
 	{"version", 0, 0, 'v'},
 	{"help", 0, 0, 'h'},
 	{"singleprocess", 0, 0, 's'},
+	{"nodaemon", 0, 0, 'n'},
 	{NULL, 0, 0, 0}
 };
 
 #else
 
 char usage_str[] =
-	"[-hsvc] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
+	"[-hsvcn] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
 	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
 
 #endif
@@ -107,6 +109,7 @@ main(int argc, char *argv[])
 	char *chrootdir = NULL;
 	int configtest = 0;
 	int singleprocess = 0;
+	int daemonize = 1;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
@@ -122,7 +125,7 @@ main(int argc, char *argv[])
 	pidfile = PATH_RADVD_PID;
 
 	/* parse args */
-#define OPTIONS_STR "d:C:l:m:p:t:u:vhcs"
+#define OPTIONS_STR "d:C:l:m:p:t:u:vhcsn"
 #ifdef HAVE_GETOPT_LONG
 	while ((c = getopt_long(argc, argv, OPTIONS_STR, prog_opt, &opt_idx)) > 0)
 #else
@@ -186,6 +189,9 @@ main(int argc, char *argv[])
 			break;
 		case 's':
 			singleprocess = 1;
+			break;
+		case 'n':
+			daemonize = 0;
 			break;
 		case 'h':
 			usage();
@@ -315,9 +321,11 @@ main(int argc, char *argv[])
 
 	if (get_debuglevel() == 0) {
 
-		/* Detach from controlling terminal */
-		if (daemon(0, 0) < 0)
-			perror("daemon");
+		if (daemonize) {
+			/* Detach from controlling terminal */
+			if (daemon(0, 0) < 0)
+				perror("daemon");
+		}
 
 		/* close old logfiles, including stderr */
 		log_close();
