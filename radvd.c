@@ -39,7 +39,6 @@ char usage_str[] = {
 "  -l, --logfile=PATH     Sets the log file.\n"
 "  -m, --logmethod=X      Sets the log method to one of: syslog, stderr, stderr_syslog, logfile, or none.\n"
 "  -p, --pidfile=PATH     Sets the pid file.\n"
-"  -s, --singleprocess    Use privsep.\n"
 "  -t, --chrootdir=PATH   Chroot to the specified path.\n"
 "  -u, --username=USER    Switch to the specified user.\n"
 "  -n, --nodaemon         Prevent the daemonizing.\n"
@@ -108,7 +107,6 @@ main(int argc, char *argv[])
 	char *username = NULL;
 	char *chrootdir = NULL;
 	int configtest = 0;
-	int singleprocess = 0;
 	int daemonize = 1;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
@@ -188,7 +186,7 @@ main(int argc, char *argv[])
 			configtest = 1;
 			break;
 		case 's':
-			singleprocess = 1;
+			fprintf(stderr, "privsep is not optional.  This options will be removed in a near future release.");
 			break;
 		case 'n':
 			daemonize = 0;
@@ -272,16 +270,14 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
+	dlog(LOG_DEBUG, 3, "Initializing privsep");
+	if (privsep_init() < 0) {
+		perror("Failed to initialize privsep.");
+		exit(1);
+	}
+
 	/* drop root privileges if requested. */
 	if (username) {
-		if (!singleprocess) {
-		 	dlog(LOG_DEBUG, 3, "Initializing privsep");
-			if (privsep_init() < 0) {
-				perror("Failed to initialize privsep.");
-				exit(1);
-			}
-		}
-
 		if (drop_root_privileges(username) < 0) {
 			perror("drop_root_privileges");
 			exit(1);

@@ -266,62 +266,24 @@ set_interface_var(const char *iface,
 int
 set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
-	if (privsep_enabled())
-		return privsep_interface_linkmtu(iface, mtu);
-
-	return set_interface_var(iface,
-				 PROC_SYS_IP6_LINKMTU, "LinkMTU",
-				 mtu);
+	return privsep_interface_linkmtu(iface, mtu);
 }
 
 int
 set_interface_curhlim(const char *iface, uint8_t hlim)
 {
-	if (privsep_enabled())
-		return privsep_interface_curhlim(iface, hlim);
-
-	return set_interface_var(iface,
-				 PROC_SYS_IP6_CURHLIM, "CurHopLimit",
-				 hlim);
+	return privsep_interface_curhlim(iface, hlim);
 }
 
 int
 set_interface_reachtime(const char *iface, uint32_t rtime)
 {
-	int ret;
-
-	if (privsep_enabled())
-		return privsep_interface_reachtime(iface, rtime);
-
-	ret = set_interface_var(iface,
-				PROC_SYS_IP6_BASEREACHTIME_MS,
-				NULL,
-				rtime);
-	if (ret)
-		ret = set_interface_var(iface,
-					PROC_SYS_IP6_BASEREACHTIME,
-					"BaseReachableTimer",
-					rtime / 1000); /* sec */
-	return ret;
+	return privsep_interface_reachtime(iface, rtime);
 }
 
 int
 set_interface_retranstimer(const char *iface, uint32_t rettimer)
 {
-	int ret;
-
-	if (privsep_enabled())
-		return privsep_interface_retranstimer(iface, rettimer);
-
-	ret = set_interface_var(iface,
-				PROC_SYS_IP6_RETRANSTIMER_MS,
-				NULL,
-				rettimer);
-	if (ret)
-		ret = set_interface_var(iface,
-					PROC_SYS_IP6_RETRANSTIMER,
-					"RetransTimer",
-					rettimer / 1000 * USER_HZ); /* XXX user_hz */
-	return ret;
+	return privsep_interface_retranstimer(iface, rettimer);
 }
 
