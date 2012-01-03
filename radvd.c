@@ -270,11 +270,13 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
+#ifdef USE_PRIVSEP
 	dlog(LOG_DEBUG, 3, "Initializing privsep");
 	if (privsep_init() < 0) {
 		perror("Failed to initialize privsep.");
 		exit(1);
 	}
+#endif
 
 	/* drop root privileges if requested. */
 	if (username) {

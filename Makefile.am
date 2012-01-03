@@ -58,7 +58,6 @@ EXTRA_radvd_SOURCES = \
 	device-linux.c \
 	netlink.c \
 	netlink.h \
-	privsep-bsd44.c \
 	privsep-linux.c
 
 radvd_LDADD = \
