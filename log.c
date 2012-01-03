@@ -160,13 +160,6 @@ log_close(void)
 	return 0;
 }
 
-int
-log_reopen(void)
-{
-	log_close();
-	return log_open(log_method, log_ident, log_file, log_facility);
-}
-
 void
 set_debuglevel(int level)
 {

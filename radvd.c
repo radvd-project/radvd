@@ -324,18 +324,6 @@ main(int argc, char *argv[])
 			if (daemon(0, 0) < 0)
 				perror("daemon");
 		}
-
-		/* close old logfiles, including stderr */
-		log_close();
-
-		/* reopen logfiles, but don't log to stderr unless explicitly requested */
-		if (log_method == L_STDERR_SYSLOG)
-			log_method = L_SYSLOG;
-		if (log_open(log_method, pname, logfile, facility) < 0) {
-			perror("log_open");
-			exit(1);
-		}
-
 	}
 
 	/*
@@ -562,12 +550,6 @@ void reload_config(void)
 	struct Interface *iface;
 
 	flog(LOG_INFO, "attempting to reread config file");
-
-	dlog(LOG_DEBUG, 4, "reopening log");
-	if (log_reopen() < 0) {
-		perror("log_reopen");
-		exit(1);
-	}
 
 	iface=IfaceList;
 	while(iface)
