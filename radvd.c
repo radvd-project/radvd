@@ -292,11 +292,13 @@ main(int argc, char *argv[])
 			flog(LOG_ERR, "cannot read radvd pid file, terminating: %s", strerror(errno));
 			exit(1);
 		}
-		pidstr[ret] = '\0';
-		if (!kill((pid_t)atol(pidstr), 0))
-		{
-			flog(LOG_ERR, "radvd already running, terminating.");
-			exit(1);
+		if (ret > 0) {
+				pidstr[ret] = '\0';
+				if (!kill((pid_t)atol(pidstr), 0))
+				{
+					flog(LOG_ERR, "radvd already running, terminating.");
+					exit(1);
+				}
 		}
 		close(fd);
 		fd = open(pidfile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
