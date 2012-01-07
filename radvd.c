@@ -316,7 +316,9 @@ main(int argc, char *argv[])
 	config_interface();
 	kickoff_adverts();
 	main_loop();
+	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts();
+	flog(LOG_INFO, "removing %s", pidfile);
 	unlink(pidfile);
 
 	return 0;
