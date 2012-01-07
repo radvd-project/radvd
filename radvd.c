@@ -22,6 +22,9 @@
 #ifdef HAVE_NETLINK
 #include "netlink.h"
 #endif
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#endif
 
 #include <poll.h>
 
@@ -94,16 +97,16 @@ void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
+int validate_pid_str(char const * pidstr);
+void write_pid_file(char const *);
 void main_loop(void);
 
 int
 main(int argc, char *argv[])
 {
-	char pidstr[16];
-	ssize_t ret;
 	int c, log_method;
 	char *logfile, *pidfile;
-	int facility, fd;
+	int facility;
 	char *username = NULL;
 	char *chrootdir = NULL;
 	int configtest = 0;
@@ -286,33 +289,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if ((fd = open(pidfile, O_RDONLY, 0)) > 0)
-	{
-		ret = read(fd, pidstr, sizeof(pidstr) - 1);
-		if (ret < 0)
-		{
-			flog(LOG_ERR, "cannot read radvd pid file, terminating: %s", strerror(errno));
-			exit(1);
-		}
-		if (ret > 0) {
-				pidstr[ret] = '\0';
-				if (!kill((pid_t)atol(pidstr), 0))
-				{
-					flog(LOG_ERR, "radvd already running, terminating.");
-					exit(1);
-				}
-		}
-		close(fd);
-		fd = open(pidfile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
-	}
-	else	/* FIXME: not atomic if pidfile is on an NFS mounted volume */
-		fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644);
-
-	if (fd < 0)
-	{
-		flog(LOG_ERR, "cannot create radvd pid file, terminating: %s", strerror(errno));
-		exit(1);
-	}
+	write_pid_file(pidfile);
 
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
@@ -336,6 +313,71 @@ main(int argc, char *argv[])
 	signal(SIGINT, sigint_handler);
 	signal(SIGUSR1, sigusr1_handler);
 
+	config_interface();
+	kickoff_adverts();
+	main_loop();
+	stop_adverts();
+	unlink(pidfile);
+
+	return 0;
+}
+
+
+int validate_pid_str(char const * pidstr)
+{
+	int retval = 1;
+
+#ifdef HAVE_REGEX_H
+	regmatch_t m;
+	int reti = 0;
+
+	regex_t regex;
+
+	reti = regcomp(&regex, "[0-9]*", 0);
+	if (reti) {
+		retval = 0;
+	}
+
+	reti = regexec(&regex, pidstr, 1, &m, 0);
+	regfree(&regex);
+#endif
+
+	return retval;
+}
+
+void write_pid_file(char const * pidfile)
+{
+	int fd, ret;
+	char pidstr[32];
+
+	if ((fd = open(pidfile, O_RDONLY, 0)) > 0)
+	{
+		ret = read(fd, pidstr, sizeof(pidstr) - 1);
+		if (ret < 0)
+		{
+			flog(LOG_ERR, "cannot read radvd pid file, terminating: %s", strerror(errno));
+			exit(1);
+		}
+		if (ret > 0 && validate_pid_str(pidstr)) {
+				pidstr[ret] = '\0';
+				if (!kill((pid_t)atol(pidstr), 0))
+				{
+					flog(LOG_ERR, "radvd already running, terminating.");
+					exit(1);
+				}
+		}
+		close(fd);
+		fd = open(pidfile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+	}
+	else	/* FIXME: not atomic if pidfile is on an NFS mounted volume */
+		fd = open(pidfile, O_CREAT|O_EXCL|O_WRONLY, 0644);
+
+	if (fd < 0)
+	{
+		flog(LOG_ERR, "cannot create radvd pid file, terminating: %s", strerror(errno));
+		exit(1);
+	}
+
 	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
 
 	ret = write(fd, pidstr, strlen(pidstr));
@@ -346,14 +388,6 @@ main(int argc, char *argv[])
 	}
 
 	close(fd);
-
-	config_interface();
-	kickoff_adverts();
-	main_loop();
-	stop_adverts();
-	unlink(pidfile);
-
-	return 0;
 }
 
 void main_loop(void)
