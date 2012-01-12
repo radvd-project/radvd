@@ -1,5 +1,4 @@
 /*
- *   $Id: defaults.h,v 1.31 2011/05/04 18:03:57 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>

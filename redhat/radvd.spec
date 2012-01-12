@@ -1,4 +1,3 @@
-# $Id: radvd.spec,v 1.31 2011/05/06 14:32:12 reubenhwk Exp $
 
 %define initdir %{_sysconfdir}/rc.d/init.d
 

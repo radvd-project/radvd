@@ -1,5 +1,4 @@
 /*
- *   $Id: process.c,v 1.29 2011/08/19 16:37:05 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>

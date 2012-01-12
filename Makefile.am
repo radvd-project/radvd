@@ -1,5 +1,4 @@
 #
-#   $Id: Makefile.am,v 1.22 2011/05/09 11:04:12 psavola Exp $
 #
 #   Authors:
 #    Lars Fenneberg		<lf@elemental.net>	 

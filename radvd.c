@@ -1,5 +1,4 @@
 /*
- *   $Id: radvd.c,v 1.62 2011/06/07 04:53:42 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>

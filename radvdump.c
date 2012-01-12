@@ -1,5 +1,4 @@
 /*
- *   $Id: radvdump.c,v 1.25 2011/02/28 10:53:07 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>

@@ -1,5 +1,4 @@
 /*
- *   $Id: privsep-linux.c,v 1.6 2011/02/28 10:53:07 reubenhwk Exp $
  *
  *   Authors:
  *    Jim Paris			<jim@jtan.com>

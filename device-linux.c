@@ -1,5 +1,4 @@
 /*
- *   $Id: device-linux.c,v 1.28 2011/02/06 03:41:38 reubenhwk Exp $
  *
  *   Authors:
  *    Lars Fenneberg		<lf@elemental.net>

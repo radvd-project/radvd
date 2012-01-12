@@ -1,5 +1,4 @@
 /*
- *   $Id: send.c,v 1.48 2011/05/06 07:51:54 reubenhwk Exp $
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
