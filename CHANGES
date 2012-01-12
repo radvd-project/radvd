@@ -1,3 +1,7 @@
+12/01/2012	renaming configure.in to configure.ac
+			removing CVS keywords
+			1.8.4rc1
+
 07/01/2012	Always do privsep on linux.  Validate the PID file contents.
 
 02/11/2011	Adding --nodaemon option
