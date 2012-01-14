@@ -112,29 +112,23 @@ void
 dlog(int prio, int level, char *format, ...)
 {
 	va_list ap;
-	int res;
 
 	if (debug_level < level)
 		return;
 
 	va_start(ap, format);
-	res = vlog(prio, format, ap);
+	vlog(prio, format, ap);
 	va_end(ap);
-
-	/* XXX: should we do something if res < 0.. */
 }
 
 void
 flog(int prio, char *format, ...)
 {
 	va_list ap;
-	int res;
 
 	va_start(ap, format);
-	res = vlog(prio, format, ap);
+	vlog(prio, format, ap);
 	va_end(ap);
-
-	/* XXX: should we do something if res < 0.. */
 }
 
 int
