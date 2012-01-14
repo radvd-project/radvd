@@ -56,14 +56,14 @@ void process_netlink_msg(int sock)
 		}
 
 		/* Continue with parsing payload. */
-                ifinfo = NLMSG_DATA(nh);
-                rc = if_indextoname(ifinfo->ifi_index, ifname);
-                if (ifinfo->ifi_flags & IFF_RUNNING) {
-                        dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is running", ifname, ifinfo->ifi_index);
-                }
-                else {
-                        dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is *NOT* running", ifname, ifinfo->ifi_index);
-                }
+		ifinfo = NLMSG_DATA(nh);
+		rc = if_indextoname(ifinfo->ifi_index, ifname);
+		if (ifinfo->ifi_flags & IFF_RUNNING) {
+			dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is running", ifname, ifinfo->ifi_index);
+		}
+		else {
+			dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is *NOT* running", ifname, ifinfo->ifi_index);
+		}
 		reload_config();
 	}
 }
