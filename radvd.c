@@ -343,7 +343,7 @@ void write_pid_file(char const * pidfile)
 				pid_t pid;
 				pidstr[ret] = '\0';
 				pid = strtopid(pidstr);
-				if (!kill(pid, 0)) {
+				if (pid > 0 && !kill(pid, 0)) {
 					flog(LOG_ERR, "radvd already running, terminating.");
 					exit(1);
 				}
