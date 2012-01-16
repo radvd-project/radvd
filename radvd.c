@@ -21,9 +21,6 @@
 #ifdef HAVE_NETLINK
 #include "netlink.h"
 #endif
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-#endif
 
 #include <poll.h>
 
@@ -96,7 +93,7 @@ void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
-int validate_pid_str(char const * pidstr);
+pid_t strtopid(char const * pidstr);
 void write_pid_file(char const *);
 void main_loop(void);
 
@@ -324,26 +321,9 @@ main(int argc, char *argv[])
 }
 
 
-int validate_pid_str(char const * pidstr)
+pid_t strtopid(char const * pidstr)
 {
-	int retval = 1;
-
-#ifdef HAVE_REGEX_H
-	regmatch_t m;
-	int reti = 0;
-
-	regex_t regex;
-
-	reti = regcomp(&regex, "[0-9]*", 0);
-	if (reti) {
-		retval = 0;
-	}
-
-	reti = regexec(&regex, pidstr, 1, &m, 0);
-	regfree(&regex);
-#endif
-
-	return retval;
+	return atol(pidstr);
 }
 
 void write_pid_file(char const * pidfile)
@@ -359,10 +339,11 @@ void write_pid_file(char const * pidfile)
 			flog(LOG_ERR, "cannot read radvd pid file, terminating: %s", strerror(errno));
 			exit(1);
 		}
-		if (ret > 0 && validate_pid_str(pidstr)) {
+		if (ret > 0) {
+				pid_t pid;
 				pidstr[ret] = '\0';
-				if (!kill((pid_t)atol(pidstr), 0))
-				{
+				pid = strtopid(pidstr);
+				if (!kill(pid, 0)) {
 					flog(LOG_ERR, "radvd already running, terminating.");
 					exit(1);
 				}

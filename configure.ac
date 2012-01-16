@@ -140,7 +140,6 @@ unset ac_cv_lib_inet6_inet_ntop
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS( \
-	regex.h \
 	getopt.h \
 	ifaddrs.h \
 	machine/limits.h \
