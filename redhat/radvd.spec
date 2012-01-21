@@ -96,7 +96,7 @@ exit 0
 %{_sbindir}/radvdump
 
 %changelog
-* Thu Jan 12 2012 Reuben Hawkins <reubenhwk@gmail.com> 1.8.4-1
+* Thu Jan 21 2012 Reuben Hawkins <reubenhwk@gmail.com> 1.8.4-1
 - 1.8.4
 - privsep always on
 - minor logging changes
