@@ -285,8 +285,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-	write_pid_file(pidfile);
-
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
@@ -300,6 +298,8 @@ main(int argc, char *argv[])
 				perror("daemon");
 		}
 	}
+
+	write_pid_file(pidfile);
 
 	/*
 	 *	config signal handlers
