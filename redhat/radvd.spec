@@ -5,7 +5,7 @@
 
 Summary: A Router Advertisement daemon
 Name: radvd
-Version: 1.8.4
+Version: 1.8.5
 Release: 1
 # The code includes the advertising clause, so it's GPL-incompatible
 License: BSD with advertising
@@ -96,6 +96,10 @@ exit 0
 %{_sbindir}/radvdump
 
 %changelog
+* Wed Jan 25 2012 Reuben Hawkins <reubenhwk@gmail.com> 1.8.5-1
+- 1.8.5
+- PID file had wrong PID.  This release fixes the PID.
+
 * Thu Jan 21 2012 Reuben Hawkins <reubenhwk@gmail.com> 1.8.4-1
 - 1.8.4
 - privsep always on
