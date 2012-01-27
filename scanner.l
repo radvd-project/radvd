@@ -13,13 +13,24 @@
  *
  */
 
-%option nounput noinput noyywrap
+%option reentrant
+%option bison-bridge
+%option bison-locations
+%option noyywrap
+%option yylineno
+%option outfile="lex.yy.c"
+%option header="../scanner.h"
+%option nounput
+%option noinput
 
 %{
 #include "config.h"
 #include "includes.h"
 #include "log.h"
 #include "gram.h"
+
+static void user_action(void * p, int lineno, int leng, int * column);
+#define YY_USER_ACTION user_action(yylloc, yylineno, yyleng, &yycolumn);
 
 extern char *conf_file;
 
@@ -107,7 +118,7 @@ AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 				return T_BAD_TOKEN;
 			}
 
-			yylval.addr = &addr;
+			yylval->addr = &addr;
 			return IPV6ADDR;
 		}
 
@@ -119,32 +130,32 @@ AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 				return T_BAD_TOKEN;
 			if (lnum > 0xFFFFFFFFUL)
 				return T_BAD_TOKEN;	/* XXX */
-			yylval.num = lnum;
+			yylval->num = lnum;
 			return NUMBER;
 		}
 
-{snum}		{ yylval.snum = atoi(yytext); return SIGNEDNUMBER; }
+{snum}		{ yylval->snum = atoi(yytext); return SIGNEDNUMBER; }
 
-{decimal}	{ yylval.dec = atof(yytext); return DECIMAL; }
+{decimal}	{ yylval->dec = atof(yytext); return DECIMAL; }
 
 infinity	{ return INFINITY; }
 
-on			{ yylval.num = 1; return SWITCH; }
+on			{ yylval->num = 1; return SWITCH; }
 
-off			{ yylval.num = 0; return SWITCH; }
+off			{ yylval->num = 0; return SWITCH; }
 
-low		{ yylval.snum = -1; return SIGNEDNUMBER; }
+low		{ yylval->snum = -1; return SIGNEDNUMBER; }
 
-medium		{ yylval.snum = 0; return SIGNEDNUMBER; }
+medium		{ yylval->snum = 0; return SIGNEDNUMBER; }
 
-high		{ yylval.snum = 1; return SIGNEDNUMBER; }
+high		{ yylval->snum = 1; return SIGNEDNUMBER; }
 
 {string}	{
 			static char string[256];
 
 			strncpy(string, yytext, sizeof(string));
 			string[sizeof(string)-1] = '\0';
-			yylval.str = string;
+			yylval->str = string;
 			return STRING;
 		}
 
@@ -152,3 +163,13 @@ high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 .		{ return T_BAD_TOKEN; }
 %%
+
+static void user_action(void * p, int lineno, int leng, int * column)
+{
+    YYLTYPE * loc = (YYLTYPE*)p;
+    loc->first_line = loc->last_line = lineno;
+    loc->first_column = *column;
+    loc->last_column = *column +leng -1;
+    *column += leng;
+}
+

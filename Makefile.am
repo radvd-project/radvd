@@ -43,12 +43,12 @@ sbin_PROGRAMS = \
 radvd_SOURCES = \
 	$(COMMON_SRC) \
 	device-common.c \
+	scanner.l \
 	gram.h \
 	gram.y \
 	interface.c \
 	process.c \
 	radvd.c \
-	scanner.l \
 	send.c \
 	timer.c
 
