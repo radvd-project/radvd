@@ -1,3 +1,6 @@
+07/02/2012 NETLINK_NO_ENOBUFS set on netlink socket to prevent
+		endless error loop.  Patch by Ulrich Weber
+
 25/01/2012	PID in PID file is now correct
 			1.8.5rc1
 
