@@ -221,7 +221,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	while(prefix)
 	{
-		if( prefix->enabled && prefix->curr_preferredlft > 0 )
+		if( prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0) )
 		{
 			struct nd_opt_prefix_info *pinfo;
 
