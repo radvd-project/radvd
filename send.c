@@ -127,6 +127,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	struct AdvDNSSL *dnssl;
 	struct timeval time_now;
 	time_t secs_since_last_ra;
+	char addr_str[INET6_ADDRSTRLEN];
 
 	unsigned char buff[MSG_SIZE_SEND];
 	size_t buff_dest = 0;
@@ -263,6 +264,8 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
 			       sizeof(struct in6_addr));
+			print_addr(&prefix->Prefix, addr_str);
+			dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
 		}
 
 		prefix = prefix->next;
@@ -510,6 +513,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 	pkt_info->ipi6_ifindex = iface->if_index;
+	dlog(LOG_DEBUG, 4, "using if_index %d for interface %s", iface->if_index, iface->Name);
 	memcpy(&pkt_info->ipi6_addr, &iface->if_addr, sizeof(struct in6_addr));
 
 #ifdef HAVE_SIN6_SCOPE_ID
