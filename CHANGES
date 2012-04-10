@@ -1,3 +1,6 @@
+10/04/2012	Using libdaemon
+			bumping version to 1.9
+
 22/02/2012	include the prefix option in the RA packets even when
 			AdvPreferredLifetime equals 0, and set AdvPreferredLifetime
 			as user specified(zero).  Li Wei <lw@cn.fujitsu.com>
