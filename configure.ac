@@ -193,7 +193,7 @@ AC_SUBST(PATH_RADVD_LOG)
 AC_SUBST(LOG_FACILITY)
 
 AM_CONFIG_HEADER(config.h)
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile redhat/radvd.spec)
 
 cat << EOF
 
