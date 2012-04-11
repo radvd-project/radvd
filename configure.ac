@@ -137,15 +137,11 @@ AC_CHECK_LIB(c, inet_ntop,,
 # prevent caching
 unset ac_cv_lib_inet6_inet_ntop
 
-AC_CHECK_LIB([daemon], [daemon_fork], ,
- AC_MSG_ERROR([Could not use libdaemon library])
-)
+PKG_CHECK_MODULES([DAEMON], libdaemon)
 
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS( \
-	libdaemon/dfork.h \
-	libdaemon/dpid.h \
 	getopt.h \
 	ifaddrs.h \
 	machine/limits.h \
