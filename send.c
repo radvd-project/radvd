@@ -391,7 +391,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 				if (label[0] == '.')
 					label++;
-				else {
+				if (label[0] == '\0')
 					buff_dest = len;
 					send_ra_inc_len(&len, 1);
 					buff[buff_dest] = 0;
