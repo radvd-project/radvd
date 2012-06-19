@@ -176,7 +176,7 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
 
 CONDITIONAL_SOURCES="device-${arch}.${OBJEXT} ${CONDITIONAL_SOURCES}"
-if test x${arch} == xlinux ; then
+if test x${arch} = xlinux ; then
 	CONDITIONAL_SOURCES="privsep-${arch}.${OBJEXT} ${CONDITIONAL_SOURCES}"
 	AC_DEFINE(USE_PRIVSEP, 1, [Use privsep])
 fi
