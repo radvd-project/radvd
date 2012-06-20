@@ -157,8 +157,6 @@ AC_CHECK_HEADERS( \
 AC_HEADER_TIME
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-
 AC_MSG_CHECKING(whether struct sockaddr_in6 has sin6_scope_id)
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <netinet/in.h>], [static struct sockaddr_in6 ac_sin6; int ac_size = 
