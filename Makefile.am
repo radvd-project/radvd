@@ -131,5 +131,5 @@ dist-hook:
 	rm -f $(distdir)/gram.h
 	rm -f $(distdir)/scanner.c
 
-scanner.o: gram.h
+scanner.c: gram.h
 
