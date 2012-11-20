@@ -9,7 +9,7 @@
  *
  *   The license which is distributed with this software in the file COPYRIGHT
  *   applies to this software. If your distribution is missing this file, you
- *   may request it from <pekkas@netcore.fi>.
+ *   may request it from <reubenhwk@gmail.com>.
  *
  */
 
@@ -21,7 +21,7 @@
 #include "defaults.h"
 #include "log.h"
 
-#define CONTACT_EMAIL	"Pekka Savola <pekkas@netcore.fi>"
+#define CONTACT_EMAIL	"Reuben Hawkins <reubenhwk@gmail.com>"
 
 extern int sock;
 

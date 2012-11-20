@@ -8,7 +8,7 @@ dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
 dnl   applies to this software. If your distribution is missing this file, you
-dnl   may request it from <pekkas@netcore.fi>.
+dnl   may request it from <reubenhwk@gmail.com>.
 dnl
 dnl
 
