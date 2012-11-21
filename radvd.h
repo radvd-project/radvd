@@ -112,13 +112,7 @@ struct AdvPrefix {
 	/* Mobile IPv6 extensions */
 	int             	AdvRouterAddr;
 
-	/* 6to4 etc. extensions */
-	char			if6to4[IFNAMSIZ];
 	int			enabled;
-	int			AutoSelected;
-
-	/* Select prefixes from this interface. */
-	char			if6[IFNAMSIZ];
 
 	struct AdvPrefix	*next;
 };

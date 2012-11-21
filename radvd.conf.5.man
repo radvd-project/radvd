@@ -49,14 +49,6 @@ Prefix can be network prefix or the address of the inferface.
 The address of interface should be used when using Mobile IPv6
 extensions.
 
-Special prefix "::/64" is also supported on systems that implement getifaddrs()
-(on other systems, configuration activation fails and radvd exits).
-When configured, radvd
-picks all non-link-local prefix assigned to the interface and starts advertising
-it.  This may be applicable in non-6to4 scenarios where the upstream prefix might
-change.  This option is incompatible with Base6to4Interface option.
-AdvRouterAddr option is always enabled when this configuration is used.
-
 All the possible prefix specific options are described below.  Each
 option has to be terminated by a semicolon.
 
@@ -441,50 +433,6 @@ See RFC3633, "IPv6 Prefix Options for Dynamic Host Configuration Protocol (DHCP)
 
 Default: off
 
-.TP
-.BR "Base6Interface " name 
-
-If this options is specified, this prefix will be combined with the
-IPv6 address of the interface specified by
-.B name.  
-The resulting prefix length will be 64.
-
-.TP
-.BR "Base6to4Interface " name 
-
-If this option is specified, this prefix will be combined with the
-IPv4 address of interface
-.B name
-to produce a valid 6to4 prefix. The first 16 bits of this prefix
-will be replaced by
-.B 2002
-and the next 32 bits of this prefix will be replaced by the IPv4
-address assigned to interface
-.B name
-at configuration time. The remaining 80 bits of the prefix (including
-the SLA ID) will be advertised as specified in the configuration file.
-See the next section for an example.
-
-If interface
-.B name
-is not available at configuration time, a warning will be written to
-the log and this prefix will be disabled until radvd is reconfigured.
-
-This option enables systems with dynamic IPv4 addresses to update their
-advertised 6to4 prefixes simply by restarting radvd or sending a SIGHUP
-signal to cause radvd to reconfigure itself.
-
-Note that 6to4 prefixes derived from dynamically-assigned IPv4 addresses
-should be advertised with a significantly shorter lifetime (see the
-.B AdvValidLifetime
-and
-.B AdvPreferredLifetime
-options).
-
-For more information on 6to4, see RFC 3056.
-
-Default: 6to4 is not used
-
 .SH ROUTE SPECIFIC OPTIONS
 
 .TP
@@ -581,47 +529,6 @@ interface eth0
         };
 };
 .fi
-
-For 6to4 support, include the
-.B Base6to4Interface
-option in each prefix section. When using a dynamic IPv4 address, set
-small prefix lifetimes to prevent hosts from retaining unreachable
-prefixes after a new IPv4 address has been assigned.  When advertising to on
-a dynamic interface (e.g., Bluetooth), skip the interface if it is not
-active yet.
-
-.nf
-interface bnep0
-{
-        IgnoreIfMissing on;
-        AdvSendAdvert on;
-
-        # Advertise at least every 30 seconds
-        MaxRtrAdvInterval 30;
-
-        prefix 0:0:0:5678::/64
-        {
-                AdvOnLink on;
-                AdvAutonomous on;
-                Base6to4Interface ppp0;
-
-                # Very short lifetimes for dynamic addresses
-                AdvValidLifetime 300;
-                AdvPreferredLifetime 120;
-        };
-};
-.fi
-
-Since 6to4 is enabled, the prefix will be advertised as
-2002:WWXX:YYZZ:5678::/64, where WW.XX.YY.ZZ is the IPv4 address of
-ppp0 at configuration time. (IPv6 addresses are written in hexadecimal
-whereas IPv4 addresses are written in decimal, so the IPv4 address
-WW.XX.YY.ZZ in the 6to4 prefix will be represented in hex.)
-
-In this specific case, the configuration scripts may send HUP signal to
-radvd when taking bnep0 up or down to notify about the status; in the
-current radvd releases, sending HUP is no longer mandatory when the link
-comes back up.
 
 .nf
 interface eth0
