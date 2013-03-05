@@ -89,10 +89,10 @@ void timer_handler(void *data);
 void config_interface(void);
 void kickoff_adverts(void);
 void stop_adverts(void);
+void validate_configuration_or_die(void);
 void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
-int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void main_loop(void);
@@ -235,13 +235,6 @@ main(int argc, char *argv[])
 		flog(LOG_INFO, "version %s started", VERSION);
 	}
 
-	/* get a raw socket for sending and receiving ICMPv6 messages */
-	sock = open_icmpv6_socket();
-	if (sock < 0) {
-		perror("open_icmpv6_socket");
-		exit(1);
-	}
-
 	/* check that 'other' cannot write the file
          * for non-root, also that self/own group can't either
          */
@@ -254,11 +247,6 @@ main(int argc, char *argv[])
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
 
-	/* if we know how to do it, check whether forwarding is enabled */
-	if (check_ip6_forwarding()) {
-		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
-	}
-
 	/* parse config file */
 	if (readin_config(conf_file) < 0) {
 		flog(LOG_ERR, "Exiting, failed to read config file.\n");
@@ -269,6 +257,22 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Syntax OK\n");
 		exit(0);
 	}
+
+	/* get a raw socket for sending and receiving ICMPv6 messages */
+	sock = open_icmpv6_socket();
+	if (sock < 0) {
+		perror("open_icmpv6_socket");
+		exit(1);
+	}
+
+	/* Must do this after sock is opened */
+	validate_configuration_or_die();
+
+	/* if we know how to do it, check whether forwarding is enabled */
+	if (check_ip6_forwarding()) {
+		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
+	}
+
 
 #ifdef USE_PRIVSEP
 	dlog(LOG_DEBUG, 3, "Initializing privsep");
@@ -620,6 +624,8 @@ void reload_config(void)
 		exit(1);
 	}
 
+	validate_configuration_or_die();
+
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();
 	kickoff_adverts();
@@ -755,6 +761,53 @@ check_conffile_perm(const char *username, const char *conf_file)
 
         return 0;
 }
+
+void
+validate_configuration_or_die(void)
+{
+	struct Interface *iface;
+
+	for (iface = IfaceList; iface; iface = iface->next) {
+		if (check_device(iface) < 0) {
+			if (iface->IgnoreIfMissing) {
+				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
+			}
+			else {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+		}
+
+		if (setup_deviceinfo(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "setup_deviceinfo on %s failed", iface->Name);
+				exit(1);
+			}
+		}
+
+		if (check_iface(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "check_iface on %s failed", iface->Name);
+				exit(1);
+			}
+		}
+
+		if (setup_linklocal_addr(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "setup_linklocal_addr on %s failed", iface->Name);
+				exit(1);
+			}
+		}
+
+		if (setup_allrouters_membership(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "setup_allrouters_membership on %s failed", iface->Name);
+				exit(1);
+			}
+		}
+	}
+}
+
 
 int
 check_ip6_forwarding(void)

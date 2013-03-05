@@ -27,11 +27,11 @@ static void yyerror(void const * loc, void * vp, char const * s);
 #include "defaults.h"
 
 extern struct Interface *IfaceList;
-struct Interface *iface = NULL;
-struct AdvPrefix *prefix = NULL;
-struct AdvRoute *route = NULL;
-struct AdvRDNSS *rdnss = NULL;
-struct AdvDNSSL *dnssl = NULL;
+static struct Interface *iface = NULL;
+static struct AdvPrefix *prefix = NULL;
+static struct AdvRoute *route = NULL;
+static struct AdvRDNSS *rdnss = NULL;
+static struct AdvDNSSL *dnssl = NULL;
 
 extern char *conf_file;
 extern int num_lines;
@@ -174,28 +174,6 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				}
 				iface2 = iface2->next;
 			}
-
-			if (check_device(iface) < 0) {
-				if (iface->IgnoreIfMissing) {
-					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
-				}
-				else {
-					flog(LOG_ERR, "interface %s does not exist", iface->Name);
-					ABORT;
-				}
-			}
-			if (setup_deviceinfo(iface) < 0)
-				if (!iface->IgnoreIfMissing)
-				ABORT;
-			if (check_iface(iface) < 0)
-				if (!iface->IgnoreIfMissing)
-				ABORT;
-			if (setup_linklocal_addr(iface) < 0)
-				if (!iface->IgnoreIfMissing)
-				ABORT;
-			if (setup_allrouters_membership(iface) < 0)
-				if (!iface->IgnoreIfMissing)
-				ABORT;
 
 			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
 
