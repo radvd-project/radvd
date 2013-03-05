@@ -58,7 +58,6 @@ prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
 	prefix->DeprecatePrefixFlag = DFLT_DeprecatePrefixFlag;
 	prefix->DecrementLifetimesFlag = DFLT_DecrementLifetimesFlag;
-	prefix->if6to4[0] = 0;
 	prefix->enabled = 1;
 
 	prefix->curr_validlft = prefix->AdvValidLifetime;

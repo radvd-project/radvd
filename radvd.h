@@ -112,13 +112,7 @@ struct AdvPrefix {
 	/* Mobile IPv6 extensions */
 	int             	AdvRouterAddr;
 
-	/* 6to4 etc. extensions */
-	char			if6to4[IFNAMSIZ];
 	int			enabled;
-	int			AutoSelected;
-
-	/* Select prefixes from this interface. */
-	char			if6[IFNAMSIZ];
 
 	struct AdvPrefix	*next;
 };
@@ -178,10 +172,7 @@ struct HomeAgentInfo {
 
 
 /* gram.y */
-int yyparse(void);
-
-/* scanner.l */
-int yylex(void);
+int readin_config(char *fname);
 
 /* radvd.c */
 int check_ip6_forwarding(void);
