@@ -27,40 +27,21 @@ static void yyerror(void const * loc, void * vp, char const * s);
 #include "defaults.h"
 
 extern struct Interface *IfaceList;
-static struct Interface *iface = NULL;
-static struct AdvPrefix *prefix = NULL;
-static struct AdvRoute *route = NULL;
-static struct AdvRDNSS *rdnss = NULL;
-static struct AdvDNSSL *dnssl = NULL;
-
 extern char *conf_file;
 extern int num_lines;
 extern char *yytext;
 
-static void cleanup(void);
-
-#if 0 /* no longer necessary? */
-#ifndef HAVE_IN6_ADDR_S6_ADDR
-# ifdef __FreeBSD__
-#  define s6_addr32 __u6_addr.__u6_addr32
-#  define s6_addr16 __u6_addr.__u6_addr16
-# endif
-#endif
-#endif
-
-#define ABORT	do { cleanup(); YYABORT; } while (0);
 #define ADD_TO_LL(type, list, value) \
 	do { \
-		if (iface->list == NULL) \
-			iface->list = value; \
+		if (yydata->iface->list == NULL) \
+			yydata->iface->list = value; \
 		else { \
-			type *current = iface->list; \
+			type *current = yydata->iface->list; \
 			while (current->next != NULL) \
 				current = current->next; \
 			current->next = value; \
 		} \
 	} while (0)
-
 %}
 
 %token		T_INTERFACE
@@ -150,6 +131,10 @@ static void cleanup(void);
 %{
 #include "scanner.h"
 #include "parser.h"
+
+static void cleanup(struct yydata * yydata);
+#define ABORT	do { cleanup(yydata); YYABORT; } while (0);
+
 #define YYLEX_PARAM yydata->scaninfo
 %}
 
@@ -166,35 +151,35 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 			iface2 = IfaceList;
 			while (iface2)
 			{
-				if (!strcmp(iface2->Name, iface->Name))
+				if (!strcmp(iface2->Name, yydata->iface->Name))
 				{
-					flog(LOG_ERR, "duplicate interface "
-						"definition for %s", iface->Name);
+				flog(LOG_ERR, "duplicate interface "
+						"definition for %s", yydata->iface->Name);
 					ABORT;
 				}
 				iface2 = iface2->next;
 			}
 
-			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
+			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", yydata->iface->Name);
 
-			iface->next = IfaceList;
-			IfaceList = iface;
+			yydata->iface->next = IfaceList;
+			IfaceList = yydata->iface;
 
-			iface = NULL;
+			yydata->iface = NULL;
 		};
 
 ifacehead	: T_INTERFACE name
 		{
-			iface = malloc(sizeof(struct Interface));
+			yydata->iface = malloc(sizeof(struct Interface));
 
-			if (iface == NULL) {
+			if (yydata->iface == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			iface_init_defaults(iface);
-			strncpy(iface->Name, $2, IFNAMSIZ-1);
-			iface->Name[IFNAMSIZ-1] = '\0';
+			iface_init_defaults(yydata->iface);
+			strncpy(yydata->iface->Name, $2, IFNAMSIZ-1);
+			yydata->iface->Name[IFNAMSIZ-1] = '\0';
 		}
 		;
 
@@ -220,99 +205,99 @@ ifaceparam 	: ifaceval
 
 ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
-			iface->MinRtrAdvInterval = $2;
+			yydata->iface->MinRtrAdvInterval = $2;
 		}
 		| T_MaxRtrAdvInterval NUMBER ';'
 		{
-			iface->MaxRtrAdvInterval = $2;
+			yydata->iface->MaxRtrAdvInterval = $2;
 		}
 		| T_MinDelayBetweenRAs NUMBER ';'
 		{
-			iface->MinDelayBetweenRAs = $2;
+			yydata->iface->MinDelayBetweenRAs = $2;
 		}
 		| T_MinRtrAdvInterval DECIMAL ';'
 		{
-			iface->MinRtrAdvInterval = $2;
+			yydata->iface->MinRtrAdvInterval = $2;
 		}
 		| T_MaxRtrAdvInterval DECIMAL ';'
 		{
-			iface->MaxRtrAdvInterval = $2;
+			yydata->iface->MaxRtrAdvInterval = $2;
 		}
 		| T_MinDelayBetweenRAs DECIMAL ';'
 		{
-			iface->MinDelayBetweenRAs = $2;
+			yydata->iface->MinDelayBetweenRAs = $2;
 		}
 		| T_IgnoreIfMissing SWITCH ';'
 		{
-			iface->IgnoreIfMissing = $2;
+			yydata->iface->IgnoreIfMissing = $2;
 		}
 		| T_AdvSendAdvert SWITCH ';'
 		{
-			iface->AdvSendAdvert = $2;
+			yydata->iface->AdvSendAdvert = $2;
 		}
 		| T_AdvManagedFlag SWITCH ';'
 		{
-			iface->AdvManagedFlag = $2;
+			yydata->iface->AdvManagedFlag = $2;
 		}
 		| T_AdvOtherConfigFlag SWITCH ';'
 		{
-			iface->AdvOtherConfigFlag = $2;
+			yydata->iface->AdvOtherConfigFlag = $2;
 		}
 		| T_AdvLinkMTU NUMBER ';'
 		{
-			iface->AdvLinkMTU = $2;
+			yydata->iface->AdvLinkMTU = $2;
 		}
 		| T_AdvReachableTime NUMBER ';'
 		{
-			iface->AdvReachableTime = $2;
+			yydata->iface->AdvReachableTime = $2;
 		}
 		| T_AdvRetransTimer NUMBER ';'
 		{
-			iface->AdvRetransTimer = $2;
+			yydata->iface->AdvRetransTimer = $2;
 		}
 		| T_AdvDefaultLifetime NUMBER ';'
 		{
-			iface->AdvDefaultLifetime = $2;
+			yydata->iface->AdvDefaultLifetime = $2;
 		}
 		| T_AdvDefaultPreference SIGNEDNUMBER ';'
 		{
-			iface->AdvDefaultPreference = $2;
+			yydata->iface->AdvDefaultPreference = $2;
 		}
 		| T_AdvCurHopLimit NUMBER ';'
 		{
-			iface->AdvCurHopLimit = $2;
+			yydata->iface->AdvCurHopLimit = $2;
 		}
 		| T_AdvSourceLLAddress SWITCH ';'
 		{
-			iface->AdvSourceLLAddress = $2;
+			yydata->iface->AdvSourceLLAddress = $2;
 		}
 		| T_AdvIntervalOpt SWITCH ';'
 		{
-			iface->AdvIntervalOpt = $2;
+			yydata->iface->AdvIntervalOpt = $2;
 		}
 		| T_AdvHomeAgentInfo SWITCH ';'
 		{
-			iface->AdvHomeAgentInfo = $2;
+			yydata->iface->AdvHomeAgentInfo = $2;
 		}
 		| T_AdvHomeAgentFlag SWITCH ';'
 		{
-			iface->AdvHomeAgentFlag = $2;
+			yydata->iface->AdvHomeAgentFlag = $2;
 		}
 		| T_HomeAgentPreference NUMBER ';'
 		{
-			iface->HomeAgentPreference = $2;
+			yydata->iface->HomeAgentPreference = $2;
 		}
 		| T_HomeAgentLifetime NUMBER ';'
 		{
-			iface->HomeAgentLifetime = $2;
+			yydata->iface->HomeAgentLifetime = $2;
 		}
 		| T_UnicastOnly SWITCH ';'
 		{
-			iface->UnicastOnly = $2;
+			yydata->iface->UnicastOnly = $2;
 		}
 		| T_AdvMobRtrSupportFlag SWITCH ';'
 		{
-			iface->AdvMobRtrSupportFlag = $2;
+			yydata->iface->AdvMobRtrSupportFlag = $2;
 		}
 		;
 
@@ -350,8 +335,8 @@ v6addrlist	: IPV6ADDR ';'
 
 prefixdef	: prefixhead optional_prefixplist ';'
 		{
-			if (prefix) {
-				if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
+			if (yydata->prefix) {
+				if (yydata->prefix->AdvPreferredLifetime > yydata->prefix->AdvValidLifetime)
 				{
 					flog(LOG_ERR, "AdvValidLifeTime must be "
 						"greater than AdvPreferredLifetime in %s, line %d",
@@ -360,21 +345,21 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				}
 
 			}
-			$$ = prefix;
-			prefix = NULL;
+			$$ = yydata->prefix;
+			yydata->prefix = NULL;
 		}
 		;
 
 prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 		{
-			prefix = malloc(sizeof(struct AdvPrefix));
+			yydata->prefix = malloc(sizeof(struct AdvPrefix));
 
-			if (prefix == NULL) {
+			if (yydata->prefix == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			prefix_init_defaults(prefix);
+			prefix_init_defaults(yydata->prefix);
 
 			if ($4 > MAX_PrefixLen)
 			{
@@ -382,9 +367,9 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			prefix->PrefixLen = $4;
+			yydata->prefix->PrefixLen = $4;
 
-			memcpy(&prefix->Prefix, $2, sizeof(struct in6_addr));
+			memcpy(&yydata->prefix->Prefix, $2, sizeof(struct in6_addr));
 		}
 		;
 
@@ -399,64 +384,64 @@ prefixplist	: prefixplist prefixparms
 
 prefixparms	: T_AdvOnLink SWITCH ';'
 		{
-			if (prefix) {
-				prefix->AdvOnLinkFlag = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvOnLinkFlag = $2;
 			}
 		}
 		| T_AdvAutonomous SWITCH ';'
 		{
-			if (prefix) {
-				prefix->AdvAutonomousFlag = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvAutonomousFlag = $2;
 			}
 		}
 		| T_AdvRouterAddr SWITCH ';'
 		{
-			if (prefix) {
-				prefix->AdvRouterAddr = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvRouterAddr = $2;
 			}
 		}
 		| T_AdvValidLifetime number_or_infinity ';'
 		{
-			if (prefix) {
-				prefix->AdvValidLifetime = $2;
-				prefix->curr_validlft = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvValidLifetime = $2;
+				yydata->prefix->curr_validlft = $2;
 			}
 		}
 		| T_AdvPreferredLifetime number_or_infinity ';'
 		{
-			if (prefix) {
-				prefix->AdvPreferredLifetime = $2;
-				prefix->curr_preferredlft = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvPreferredLifetime = $2;
+				yydata->prefix->curr_preferredlft = $2;
 			}
 		}
 		| T_DeprecatePrefix SWITCH ';'
 		{
-			prefix->DeprecatePrefixFlag = $2;
+			yydata->prefix->DeprecatePrefixFlag = $2;
 		}
 		| T_DecrementLifetimes SWITCH ';'
 		{
-			prefix->DecrementLifetimesFlag = $2;
+			yydata->prefix->DecrementLifetimesFlag = $2;
 		}
 		;
 
 routedef	: routehead '{' optional_routeplist '}' ';'
 		{
-			$$ = route;
-			route = NULL;
+			$$ = yydata->route;
+			yydata->route = NULL;
 		}
 		;
 
 
 routehead	: T_ROUTE IPV6ADDR '/' NUMBER
 		{
-			route = malloc(sizeof(struct AdvRoute));
+			yydata->route = malloc(sizeof(struct AdvRoute));
 
-			if (route == NULL) {
+			if (yydata->route == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			route_init_defaults(route, iface);
+			route_init_defaults(yydata->route, yydata->iface);
 
 			if ($4 > MAX_PrefixLen)
 			{
@@ -464,9 +449,9 @@ routehead	: T_ROUTE IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			route->PrefixLen = $4;
+			yydata->route->PrefixLen = $4;
 
-			memcpy(&route->Prefix, $2, sizeof(struct in6_addr));
+			memcpy(&yydata->route->Prefix, $2, sizeof(struct in6_addr));
 		}
 		;
 
@@ -482,22 +467,22 @@ routeplist	: routeplist routeparms
 
 routeparms	: T_AdvRoutePreference SIGNEDNUMBER ';'
 		{
-			route->AdvRoutePreference = $2;
+			yydata->route->AdvRoutePreference = $2;
 		}
 		| T_AdvRouteLifetime number_or_infinity ';'
 		{
-			route->AdvRouteLifetime = $2;
+			yydata->route->AdvRouteLifetime = $2;
 		}
 		| T_RemoveRoute SWITCH ';'
 		{
-			route->RemoveRouteFlag = $2;
+			yydata->route->RemoveRouteFlag = $2;
 		}
 		;
 
 rdnssdef	: rdnsshead '{' optional_rdnssplist '}' ';'
 		{
-			$$ = rdnss;
-			rdnss = NULL;
+			$$ = yydata->rdnss;
+			yydata->rdnss = NULL;
 		}
 		;
 
@@ -507,30 +492,30 @@ rdnssaddrs	: rdnssaddrs rdnssaddr
 
 rdnssaddr	: IPV6ADDR
 		{
-			if (!rdnss) {
+			if (!yydata->rdnss) {
 				/* first IP found */
-				rdnss = malloc(sizeof(struct AdvRDNSS));
+				yydata->rdnss = malloc(sizeof(struct AdvRDNSS));
 
-				if (rdnss == NULL) {
+				if (yydata->rdnss == NULL) {
 					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 					ABORT;
 				}
 
-				rdnss_init_defaults(rdnss, iface);
+				rdnss_init_defaults(yydata->rdnss, yydata->iface);
 			}
 
-			switch (rdnss->AdvRDNSSNumber) {
+			switch (yydata->rdnss->AdvRDNSSNumber) {
 				case 0:
-					memcpy(&rdnss->AdvRDNSSAddr1, $1, sizeof(struct in6_addr));
-					rdnss->AdvRDNSSNumber++;
+					memcpy(&yydata->rdnss->AdvRDNSSAddr1, $1, sizeof(struct in6_addr));
+					yydata->rdnss->AdvRDNSSNumber++;
 					break;
 				case 1:
-					memcpy(&rdnss->AdvRDNSSAddr2, $1, sizeof(struct in6_addr));
-					rdnss->AdvRDNSSNumber++;
+					memcpy(&yydata->rdnss->AdvRDNSSAddr2, $1, sizeof(struct in6_addr));
+					yydata->rdnss->AdvRDNSSNumber++;
 					break;
 				case 2:
-					memcpy(&rdnss->AdvRDNSSAddr3, $1, sizeof(struct in6_addr));
-					rdnss->AdvRDNSSNumber++;
+					memcpy(&yydata->rdnss->AdvRDNSSAddr3, $1, sizeof(struct in6_addr));
+					yydata->rdnss->AdvRDNSSNumber++;
 					break;
 				default:
 					flog(LOG_CRIT, "Too many addresses in RDNSS section");
@@ -542,7 +527,7 @@ rdnssaddr	: IPV6ADDR
 
 rdnsshead	: T_RDNSS rdnssaddrs
 		{
-			if (!rdnss) {
+			if (!yydata->rdnss) {
 				flog(LOG_CRIT, "No address specified in RDNSS section");
 				ABORT;
 			}
@@ -568,25 +553,25 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{
-			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
+			if ($2 < yydata->iface->MaxRtrAdvInterval && $2 != 0) {
 				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
 				ABORT;
 			}
-			if ($2 > 2*(iface->MaxRtrAdvInterval))
+			if ($2 > 2*(yydata->iface->MaxRtrAdvInterval))
 				flog(LOG_WARNING, "Warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
 
-			rdnss->AdvRDNSSLifetime = $2;
+			yydata->rdnss->AdvRDNSSLifetime = $2;
 		}
 		| T_FlushRDNSS SWITCH ';'
 		{
-			rdnss->FlushRDNSSFlag = $2;
+			yydata->rdnss->FlushRDNSSFlag = $2;
 		}
 		;
 
 dnssldef	: dnsslhead '{' optional_dnsslplist '}' ';'
 		{
-			$$ = dnssl;
-			dnssl = NULL;
+			$$ = yydata->dnssl;
+			yydata->dnssl = NULL;
 		}
 		;
 
@@ -597,7 +582,7 @@ dnsslsuffixes	: dnsslsuffixes dnsslsuffix
 dnsslsuffix	: STRING
 		{
 			char *ch;
-			for (ch = $1;*ch != '\0';ch++) {
+			for (ch = $1; *ch != '\0'; ++ch) {
 				if (*ch >= 'A' && *ch <= 'Z')
 					continue;
 				if (*ch >= 'a' && *ch <= 'z')
@@ -611,34 +596,34 @@ dnsslsuffix	: STRING
 				ABORT;
 			}
 
-			if (!dnssl) {
+			if (!yydata->dnssl) {
 				/* first domain found */
-				dnssl = malloc(sizeof(struct AdvDNSSL));
+				yydata->dnssl = malloc(sizeof(struct AdvDNSSL));
 
-				if (dnssl == NULL) {
+				if (yydata->dnssl == NULL) {
 					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 					ABORT;
 				}
 
-				dnssl_init_defaults(dnssl, iface);
+				dnssl_init_defaults(yydata->dnssl, yydata->iface);
 			}
 
-			dnssl->AdvDNSSLNumber++;
-			dnssl->AdvDNSSLSuffixes =
-				realloc(dnssl->AdvDNSSLSuffixes,
-					dnssl->AdvDNSSLNumber * sizeof(char*));
-			if (dnssl->AdvDNSSLSuffixes == NULL) {
+			yydata->dnssl->AdvDNSSLNumber++;
+			yydata->dnssl->AdvDNSSLSuffixes =
+				realloc(yydata->dnssl->AdvDNSSLSuffixes,
+					yydata->dnssl->AdvDNSSLNumber * sizeof(char*));
+			if (yydata->dnssl->AdvDNSSLSuffixes == NULL) {
 				flog(LOG_CRIT, "realloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			dnssl->AdvDNSSLSuffixes[dnssl->AdvDNSSLNumber - 1] = strdup($1);
+			yydata->dnssl->AdvDNSSLSuffixes[yydata->dnssl->AdvDNSSLNumber - 1] = strdup($1);
 		}
 		;
 
 dnsslhead	: T_DNSSL dnsslsuffixes
 		{
-			if (!dnssl) {
+			if (!yydata->dnssl) {
 				flog(LOG_CRIT, "No domain specified in DNSSL section");
 				ABORT;
 			}
@@ -656,18 +641,18 @@ dnsslplist	: dnsslplist dnsslparms
 
 dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 		{
-			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
+			if ($2 < yydata->iface->MaxRtrAdvInterval && $2 != 0) {
 				flog(LOG_ERR, "AdvDNSSLLifetime must be at least MaxRtrAdvInterval");
 				ABORT;
 			}
-			if ($2 > 2*(iface->MaxRtrAdvInterval))
+			if ($2 > 2*(yydata->iface->MaxRtrAdvInterval))
 				flog(LOG_WARNING, "Warning: AdvDNSSLLifetime <= 2*MaxRtrAdvInterval would allow stale DNS suffixes to be deleted faster");
 
-			dnssl->AdvDNSSLLifetime = $2;
+			yydata->dnssl->AdvDNSSLLifetime = $2;
 		}
 		| T_FlushDNSSL SWITCH ';'
 		{
-			dnssl->FlushDNSSLFlag = $2;
+			yydata->dnssl->FlushDNSSLFlag = $2;
 		}
 		;
 
@@ -683,27 +668,26 @@ number_or_infinity	: NUMBER
 
 %%
 
-static
-void cleanup(void)
+static void cleanup(struct yydata * yydata)
 {
-	if (iface)
-		free(iface);
+	if (yydata->iface)
+		free(yydata->iface);
 
-	if (prefix)
-		free(prefix);
+	if (yydata->prefix)
+		free(yydata->prefix);
 
-	if (route)
-		free(route);
+	if (yydata->route)
+		free(yydata->route);
 
-	if (rdnss)
-		free(rdnss);
+	if (yydata->rdnss)
+		free(yydata->rdnss);
 
-	if (dnssl) {
+	if (yydata->dnssl) {
 		int i;
-		for (i = 0;i < dnssl->AdvDNSSLNumber;i++)
-			free(dnssl->AdvDNSSLSuffixes[i]);
-		free(dnssl->AdvDNSSLSuffixes);
-		free(dnssl);
+		for (i = 0; i < yydata->dnssl->AdvDNSSLNumber; ++i)
+			free(yydata->dnssl->AdvDNSSLSuffixes[i]);
+		free(yydata->dnssl->AdvDNSSLSuffixes);
+		free(yydata->dnssl);
 	}
 }
 
@@ -722,6 +706,7 @@ readin_config(char *fname)
 		return (-1);
 	}
 
+	memset(&yydata, 0, sizeof(yydata));
 	yydata.filename = fname;
 	yylex_init(&yydata.scaninfo);
 	yyset_in(in, yydata.scaninfo);
@@ -750,7 +735,7 @@ yyerror(void const * loc, void * vp, char const * msg)
 	YYLTYPE const * t = (YYLTYPE const*)loc;
 	struct yydata * yydata = (struct yydata *)vp;
 
-	cleanup();
+	cleanup(yydata);
 
 	rc = asprintf(&str1, "%s", msg);
 	if (rc == -1) {
