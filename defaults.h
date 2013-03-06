@@ -1,9 +1,15 @@
 /*
  *
  *   Authors:
- *    Lars Fenneberg		<lf@elemental.net>
+ *    Lars Fenneberg	<lf@elemental.net>
+ *    Pekka Savola		<pekkas@netcore.fi>
+ *    Craig Metz		<cmetz@inner.net>
+ *    Jim Paris			<jim@jtan.com>
+ *    Marko Myllynen	<myllynen@lut.fi>
+ *    Pedro Roque		<roque@di.fc.ul.pt>
+ *    Reuben Hawkins	<reubenhwk@gmail.com>
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s),
+ *   This software is Copyright 1996,1997 by the above mentioned author(s), 
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -12,8 +18,8 @@
  *
  */
 
-#ifndef DEFAULTS_H
-#define DEFAULTS_H
+#pragma once
+
 
 #include "config.h"
 #include "includes.h"
@@ -250,4 +256,3 @@ struct nd_opt_dnssl_info_local
 #endif
 #endif
 
-#endif

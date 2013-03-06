@@ -1,9 +1,15 @@
 dnl
 dnl
 dnl   Authors:
-dnl    Lars Fenneberg		<lf@elemental.net>	 
+dnl    Lars Fenneberg	<lf@elemental.net>
+dnl    Pekka Savola		<pekkas@netcore.fi>
+dnl    Craig Metz		<cmetz@inner.net>
+dnl    Jim Paris			<jim@jtan.com>
+dnl    Marko Myllynen	<myllynen@lut.fi>
+dnl    Pedro Roque		<roque@di.fc.ul.pt>
+dnl    Reuben Hawkins	<reubenhwk@gmail.com>
 dnl
-dnl   This software is Copyright 1996-2000 by the above mentioned author(s), 
+dnl   This software is Copyright 1996,1997 by the above mentioned author(s), 
 dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
@@ -11,6 +17,7 @@ dnl   applies to this software. If your distribution is missing this file, you
 dnl   may request it from <reubenhwk@gmail.com>.
 dnl
 dnl
+
 
 AC_INIT(radvd.c)
 

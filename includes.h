@@ -1,9 +1,15 @@
 /*
  *
  *   Authors:
- *    Lars Fenneberg		<lf@elemental.net>
+ *    Lars Fenneberg	<lf@elemental.net>
+ *    Pekka Savola		<pekkas@netcore.fi>
+ *    Craig Metz		<cmetz@inner.net>
+ *    Jim Paris			<jim@jtan.com>
+ *    Marko Myllynen	<myllynen@lut.fi>
+ *    Pedro Roque		<roque@di.fc.ul.pt>
+ *    Reuben Hawkins	<reubenhwk@gmail.com>
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s),
+ *   This software is Copyright 1996,1997 by the above mentioned author(s), 
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -12,8 +18,7 @@
  *
  */
 
-#ifndef INCLUDES_H
-#define INCLUDES_H
+#pragma once
 
 #include "config.h"
 
@@ -98,4 +103,3 @@
 # include <ifaddrs.h>
 #endif
 
-#endif /* INCLUDES_H */

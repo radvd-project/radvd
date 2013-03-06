@@ -1,17 +1,3 @@
-/*
- *
- *   Authors:
- *    Lars Fenneberg		<lf@elemental.net>
- *    Marko Myllynen		<myllynen@lut.fi>
- *
- *   This software is Copyright 1996-2000 by the above mentioned author(s),
- *   All Rights Reserved.
- *
- *   The license which is distributed with this software in the file COPYRIGHT
- *   applies to this software. If your distribution is missing this file, you
- *   may request it from <reubenhwk@gmail.com>.
- *
- */
 
 #include "config.h"
 #include "includes.h"
