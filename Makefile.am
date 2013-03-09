@@ -133,3 +133,6 @@ dist-hook:
 
 scanner.c: gram.h
 
+ctags:
+	ctags -R --c++-kinds=+p --fields=+iaS --extra=+q ./
+
