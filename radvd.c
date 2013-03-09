@@ -582,6 +582,12 @@ void reload_config(void)
 		{
 			struct AdvPrefix *next_prefix = prefix->next;
 
+			while (prefix->PrefixList) {
+				struct PrefixList * next_prefix_list = prefix->PrefixList->next;
+				free(prefix->PrefixList);
+				prefix->PrefixList = next_prefix_list;
+			}
+
 			free(prefix);
 			prefix = next_prefix;
 		}
@@ -693,18 +699,28 @@ void reset_prefix_lifetimes(void)
 	
 	for (iface = IfaceList; iface; iface = iface->next) 
 	{
-		for (prefix = iface->AdvPrefixList; prefix;
-							prefix = prefix->next) 
+		for (prefix = iface->AdvPrefixList; prefix; prefix = prefix->next) 
 		{
 			if (prefix->DecrementLifetimesFlag)
 			{
-				print_addr(&prefix->Prefix, pfx_str);
-				dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
-				dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_validlft, prefix->AdvValidLifetime);
-				prefix->curr_validlft =
-						prefix->AdvValidLifetime;
-				prefix->curr_preferredlft =
-						prefix->AdvPreferredLifetime;
+				struct PrefixList * pl = prefix->PrefixList;
+
+				while (pl) {
+					print_addr(&pl->Prefix, pfx_str);
+
+					dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", 
+						pfx_str, pl->PrefixLen, iface->Name,
+						prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
+
+					dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs",
+						pfx_str, pl->PrefixLen, iface->Name,
+						prefix->curr_validlft, prefix->AdvValidLifetime);
+
+					pl = pl->next;
+				}
+
+				prefix->curr_validlft = prefix->AdvValidLifetime;
+				prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
 			}
 		}
 		

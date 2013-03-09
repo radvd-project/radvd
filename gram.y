@@ -26,6 +26,7 @@
 
 %{
 #define YYERROR_VERBOSE
+static struct AdvPrefix * NewAdvPrefix(void);
 static void yyerror(void const * loc, void * vp, char const * s);
 #include "config.h"
 #include "includes.h"
@@ -52,6 +53,7 @@ extern char *yytext;
 
 %token		T_INTERFACE
 %token		T_PREFIX
+%token		T_AUTO
 %token		T_ROUTE
 %token		T_RDNSS
 %token		T_DNSSL
@@ -358,14 +360,20 @@ prefixdef	: prefixhead optional_prefixplist ';'
 
 prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 		{
-			yydata->prefix = malloc(sizeof(struct AdvPrefix));
+			yydata->prefix = NewAdvPrefix();
 
 			if (yydata->prefix == NULL) {
+				ABORT;
+			}
+
+			yydata->prefix->PrefixList = malloc(sizeof(struct PrefixList));
+
+			if (yydata->prefix->PrefixList == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			prefix_init_defaults(yydata->prefix);
+			yydata->prefix->PrefixList->next = NULL;
 
 			if ($4 > MAX_PrefixLen)
 			{
@@ -373,9 +381,17 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			yydata->prefix->PrefixLen = $4;
+			yydata->prefix->PrefixList->PrefixLen = $4;
 
-			memcpy(&yydata->prefix->Prefix, $2, sizeof(struct in6_addr));
+			memcpy(&yydata->prefix->PrefixList->Prefix, $2, sizeof(struct in6_addr));
+		}
+		| T_PREFIX T_AUTO
+		{
+			yydata->prefix = NewAdvPrefix();
+
+			if (yydata->prefix == NULL) {
+				ABORT;
+			}
 		}
 		;
 
@@ -673,6 +689,21 @@ number_or_infinity	: NUMBER
 			;
 
 %%
+
+
+static struct AdvPrefix * NewAdvPrefix(void)
+{
+	struct AdvPrefix * prefix = malloc(sizeof(struct AdvPrefix));
+
+	if (prefix == NULL) {
+		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+	}
+	else {
+		prefix_init_defaults(prefix);
+	}
+
+	return prefix;
+}
 
 static void cleanup(struct yydata * yydata)
 {

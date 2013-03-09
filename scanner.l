@@ -62,6 +62,7 @@ string		[a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]+
 
 interface		{ return T_INTERFACE; }
 prefix			{ return T_PREFIX; }
+auto			{ return T_AUTO; }
 route			{ return T_ROUTE; }
 RDNSS			{ return T_RDNSS; }
 DNSSL			{ return T_DNSSL; }

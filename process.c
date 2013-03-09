@@ -333,30 +333,34 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			prefix = iface->AdvPrefixList;
 			while (prefix)
 			{
-				if (prefix->enabled &&
-				    (prefix->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
-				    addr_match(&prefix->Prefix, &pinfo->nd_opt_pi_prefix,
-				    	 prefix->PrefixLen))
-				{
-					print_addr(&prefix->Prefix, prefix_str);
-
-					if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime)
-					{
-						flog(LOG_WARNING, "our AdvValidLifetime on"
-						 " %s for %s doesn't agree with %s",
-						 iface->Name,
-						 prefix_str,
-						 addr_str
-						 );
-					}
-					if (!prefix->DecrementLifetimesFlag && preferred != prefix->AdvPreferredLifetime)
-					{
-						flog(LOG_WARNING, "our AdvPreferredLifetime on"
-						 " %s for %s doesn't agree with %s",
-						 iface->Name,
-						 prefix_str,
-						 addr_str
-						 );
+				if (prefix->enabled) {
+					struct PrefixList * pl = prefix->PrefixList;
+					while (pl) {
+						if ((pl->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
+					    	addr_match(&pl->Prefix, &pinfo->nd_opt_pi_prefix,
+					    	 pl->PrefixLen)) {
+							print_addr(&pl->Prefix, prefix_str);
+	
+							if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime)
+							{
+								flog(LOG_WARNING, "our AdvValidLifetime on"
+								 " %s for %s doesn't agree with %s",
+								 iface->Name,
+								 prefix_str,
+								 addr_str
+								 );
+							}
+							if (!prefix->DecrementLifetimesFlag && preferred != prefix->AdvPreferredLifetime)
+							{
+								flog(LOG_WARNING, "our AdvPreferredLifetime on"
+								 " %s for %s doesn't agree with %s",
+								 iface->Name,
+								 prefix_str,
+								 addr_str
+								 );
+							}
+						}
+						pl = pl->next;
 					}
 				}
 

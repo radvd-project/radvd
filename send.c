@@ -219,48 +219,53 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	{
 		if( prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0) )
 		{
-			struct nd_opt_prefix_info *pinfo;
+			struct PrefixList * pl = prefix->PrefixList;
+			while (pl) {
+				struct nd_opt_prefix_info *pinfo;
 
-			pinfo = (struct nd_opt_prefix_info *) (buff + len);
+				pinfo = (struct nd_opt_prefix_info *) (buff + len);
 
-			send_ra_inc_len(&len, sizeof(*pinfo));
+				send_ra_inc_len(&len, sizeof(*pinfo));
 
-			pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
-			pinfo->nd_opt_pi_len	     = 4;
-			pinfo->nd_opt_pi_prefix_len  = prefix->PrefixLen;
+				pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
+				pinfo->nd_opt_pi_len	     = 4;
+				pinfo->nd_opt_pi_prefix_len  = pl->PrefixLen;
 
-			pinfo->nd_opt_pi_flags_reserved  =
-				(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
-			pinfo->nd_opt_pi_flags_reserved	|=
-				(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
-			/* Mobile IPv6 ext */
-			pinfo->nd_opt_pi_flags_reserved |=
-				(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
+				pinfo->nd_opt_pi_flags_reserved  =
+					(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
+				pinfo->nd_opt_pi_flags_reserved	|=
+					(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
+				/* Mobile IPv6 ext */
+				pinfo->nd_opt_pi_flags_reserved |=
+					(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
 
-			if (iface->cease_adv && prefix->DeprecatePrefixFlag) {
-				/* RFC4862, 5.5.3, step e) */
-				pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
-				pinfo->nd_opt_pi_preferred_time = 0;
-			} else {
-				if (prefix->DecrementLifetimesFlag) {
-					decrement_lifetime(secs_since_last_ra,
-								&prefix->curr_validlft);
-					
-					decrement_lifetime(secs_since_last_ra,
-								&prefix->curr_preferredlft);
-					if (prefix->curr_preferredlft == 0)
-						cease_adv_pfx_msg(iface->Name, &prefix->Prefix, prefix->PrefixLen);
+				if (iface->cease_adv && prefix->DeprecatePrefixFlag) {
+					/* RFC4862, 5.5.3, step e) */
+					pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
+					pinfo->nd_opt_pi_preferred_time = 0;
+				} else {
+					if (prefix->DecrementLifetimesFlag) {
+						decrement_lifetime(secs_since_last_ra,
+									&prefix->curr_validlft);
+						
+						decrement_lifetime(secs_since_last_ra,
+									&prefix->curr_preferredlft);
+						if (prefix->curr_preferredlft == 0)
+							cease_adv_pfx_msg(iface->Name, &pl->Prefix, pl->PrefixLen);
+					}
+					pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
+					pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+
 				}
-				pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
-				pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+				pinfo->nd_opt_pi_reserved2	= 0;
 
+				memcpy(&pinfo->nd_opt_pi_prefix, &pl->Prefix,
+					   sizeof(struct in6_addr));
+				print_addr(&pl->Prefix, addr_str);
+				dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
+
+				pl = pl->next;
 			}
-			pinfo->nd_opt_pi_reserved2	= 0;
-
-			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix,
-			       sizeof(struct in6_addr));
-			print_addr(&prefix->Prefix, addr_str);
-			dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
 		}
 
 		prefix = prefix->next;

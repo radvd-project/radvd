@@ -113,12 +113,15 @@ setup_deviceinfo(struct Interface *iface)
 	prefix = iface->AdvPrefixList;
 	while (prefix)
 	{
-		if ((iface->if_prefix_len != -1) &&
-		   (iface->if_prefix_len != prefix->PrefixLen))
-		{
-			flog(LOG_WARNING, "prefix length should be %d for %s",
-				iface->if_prefix_len, iface->Name);
- 		}
+		struct PrefixList * pl = prefix->PrefixList;
+		while (pl) {
+			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != pl->PrefixLen))
+			{
+				flog(LOG_WARNING, "prefix length should be %d for %s",
+					iface->if_prefix_len, iface->Name);
+ 			}
+			pl = pl->next;
+		}
 
  		prefix = prefix->next;
 	}

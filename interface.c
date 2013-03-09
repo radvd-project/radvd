@@ -117,6 +117,7 @@ check_iface(struct Interface *iface)
 	}
 
 	prefix = iface->AdvPrefixList;
+
 	while (!MIPv6 && prefix)
 	{
 		if (prefix->AdvRouterAddr)
@@ -223,14 +224,20 @@ check_iface(struct Interface *iface)
 		res = -1;
 	}
 
-	/* XXX: need this? prefix = iface->AdvPrefixList; */
+	prefix = iface->AdvPrefixList;
 
 	while (prefix)
 	{
-		if (prefix->PrefixLen > MAX_PrefixLen)
-		{
-			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->PrefixLen, iface->Name);
-			res = -1;
+		struct PrefixList * pl = prefix->PrefixList;
+
+		while (pl) {
+			if (pl->PrefixLen > MAX_PrefixLen)
+			{
+				flog(LOG_ERR, "invalid prefix length (%u) for %s", pl->PrefixLen, iface->Name);
+				res = -1;
+			}
+
+			pl = pl->next;
 		}
 
 		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)

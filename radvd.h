@@ -99,9 +99,17 @@ struct Clients {
 	struct Clients		*next;
 };
 
-struct AdvPrefix {
+struct PrefixList
+{
+	struct PrefixList * next;
 	struct in6_addr		Prefix;
 	uint8_t			PrefixLen;
+};
+
+struct AdvPrefix {
+	struct AdvPrefix	*next;
+
+	struct PrefixList * PrefixList;
 
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
@@ -117,8 +125,6 @@ struct AdvPrefix {
 	int             	AdvRouterAddr;
 
 	int			enabled;
-
-	struct AdvPrefix	*next;
 };
 
 /* More-Specific Routes extensions */
