@@ -182,7 +182,7 @@ struct HomeAgentInfo {
 
 
 /* gram.y */
-int readin_config(char *fname);
+int readin_config(char const *fname);
 
 /* radvd.c */
 int check_ip6_forwarding(void);

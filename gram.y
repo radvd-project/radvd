@@ -729,7 +729,7 @@ static void cleanup(struct yydata * yydata)
 }
 
 int
-readin_config(char *fname)
+readin_config(char const *fname)
 {
 	struct yydata yydata;
 	FILE * in;
