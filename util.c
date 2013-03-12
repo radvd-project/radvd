@@ -41,17 +41,16 @@ rand_between(double lower, double upper)
 }
 
 void
-print_addr(struct in6_addr *addr, char *str)
+print_addr(struct in6_addr const *addr, char *str, size_t len)
 {
 	const char *res;
 
-	/* XXX: overflows 'str' if it isn't big enough */
-	res = inet_ntop(AF_INET6, (void *)addr, str, INET6_ADDRSTRLEN);
+	res = inet_ntop(AF_INET6, (void *)addr, str, len);
 
 	if (res == NULL)
 	{
 		flog(LOG_ERR, "print_addr: inet_ntop: %s", strerror(errno));
-		strcpy(str, "[invalid address]");
+		strncpy(str, "[invalid address]", len);
 	}
 }
 

@@ -706,7 +706,7 @@ void reset_prefix_lifetimes(void)
 				struct PrefixList * pl = prefix->PrefixList;
 
 				while (pl) {
-					print_addr(&pl->Prefix, pfx_str);
+					print_addr(&pl->Prefix, pfx_str, sizeof(pfx_str));
 
 					dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", 
 						pfx_str, pl->PrefixLen, iface->Name,

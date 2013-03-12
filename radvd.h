@@ -239,7 +239,7 @@ int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, in
 /* util.c */
 void mdelay(double);
 double rand_between(double, double);
-void print_addr(struct in6_addr *, char *);
+void print_addr(struct in6_addr const *, char *, size_t);
 int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
 int check_dnssl_presence(struct AdvDNSSL *, const char *);
 ssize_t readn(int fd, void *buf, size_t count);
