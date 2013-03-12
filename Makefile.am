@@ -46,6 +46,7 @@ radvd_SOURCES = \
 	scanner.l \
 	gram.h \
 	gram.y \
+	parser.h \
 	interface.c \
 	process.c \
 	radvd.c \
