@@ -228,7 +228,7 @@ check_iface(struct Interface *iface)
 
 	while (prefix)
 	{
-		struct PrefixList * pl = prefix->PrefixList;
+		struct PrefixAddrs * pl = prefix->PrefixAddrs;
 
 		while (pl) {
 			if (pl->PrefixLen > MAX_PrefixLen)

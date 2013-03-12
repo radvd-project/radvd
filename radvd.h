@@ -99,9 +99,9 @@ struct Clients {
 	struct Clients		*next;
 };
 
-struct PrefixList
+struct PrefixAddrs
 {
-	struct PrefixList * next;
+	struct PrefixAddrs * next;
 	struct in6_addr		Prefix;
 	uint8_t			PrefixLen;
 };
@@ -109,7 +109,7 @@ struct PrefixList
 struct AdvPrefix {
 	struct AdvPrefix	*next;
 
-	struct PrefixList * PrefixList;
+	struct PrefixAddrs * PrefixAddrs;
 
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;

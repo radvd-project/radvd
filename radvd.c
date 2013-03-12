@@ -101,6 +101,9 @@ void usage(void);
 int drop_root_privileges(const char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
+void extract_ipv6_address(char const * addr_str, struct in6_addr * addr);
+struct ipv6_route * get_route_table(void);
+void free_route_table(struct ipv6_route * route_table);
 void main_loop(void);
 
 int
@@ -582,10 +585,10 @@ void reload_config(void)
 		{
 			struct AdvPrefix *next_prefix = prefix->next;
 
-			while (prefix->PrefixList) {
-				struct PrefixList * next_prefix_list = prefix->PrefixList->next;
-				free(prefix->PrefixList);
-				prefix->PrefixList = next_prefix_list;
+			while (prefix->PrefixAddrs) {
+				struct PrefixAddrs * next_prefix_list = prefix->PrefixAddrs->next;
+				free(prefix->PrefixAddrs);
+				prefix->PrefixAddrs = next_prefix_list;
 			}
 
 			free(prefix);
@@ -703,7 +706,7 @@ void reset_prefix_lifetimes(void)
 		{
 			if (prefix->DecrementLifetimesFlag)
 			{
-				struct PrefixList * pl = prefix->PrefixList;
+				struct PrefixAddrs * pl = prefix->PrefixAddrs;
 
 				while (pl) {
 					print_addr(&pl->Prefix, pfx_str, sizeof(pfx_str));
@@ -784,12 +787,89 @@ check_conffile_perm(const char *username, const char *conf_file)
         return 0;
 }
 
+void extract_ipv6_address(char const * addr_str, struct in6_addr * addr)
+{
+	int i;
+	memset(addr, 0, 16);
+	for (i = 0; i < 32; ++i) {
+		int const j = i / 2;
+		int const k = 4 * ((i+1) % 2); 
+		unsigned char x;
+		if (addr_str[i] >= '0' && addr_str[i] <= '9') {
+			x = addr_str[i] - '0';
+		}   
+		else if (addr_str[i] >= 'A' && addr_str[i] <= 'F') {
+			x = addr_str[i] - 'A' + 10; 
+		}   
+		else {
+			x = addr_str[i] - 'a' + 10; 
+		}   
+		addr->s6_addr[j] |= (x << k); 
+	}   
+}
+
+struct ipv6_route
+{
+    struct ipv6_route * next;
+    int if_index;
+    struct in6_addr addr;
+    int len;
+};
+
+struct ipv6_route * get_route_table(void)
+{
+   	struct ipv6_route * route_table = 0;
+    FILE * in = fopen(PROC_SYS_IP6_ROUTE, "r");
+
+	if (in) {
+
+    	char dest[33], iface_name[64];
+    	int len;
+		int rc = fscanf(in, " %s %x %*s %*s %*s %*s %*s %*s %*s %s", dest, &len, iface_name);
+
+		while (rc == 3) {
+
+    		struct in6_addr addr;
+
+			extract_ipv6_address(dest, &addr);
+
+			if (!IN6_IS_ADDR_LINKLOCAL(&addr) && !IN6_IS_ADDR_MULTICAST(&addr)) {
+				struct ipv6_route * route_table_rec;
+				route_table_rec = malloc(sizeof(struct ipv6_route));
+				memset(route_table_rec, 0, sizeof(struct ipv6_route));
+				route_table_rec->if_index = if_nametoindex(iface_name);
+				route_table_rec->addr = addr;
+				route_table_rec->len = len;
+				route_table_rec->next = route_table;
+				route_table = route_table_rec;
+			}
+
+			rc = fscanf(in, " %s %x %*s %*s %*s %*s %*s %*s %*s %s", dest, &len, iface_name);
+		}
+
+		fclose(in);
+	}
+
+	return route_table;
+}
+
+void free_route_table(struct ipv6_route * route_table)
+{
+	while (route_table) {
+		struct ipv6_route * next = route_table->next;
+		free(route_table);
+		route_table = next;
+	}
+}
+
 void
 validate_configuration_or_die(void)
 {
 	struct Interface *iface;
+	struct ipv6_route * route_table = 0;
 
 	for (iface = IfaceList; iface; iface = iface->next) {
+        struct AdvPrefix * prefix = iface->AdvPrefixList;
 		if (check_device(iface) < 0) {
 			if (iface->IgnoreIfMissing) {
 				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
@@ -827,6 +907,41 @@ validate_configuration_or_die(void)
 				exit(1);
 			}
 		}
+
+		while (prefix) {
+				char pfx_str[INET6_ADDRSTRLEN];
+				struct PrefixAddrs * pl = prefix->PrefixAddrs;
+
+				if (!pl) {
+					struct ipv6_route * route_table_rec;
+					dlog(LOG_DEBUG, 4, "initilializing auto prefix on %s", iface->Name);
+
+					if (!route_table) {
+						route_table = get_route_table();
+
+					}
+
+					route_table_rec = route_table;
+					while (route_table_rec) {
+						if (route_table_rec->if_index == iface->if_index) {
+							print_addr(&route_table_rec->addr, pfx_str, sizeof(pfx_str));
+							dlog(LOG_DEBUG, 4, "interface %s will advertise auto prefix %s/%d", iface->Name, pfx_str, route_table_rec->len);
+						}
+						route_table_rec = route_table_rec->next;
+					}
+				}
+
+				while (pl) {
+					print_addr(&pl->Prefix, pfx_str, sizeof(pfx_str));
+					dlog(LOG_DEBUG, 3, "interface %s will advertise %s/%d", iface->Name, pfx_str, pl->PrefixLen);
+					pl = pl->next;
+				}
+				prefix = prefix->next;
+		}
+	}
+
+	if (route_table) {
+		free(route_table);
 	}
 }
 

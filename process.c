@@ -334,7 +334,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			while (prefix)
 			{
 				if (prefix->enabled) {
-					struct PrefixList * pl = prefix->PrefixList;
+					struct PrefixAddrs * pl = prefix->PrefixAddrs;
 					while (pl) {
 						if ((pl->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
 					    	addr_match(&pl->Prefix, &pinfo->nd_opt_pi_prefix,

@@ -366,14 +366,14 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			yydata->prefix->PrefixList = malloc(sizeof(struct PrefixList));
+			yydata->prefix->PrefixAddrs = malloc(sizeof(struct PrefixAddrs));
 
-			if (yydata->prefix->PrefixList == NULL) {
+			if (yydata->prefix->PrefixAddrs == NULL) {
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
 
-			yydata->prefix->PrefixList->next = NULL;
+			yydata->prefix->PrefixAddrs->next = NULL;
 
 			if ($4 > MAX_PrefixLen)
 			{
@@ -381,9 +381,9 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			yydata->prefix->PrefixList->PrefixLen = $4;
+			yydata->prefix->PrefixAddrs->PrefixLen = $4;
 
-			memcpy(&yydata->prefix->PrefixList->Prefix, $2, sizeof(struct in6_addr));
+			memcpy(&yydata->prefix->PrefixAddrs->Prefix, $2, sizeof(struct in6_addr));
 		}
 		| T_PREFIX T_AUTO
 		{

@@ -113,7 +113,7 @@ setup_deviceinfo(struct Interface *iface)
 	prefix = iface->AdvPrefixList;
 	while (prefix)
 	{
-		struct PrefixList * pl = prefix->PrefixList;
+		struct PrefixAddrs * pl = prefix->PrefixAddrs;
 		while (pl) {
 			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != pl->PrefixLen))
 			{
