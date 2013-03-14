@@ -45,7 +45,7 @@ print_addr(struct in6_addr const *addr, char *str, size_t len)
 {
 	const char *res;
 
-	res = inet_ntop(AF_INET6, (void *)addr, str, len);
+	res = inet_ntop(AF_INET6, (void const*)addr, str, len);
 
 	if (res == NULL)
 	{
