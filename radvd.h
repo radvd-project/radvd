@@ -31,7 +31,7 @@ extern int sock;
 
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 
-struct AdvPrefix;
+struct Options;
 struct Clients;
 
 #define HWADDR_MAX 16
@@ -80,7 +80,7 @@ struct Interface {
 	/* NEMO extensions */
 	int			AdvMobRtrSupportFlag;
 
-	struct AdvPrefix	*AdvPrefixList;
+	struct PrefixSpec	*PrefixSpec;
 	struct AdvRoute		*AdvRouteList;
 	struct AdvRDNSS		*AdvRDNSSList;
 	struct AdvDNSSL		*AdvDNSSLList;
@@ -99,18 +99,22 @@ struct Clients {
 	struct Clients		*next;
 };
 
-struct PrefixAddrs
+struct Prefix
 {
-	struct PrefixAddrs * next;
-	struct in6_addr		Prefix;
-	uint8_t			PrefixLen;
+	struct Prefix * next;
+	struct in6_addr	addr;
+	uint8_t len;
 };
 
-struct AdvPrefix {
-	struct AdvPrefix	*next;
+/* PrefixSpec is a group of prefixes which all share a common Options structure */
+struct PrefixSpec
+{
+	struct PrefixSpec * next;
+	struct Prefix * prefix;
+	struct Options * options;
+};
 
-	struct PrefixAddrs * PrefixAddrs;
-
+struct Options {
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
 	uint32_t		AdvValidLifetime;
@@ -209,7 +213,7 @@ int set_interface_retranstimer(const char *, uint32_t);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);
-void prefix_init_defaults(struct AdvPrefix *);
+void prefix_init_defaults(struct Options *);
 void route_init_defaults(struct AdvRoute *, struct Interface *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);

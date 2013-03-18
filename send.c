@@ -121,7 +121,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 {
 	uint8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 	struct nd_router_advert *radvert;
-	struct AdvPrefix *prefix;
+	struct PrefixSpec *spec;
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 	struct AdvDNSSL *dnssl;
@@ -209,18 +209,19 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	radvert->nd_ra_reachable  = htonl(iface->AdvReachableTime);
 	radvert->nd_ra_retransmit = htonl(iface->AdvRetransTimer);
 
-	prefix = iface->AdvPrefixList;
+	spec = iface->PrefixSpec;
 
 	/*
 	 *	add prefix options
 	 */
 
-	while(prefix)
+	while(spec)
 	{
-		if( prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0) )
+		if( spec->options->enabled && (!spec->options->DecrementLifetimesFlag || spec->options->curr_preferredlft > 0) )
 		{
-			struct PrefixAddrs * pl = prefix->PrefixAddrs;
-			while (pl) {
+			struct Prefix * prefix = spec->prefix;
+
+			while (prefix) {
 				struct nd_opt_prefix_info *pinfo;
 
 				pinfo = (struct nd_opt_prefix_info *) (buff + len);
@@ -229,46 +230,46 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 				pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
 				pinfo->nd_opt_pi_len	     = 4;
-				pinfo->nd_opt_pi_prefix_len  = pl->PrefixLen;
+				pinfo->nd_opt_pi_prefix_len  = prefix->len;
 
 				pinfo->nd_opt_pi_flags_reserved  =
-					(prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
+					(spec->options->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
 				pinfo->nd_opt_pi_flags_reserved	|=
-					(prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
+					(spec->options->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
 				/* Mobile IPv6 ext */
 				pinfo->nd_opt_pi_flags_reserved |=
-					(prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
+					(spec->options->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
 
-				if (iface->cease_adv && prefix->DeprecatePrefixFlag) {
+				if (iface->cease_adv && spec->options->DeprecatePrefixFlag) {
 					/* RFC4862, 5.5.3, step e) */
 					pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
 					pinfo->nd_opt_pi_preferred_time = 0;
 				} else {
-					if (prefix->DecrementLifetimesFlag) {
+					if (spec->options->DecrementLifetimesFlag) {
 						decrement_lifetime(secs_since_last_ra,
-									&prefix->curr_validlft);
-						
+									&spec->options->curr_validlft);
+							
 						decrement_lifetime(secs_since_last_ra,
-									&prefix->curr_preferredlft);
-						if (prefix->curr_preferredlft == 0)
-							cease_adv_pfx_msg(iface->Name, &pl->Prefix, pl->PrefixLen);
+									&spec->options->curr_preferredlft);
+						if (spec->options->curr_preferredlft == 0)
+							cease_adv_pfx_msg(iface->Name, &prefix->addr, prefix->len);
 					}
-					pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
-					pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+					pinfo->nd_opt_pi_valid_time	= htonl(spec->options->curr_validlft);
+					pinfo->nd_opt_pi_preferred_time = htonl(spec->options->curr_preferredlft);
 
 				}
 				pinfo->nd_opt_pi_reserved2	= 0;
 
-				memcpy(&pinfo->nd_opt_pi_prefix, &pl->Prefix,
-					   sizeof(struct in6_addr));
-				print_addr(&pl->Prefix, addr_str, sizeof(addr_str));
+				memcpy(&pinfo->nd_opt_pi_prefix, &prefix->addr,
+						   sizeof(struct in6_addr));
+				print_addr(&prefix->addr, addr_str, sizeof(addr_str));
 				dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
 
-				pl = pl->next;
+				prefix = prefix->next;
 			}
 		}
 
-		prefix = prefix->next;
+		spec = spec->next;
 	}
 
 	route = iface->AdvRouteList;

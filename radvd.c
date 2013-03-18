@@ -104,6 +104,7 @@ const char *get_pidfile(void);
 void extract_ipv6_address(char const * addr_str, struct in6_addr * addr);
 struct ipv6_route * get_route_table(void);
 void free_route_table(struct ipv6_route * route_table);
+int already_advrting(struct in6_addr const * addr, int len, struct PrefixSpec const * spec);
 void main_loop(void);
 
 int
@@ -573,26 +574,26 @@ void reload_config(void)
 	while(iface)
 	{
 		struct Interface *next_iface = iface->next;
-		struct AdvPrefix *prefix;
+		struct PrefixSpec *spec;
 		struct AdvRoute *route;
 		struct AdvRDNSS *rdnss;
 		struct AdvDNSSL *dnssl;
 
 		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
 
-		prefix = iface->AdvPrefixList;
-		while (prefix)
-		{
-			struct AdvPrefix *next_prefix = prefix->next;
+		spec = iface->PrefixSpec;
+		while (spec) {
+			struct PrefixSpec * next_spec = spec->next;
+			struct Prefix * prefix = spec->prefix;
 
-			while (prefix->PrefixAddrs) {
-				struct PrefixAddrs * next_prefix_list = prefix->PrefixAddrs->next;
-				free(prefix->PrefixAddrs);
-				prefix->PrefixAddrs = next_prefix_list;
+			while (prefix) {
+				struct Prefix * next_prefix = prefix->next;
+				free(prefix);
+				prefix = next_prefix;
 			}
-
-			free(prefix);
-			prefix = next_prefix;
+			free(spec->options);
+			free(spec);
+			spec = next_spec;
 		}
 
 		route = iface->AdvRouteList;
@@ -694,36 +695,36 @@ void sigusr1_handler(int sig)
 void reset_prefix_lifetimes(void)
 {
 	struct Interface *iface;
-	struct AdvPrefix *prefix;
-	char pfx_str[INET6_ADDRSTRLEN];
-
 
 	flog(LOG_INFO, "Resetting prefix lifetimes");
 	
 	for (iface = IfaceList; iface; iface = iface->next) 
 	{
-		for (prefix = iface->AdvPrefixList; prefix; prefix = prefix->next) 
-		{
-			if (prefix->DecrementLifetimesFlag)
-			{
-				struct PrefixAddrs * pl = prefix->PrefixAddrs;
+		struct PrefixSpec *spec;
 
-				while (pl) {
-					print_addr(&pl->Prefix, pfx_str, sizeof(pfx_str));
+		for (spec = iface->PrefixSpec; spec; spec = spec->next) 
+		{
+			if (spec->options->DecrementLifetimesFlag)
+			{
+				struct Prefix * prefix = spec->prefix;
+
+				while (prefix) {
+					char pfx_str[INET6_ADDRSTRLEN];
+					print_addr(&prefix->addr, pfx_str, sizeof(pfx_str));
 
 					dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", 
-						pfx_str, pl->PrefixLen, iface->Name,
-						prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
+						pfx_str, prefix->len, iface->Name,
+						spec->options->curr_preferredlft, spec->options->AdvPreferredLifetime);
 
 					dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs",
-						pfx_str, pl->PrefixLen, iface->Name,
-						prefix->curr_validlft, prefix->AdvValidLifetime);
-
-					pl = pl->next;
+						pfx_str, prefix->len, iface->Name,
+						spec->options->curr_validlft, spec->options->AdvValidLifetime);
+					prefix = prefix->next;
 				}
 
-				prefix->curr_validlft = prefix->AdvValidLifetime;
-				prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
+				spec->options->curr_validlft = spec->options->AdvValidLifetime;
+				spec->options->curr_preferredlft = spec->options->AdvPreferredLifetime;
+
 			}
 		}
 		
@@ -835,6 +836,7 @@ struct ipv6_route * get_route_table(void)
 
 			if (!IN6_IS_ADDR_LINKLOCAL(&addr) && !IN6_IS_ADDR_MULTICAST(&addr)) {
 				struct ipv6_route * route_table_rec;
+				/* TODO: memory failure? */
 				route_table_rec = malloc(sizeof(struct ipv6_route));
 				memset(route_table_rec, 0, sizeof(struct ipv6_route));
 				route_table_rec->if_index = if_nametoindex(iface_name);
@@ -862,6 +864,23 @@ void free_route_table(struct ipv6_route * route_table)
 	}
 }
 
+int already_advrting(struct in6_addr const * addr, int len, struct PrefixSpec const * spec)
+{
+	while (spec) {
+		struct Prefix const * prefix = spec->prefix;
+
+		while (prefix) {
+			if (prefix->len == len && memcmp(&prefix->addr, addr, sizeof(struct in6_addr)) == 0) {
+				return 1;
+			}
+			prefix = prefix->next;
+		}
+		spec = spec->next;
+	}
+
+	return 0;
+}
+
 void
 validate_configuration_or_die(void)
 {
@@ -869,7 +888,70 @@ validate_configuration_or_die(void)
 	struct ipv6_route * route_table = 0;
 
 	for (iface = IfaceList; iface; iface = iface->next) {
-        struct AdvPrefix * prefix = iface->AdvPrefixList;
+        struct PrefixSpec * spec = iface->PrefixSpec;
+
+		iface->if_index = if_nametoindex(iface->Name);
+
+		while (spec) {
+			char pfx_str[INET6_ADDRSTRLEN];
+
+			if (!spec->prefix) {
+				struct ipv6_route * route_table_rec;
+				dlog(LOG_DEBUG, 4, "initilializing auto prefix on %s", iface->Name);
+
+				if (!route_table) {
+					route_table = get_route_table();
+				}
+
+				route_table_rec = route_table;
+				while (route_table_rec) {
+					if (route_table_rec->if_index == iface->if_index) {
+						if (!already_advrting(&route_table_rec->addr, route_table_rec->len, iface->PrefixSpec)) {
+							/* TODO: memory failure? */
+							struct Prefix * prefix = malloc(sizeof(struct Prefix));
+							prefix->addr = route_table_rec->addr;
+							prefix->len = route_table_rec->len;
+							prefix->next = spec->prefix;
+							spec->prefix = prefix;
+							print_addr(&route_table_rec->addr, pfx_str, sizeof(pfx_str));
+							dlog(LOG_DEBUG, 4, "interface %s will advertise auto prefix %s/%d", iface->Name, pfx_str, route_table_rec->len);
+						}
+					}
+					route_table_rec = route_table_rec->next;
+				}
+			}
+			else {
+				print_addr(&spec->prefix->addr, pfx_str, sizeof(pfx_str));
+				dlog(LOG_DEBUG, 3, "interface %s will advertise %s/%d", iface->Name, pfx_str, spec->prefix->len);
+			}
+			spec = spec->next;
+		}
+	}
+
+	if (route_table) {
+		free_route_table(route_table);
+	}
+
+	for (iface = IfaceList; iface; iface = iface->next) {
+        struct PrefixSpec * spec = iface->PrefixSpec;
+        struct PrefixSpec ** spec_ptr = &iface->PrefixSpec;
+
+		while (spec) {
+			struct PrefixSpec * next_spec = spec->next;
+
+			if (!spec->prefix) {
+				*spec_ptr = spec->next;
+				free(spec);
+				dlog(LOG_DEBUG, 5, "trimmed an overridden auto prefix on interface %s", iface->Name);
+			}
+			else {
+				spec_ptr = &spec->next;
+			}
+			spec = next_spec;
+		}
+	}
+
+	for (iface = IfaceList; iface; iface = iface->next) {
 		if (check_device(iface) < 0) {
 			if (iface->IgnoreIfMissing) {
 				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
@@ -907,41 +989,6 @@ validate_configuration_or_die(void)
 				exit(1);
 			}
 		}
-
-		while (prefix) {
-				char pfx_str[INET6_ADDRSTRLEN];
-				struct PrefixAddrs * pl = prefix->PrefixAddrs;
-
-				if (!pl) {
-					struct ipv6_route * route_table_rec;
-					dlog(LOG_DEBUG, 4, "initilializing auto prefix on %s", iface->Name);
-
-					if (!route_table) {
-						route_table = get_route_table();
-
-					}
-
-					route_table_rec = route_table;
-					while (route_table_rec) {
-						if (route_table_rec->if_index == iface->if_index) {
-							print_addr(&route_table_rec->addr, pfx_str, sizeof(pfx_str));
-							dlog(LOG_DEBUG, 4, "interface %s will advertise auto prefix %s/%d", iface->Name, pfx_str, route_table_rec->len);
-						}
-						route_table_rec = route_table_rec->next;
-					}
-				}
-
-				while (pl) {
-					print_addr(&pl->Prefix, pfx_str, sizeof(pfx_str));
-					dlog(LOG_DEBUG, 3, "interface %s will advertise %s/%d", iface->Name, pfx_str, pl->PrefixLen);
-					pl = pl->next;
-				}
-				prefix = prefix->next;
-		}
-	}
-
-	if (route_table) {
-		free(route_table);
 	}
 }
 

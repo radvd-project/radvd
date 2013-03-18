@@ -38,7 +38,7 @@ setup_deviceinfo(struct Interface *iface)
 	struct ifaddrs *addresses = 0, *ifa;
 
 	struct ifreq ifr;
-	struct AdvPrefix *prefix;
+	struct PrefixSpec *spec;
 	char zero[sizeof(iface->if_addr)];
 
 	if(if_nametoindex(iface->Name) == 0){
@@ -116,17 +116,22 @@ setup_deviceinfo(struct Interface *iface)
 					iface->Name);
 		}
 
-		prefix = iface->AdvPrefixList;
-		while (prefix)
+		spec = iface->PrefixSpec;
+		while (spec)
 		{
-			if ((iface->if_prefix_len != -1) &&
-				(iface->if_prefix_len != prefix->PrefixLen))
-			{
-				flog(LOG_WARNING, "prefix length should be %d for %s",
-					iface->if_prefix_len, iface->Name);
+			struct Prefix * prefix = spec->prefix;
+
+			while (prefix) {
+				if ((iface->if_prefix_len != -1) &&
+					(iface->if_prefix_len != prefix->len))
+				{
+					flog(LOG_WARNING, "prefix length should be %d for %s",
+						iface->if_prefix_len, iface->Name);
+				}
+				prefix = prefix->next;
 			}
 
-			prefix = prefix->next;
+			spec = spec->next;
 		}
 
 		freeifaddrs(addresses);

@@ -278,7 +278,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		struct nd_opt_rdnss_info_local *rdnssinfo;
 		struct nd_opt_dnssl_info_local *dnsslinfo;
 		struct nd_opt_mtu *mtu;
-		struct AdvPrefix *prefix;
+		struct PrefixSpec *prefix_addr;
 		struct AdvRDNSS *rdnss;
 		char prefix_str[INET6_ADDRSTRLEN];
 		char rdnss_str[INET6_ADDRSTRLEN];
@@ -330,41 +330,37 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			preferred = ntohl(pinfo->nd_opt_pi_preferred_time);
 			valid = ntohl(pinfo->nd_opt_pi_valid_time);
 
-			prefix = iface->AdvPrefixList;
-			while (prefix)
+			prefix_addr = iface->PrefixSpec;
+			while (prefix_addr)
 			{
-				if (prefix->enabled) {
-					struct PrefixAddrs * pl = prefix->PrefixAddrs;
-					while (pl) {
-						if ((pl->PrefixLen == pinfo->nd_opt_pi_prefix_len) &&
-					    	addr_match(&pl->Prefix, &pinfo->nd_opt_pi_prefix,
-					    	 pl->PrefixLen)) {
-							print_addr(&pl->Prefix, prefix_str, sizeof(prefix_str));
-	
-							if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime)
-							{
-								flog(LOG_WARNING, "our AdvValidLifetime on"
-								 " %s for %s doesn't agree with %s",
-								 iface->Name,
-								 prefix_str,
-								 addr_str
-								 );
-							}
-							if (!prefix->DecrementLifetimesFlag && preferred != prefix->AdvPreferredLifetime)
-							{
-								flog(LOG_WARNING, "our AdvPreferredLifetime on"
-								 " %s for %s doesn't agree with %s",
-								 iface->Name,
-								 prefix_str,
-								 addr_str
-								 );
-							}
+				if (prefix_addr->options->enabled) {
+					if ((prefix_addr->prefix->len == pinfo->nd_opt_pi_prefix_len) &&
+				    	addr_match(&prefix_addr->prefix->addr, &pinfo->nd_opt_pi_prefix,
+				    	 prefix_addr->prefix->len)) {
+						print_addr(&prefix_addr->prefix->addr, prefix_str, sizeof(prefix_str));
+
+						if (!prefix_addr->options->DecrementLifetimesFlag && valid != prefix_addr->options->AdvValidLifetime)
+						{
+							flog(LOG_WARNING, "our AdvValidLifetime on"
+							 " %s for %s doesn't agree with %s",
+							 iface->Name,
+							 prefix_str,
+							 addr_str
+							 );
 						}
-						pl = pl->next;
+						if (!prefix_addr->options->DecrementLifetimesFlag && preferred != prefix_addr->options->AdvPreferredLifetime)
+						{
+							flog(LOG_WARNING, "our AdvPreferredLifetime on"
+							 " %s for %s doesn't agree with %s",
+							 iface->Name,
+							 prefix_str,
+							 addr_str
+							 );
+						}
 					}
 				}
 
-				prefix = prefix->next;
+				prefix_addr = prefix_addr->next;
 			}
 			break;
 		case ND_OPT_ROUTE_INFORMATION:

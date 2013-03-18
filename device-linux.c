@@ -38,7 +38,7 @@ int
 setup_deviceinfo(struct Interface *iface)
 {
 	struct ifreq	ifr;
-	struct AdvPrefix *prefix;
+	struct PrefixSpec *spec;
 	char zero[sizeof(iface->if_addr)];
 
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
@@ -110,28 +110,30 @@ setup_deviceinfo(struct Interface *iface)
 				iface->Name);
 	}
 
-	prefix = iface->AdvPrefixList;
-	while (prefix)
+	spec = iface->PrefixSpec;
+	while (spec)
 	{
-		struct PrefixAddrs * pl = prefix->PrefixAddrs;
-		while (pl) {
-			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != pl->PrefixLen))
+		struct Prefix * prefix = spec->prefix;
+
+		while (prefix) {
+			if ((iface->if_prefix_len != -1) &&
+				(iface->if_prefix_len != prefix->len))
 			{
 				flog(LOG_WARNING, "prefix length should be %d for %s",
 					iface->if_prefix_len, iface->Name);
- 			}
-			pl = pl->next;
+			}
+			prefix = prefix->next;
 		}
 
- 		prefix = prefix->next;
+		spec = spec->next;
 	}
 
 	return (0);
 }
 
 /*
- * this function extracts the link local address and interface index
- * from PATH_PROC_NET_IF_INET6.  Note: 'sock' unused in Linux.
+ * this function extracts the link local address
+ * from PATH_PROC_NET_IF_INET6. 
  */
 int setup_linklocal_addr(struct Interface *iface)
 {
@@ -165,7 +167,6 @@ int setup_linklocal_addr(struct Interface *iface)
 			}
 			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
 
-			iface->if_index = if_idx;
 			fclose(fp);
 			return 0;
 		}
