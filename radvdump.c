@@ -373,11 +373,14 @@ print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, u
 		case ND_OPT_ROUTE_INFORMATION:
 			rinfo = (struct nd_opt_route_info_local *) opt_str;
 
-			print_addr(&rinfo->nd_opt_ri_prefix, prefix_str, sizeof(prefix_str));
 			if (optlen == 8) {
 				printf("\n\troute ::/0\n\t{\n");
 			}
 			else {
+				struct in6_addr addr;
+				memset(&addr, 0, sizeof(addr));
+				memcpy(&addr, &rinfo->nd_opt_ri_prefix, 8);
+				print_addr(&addr, prefix_str, sizeof (prefix_str));
 				printf("\n\troute %s/%d\n\t{\n", prefix_str, rinfo->nd_opt_ri_prefix_len);
 			}
 
