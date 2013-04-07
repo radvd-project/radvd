@@ -836,8 +836,11 @@ struct ipv6_route * get_route_table(void)
 
 			if (!IN6_IS_ADDR_LINKLOCAL(&addr) && !IN6_IS_ADDR_MULTICAST(&addr)) {
 				struct ipv6_route * route_table_rec;
-				/* TODO: memory failure? */
 				route_table_rec = malloc(sizeof(struct ipv6_route));
+				if (!route_table_rec) {
+					flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+					abort();
+				}
 				memset(route_table_rec, 0, sizeof(struct ipv6_route));
 				route_table_rec->if_index = if_nametoindex(iface_name);
 				route_table_rec->addr = addr;
@@ -907,8 +910,11 @@ validate_configuration_or_die(void)
 				while (route_table_rec) {
 					if (route_table_rec->if_index == iface->if_index) {
 						if (!already_advrting(&route_table_rec->addr, route_table_rec->len, iface->PrefixSpec)) {
-							/* TODO: memory failure? */
 							struct Prefix * prefix = malloc(sizeof(struct Prefix));
+							if (!prefix) {
+								flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+								abort();
+							}
 							prefix->addr = route_table_rec->addr;
 							prefix->len = route_table_rec->len;
 							prefix->next = spec->prefix;
