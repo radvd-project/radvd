@@ -1,3 +1,6 @@
+2013/04/13	Force UnicodeOnly if IFF_MULTICAST is unavailable
+		Remove check for IFF_BROADCAST since it isn't used
+
 2013/03/14	Fix for systems without sysctl.h from vapier
 
 2013/03/04	radvdump MTU and route fix by Jean-Jacques
