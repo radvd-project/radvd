@@ -92,6 +92,7 @@ void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void sigusr1_handler(int sig);
 void timer_handler(void *data);
+void config_interface(struct Interface * iface);
 void config_interfaces(void);
 void stop_adverts(void);
 void validate_configuration_or_die(void);
@@ -274,9 +275,6 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* Must do this after sock is opened */
-	validate_configuration_or_die();
-
 	/* if we know how to do it, check whether forwarding is enabled */
 	if (check_ip6_forwarding()) {
 		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
@@ -353,6 +351,8 @@ main(int argc, char *argv[])
 	signal(SIGUSR1, sigusr1_handler);
 
 	config_interfaces();
+	/* Must do this after sock is opened */
+	validate_configuration_or_die();
 
 	main_loop();
 	flog(LOG_INFO, "sending stop adverts", pidfile);
@@ -482,21 +482,44 @@ timer_handler(void *data)
 {
 	struct Interface *iface = (struct Interface *) data;
 	double next;
-	int rc;
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	rc = send_ra_forall(iface, NULL);
-	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
-
-	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
-		iface->init_racount++;
-		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
-		if (rc == 0) {
-			dlog(LOG_DEBUG, 4, "init RA %d sent on %s", iface->init_racount, iface->Name);
+	/* First we need to check that the interface hasn't been removed or deactivated */
+	if (check_device(iface) < 0) {
+		if (!iface->is_dead) {
+			if (iface->IgnoreIfMissing) {
+				dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
+			}
+			else {
+				flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
+			}
+			iface->is_dead = 1;
 		}
 	}
+	else if (iface->is_dead == 1) {
+		/* check_device was successful, act if it has failed previously */
+		flog(LOG_WARNING, "interface %s seems to have come back up, proceeding normally", iface->Name);
+		iface->is_dead = 0;
+		iface->init_racount = 0;
+	}
 
+
+	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
+
+	if (!iface->is_dead) {
+		int rc;
+
+		rc = send_ra_forall(iface, NULL);
+
+		if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
+			iface->init_racount++;
+			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
+			if (rc == 0) {
+				dlog(LOG_DEBUG, 4, "init RA %d sent on %s", iface->init_racount, iface->Name);
+			}
+		}
+	}
 	iface->next_multicast = next_timeval(next);
 }
 

@@ -135,31 +135,6 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	size_t len = 0;
 	ssize_t err;
 
-	/* First we need to check that the interface hasn't been removed or deactivated */
-	if(check_device(iface) < 0) {
-		if (!iface->is_dead) {
-			if (iface->IgnoreIfMissing) {
-				dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
-			}
-			else {
-				flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
-			}
-			iface->is_dead = 1;
-		}
-		return -1;
-	}
-	else if (iface->is_dead == 1) {
-		/* check_device was successful, act if it has failed previously */
-		flog(LOG_WARNING, "interface %s seems to have come back up, proceeding normally", iface->Name);
-		iface->is_dead = 0;
-		iface->init_racount = 0;
-		return -1;
-	}
-
-	/* Make sure that we've joined the all-routers multicast group */
-	if (check_allrouters_membership(iface) < 0)
-		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
-
 	dlog(LOG_DEBUG, 3, "sending RA on %s", iface->Name);
 
 	if (dest == NULL)

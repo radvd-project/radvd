@@ -203,11 +203,6 @@ int setup_allrouters_membership(struct Interface *iface)
 	return (0);
 }
 
-int check_allrouters_membership(struct Interface *iface)
-{
-	return (0);
-}
-
 int
 set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
