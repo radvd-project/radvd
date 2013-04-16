@@ -40,14 +40,12 @@
 
 void process_netlink_msg(int sock)
 {
-	int len;
 	char buf[4096];
 	struct iovec iov = { buf, sizeof(buf) };
 	struct sockaddr_nl sa;
 	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
 	struct nlmsghdr *nh;
-	struct ifinfomsg * ifinfo;
-	char ifname[IF_NAMESIZE] = {""};
+	int len;
 
 	len = recvmsg (sock, &msg, 0);
 	if (len == -1) {
@@ -55,6 +53,10 @@ void process_netlink_msg(int sock)
 	}
 
 	for (nh = (struct nlmsghdr *) buf; NLMSG_OK (nh, len); nh = NLMSG_NEXT (nh, len)) {
+		struct ifinfomsg * ifinfo;
+		char ifname[IF_NAMESIZE] = {""};
+		struct Interface *iface;
+
 		/* The end of multipart message. */
 		if (nh->nlmsg_type == NLMSG_DONE)
 			return;
@@ -73,7 +75,17 @@ void process_netlink_msg(int sock)
 		else {
 			dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is *NOT* running", ifname, ifinfo->ifi_index);
 		}
-		reload_config();
+
+		for (iface=IfaceList; iface; iface=iface->next) {
+			if (iface->if_index == ifinfo->ifi_index) {
+				double next;
+				iface->is_dead = 0;
+				iface->init_racount = 0;
+				next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
+				next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
+				iface->next_multicast = next_timeval(next);
+			}
+		}
 	}
 }
 

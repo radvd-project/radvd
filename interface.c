@@ -31,7 +31,7 @@ iface_init_defaults(struct Interface *iface)
 
 	iface->cease_adv	  = 0;
 
-	iface->HasFailed	  = 0;
+	iface->is_dead			  = 0;
 	iface->IgnoreIfMissing	  = DFLT_IgnoreIfMissing;
 	iface->AdvSendAdvert	  = DFLT_AdvSendAdv;
 	iface->MaxRtrAdvInterval  = DFLT_MaxRtrAdvInterval;

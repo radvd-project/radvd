@@ -92,8 +92,7 @@ void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void sigusr1_handler(int sig);
 void timer_handler(void *data);
-void config_interface(void);
-void kickoff_adverts(void);
+void config_interfaces(void);
 void stop_adverts(void);
 void validate_configuration_or_die(void);
 void version(void);
@@ -353,11 +352,12 @@ main(int argc, char *argv[])
 	signal(SIGINT, sigint_handler);
 	signal(SIGUSR1, sigusr1_handler);
 
-	config_interface();
-	kickoff_adverts();
+	config_interfaces();
+
 	main_loop();
 	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts();
+
 	if (daemonize) {
 		flog(LOG_INFO, "removing %s", pidfile);
 		unlink(pidfile);
@@ -395,6 +395,7 @@ void main_loop(void)
 		struct Interface *next = NULL;
 		struct Interface *iface;
 		int timeout = -1;
+		int alive_count = 0;
 		int rc;
 
 		if (IfaceList) {
@@ -407,10 +408,18 @@ void main_loop(void)
 					timeout = t;
 					next = iface;
 				}
+				if (!iface->is_dead) {
+					++alive_count;
+				}
 			}
 		}
 
-		dlog(LOG_DEBUG, 5, "polling for %g seconds.", timeout/1000.0);
+		if (alive_count > 0) {
+			dlog(LOG_DEBUG, 5, "polling for %g seconds.", timeout/1000.0);
+		} else {
+			dlog(LOG_DEBUG, 3, "all interfaces dead...going to sleep.");
+			timeout = -1;
+		}
 
 		rc = poll(fds, sizeof(fds)/sizeof(fds[0]), timeout);
 
@@ -455,7 +464,6 @@ void main_loop(void)
 		if (sighup_received)
 		{
 			dlog(LOG_INFO, 3, "sig hup received.\n");
-			reload_config();
 			sighup_received = 0;
 		}
 
@@ -465,84 +473,58 @@ void main_loop(void)
 			reset_prefix_lifetimes();
 			sigusr1_received = 0;
 		}
-
 	}
 }
+
 
 void
 timer_handler(void *data)
 {
 	struct Interface *iface = (struct Interface *) data;
 	double next;
+	int rc;
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	if (send_ra_forall(iface, NULL) != 0) {
-		return;
-	}
-
+	rc = send_ra_forall(iface, NULL);
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 
-	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
-	{
+	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
 		iface->init_racount++;
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
+		if (rc == 0) {
+			dlog(LOG_DEBUG, 4, "init RA %d sent on %s", iface->init_racount, iface->Name);
+		}
 	}
 
 	iface->next_multicast = next_timeval(next);
 }
 
+
 void
-config_interface(void)
+config_interface(struct Interface * iface)
+{
+	if (iface->AdvLinkMTU)
+		set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
+	if (iface->AdvCurHopLimit)
+		set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
+	if (iface->AdvReachableTime)
+		set_interface_reachtime(iface->Name, iface->AdvReachableTime);
+	if (iface->AdvRetransTimer)
+		set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
+}
+
+
+void
+config_interfaces(void)
 {
 	struct Interface *iface;
-	for(iface=IfaceList; iface; iface=iface->next)
+	for (iface=IfaceList; iface; iface=iface->next)
 	{
-		if (iface->AdvLinkMTU)
-			set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
-		if (iface->AdvCurHopLimit)
-			set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
-		if (iface->AdvReachableTime)
-			set_interface_reachtime(iface->Name, iface->AdvReachableTime);
-		if (iface->AdvRetransTimer)
-			set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
+		config_interface(iface);
 	}
 }
 
-void
-kickoff_adverts(void)
-{
-	struct Interface *iface;
-
-	/*
-	 *	send initial advertisement and set timers
-	 */
-
-	for(iface=IfaceList; iface; iface=iface->next)
-	{
-		double next;
-
-
-		gettimeofday(&iface->last_ra_time, NULL);
-
-		if( iface->UnicastOnly )
-			continue;
-
-		gettimeofday(&iface->last_multicast, NULL);
-
-		if (!iface->AdvSendAdvert)
-			continue;
-
-		/* send an initial advertisement */
-		if (send_ra_forall(iface, NULL) == 0) {
-
-			iface->init_racount++;
-
-			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
-			iface->next_multicast = next_timeval(next);
-		}
-	}
-}
 
 void
 stop_adverts(void)
@@ -564,97 +546,12 @@ stop_adverts(void)
 	}
 }
 
-void reload_config(void)
-{
-	struct Interface *iface;
-
-	flog(LOG_INFO, "attempting to reread config file");
-
-	iface=IfaceList;
-	while(iface)
-	{
-		struct Interface *next_iface = iface->next;
-		struct PrefixSpec *spec;
-		struct AdvRoute *route;
-		struct AdvRDNSS *rdnss;
-		struct AdvDNSSL *dnssl;
-
-		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
-
-		spec = iface->PrefixSpec;
-		while (spec) {
-			struct PrefixSpec * next_spec = spec->next;
-			struct Prefix * prefix = spec->prefix;
-
-			while (prefix) {
-				struct Prefix * next_prefix = prefix->next;
-				free(prefix);
-				prefix = next_prefix;
-			}
-			free(spec->options);
-			free(spec);
-			spec = next_spec;
-		}
-
-		route = iface->AdvRouteList;
-		while (route)
-		{
-			struct AdvRoute *next_route = route->next;
-
-			free(route);
-			route = next_route;
-		}
-
-		rdnss = iface->AdvRDNSSList;
-		while (rdnss)
-		{
-			struct AdvRDNSS *next_rdnss = rdnss->next;
-
-			free(rdnss);
-			rdnss = next_rdnss;
-		}
-
-		dnssl = iface->AdvDNSSLList;
-		while (dnssl)
-		{
-			struct AdvDNSSL *next_dnssl = dnssl->next;
-			int i;
-
-			for (i = 0; i < dnssl->AdvDNSSLNumber; i++)
-				free(dnssl->AdvDNSSLSuffixes[i]);
-			free(dnssl->AdvDNSSLSuffixes);
-			free(dnssl);
-
-			dnssl = next_dnssl;
-		}
-
-		free(iface);
-		iface = next_iface;
-	}
-
-	IfaceList = NULL;
-
-	/* reread config file */
-	if (readin_config(conf_file) < 0) {
-		perror("readin_config failed.");
-		exit(1);
-	}
-
-	validate_configuration_or_die();
-
-	/* XXX: fails due to lack of permissions with non-root user */
-	config_interface();
-	kickoff_adverts();
-
-	flog(LOG_INFO, "resuming normal operation");
-}
 
 void
 sighup_handler(int sig)
 {
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGHUP, sighup_handler);
-
 	sighup_received = 1;
 }
 

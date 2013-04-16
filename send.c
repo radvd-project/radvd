@@ -52,6 +52,7 @@ send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
 		dlog(LOG_DEBUG, 5, "Sending RA to %s", address_text);
+		/* TODO: What about the return value here? */
 		send_ra(iface, &(current->Address));
 
 		/* If we should only send the RA to a specific address, we are done */
@@ -136,27 +137,23 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 
 	/* First we need to check that the interface hasn't been removed or deactivated */
 	if(check_device(iface) < 0) {
-		if (iface->IgnoreIfMissing)  /* a bit more quiet warning message.. */
-			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
-		else {
-			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
+		if (!iface->is_dead) {
+			if (iface->IgnoreIfMissing) {
+				dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
+			}
+			else {
+				flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
+			}
+			iface->is_dead = 1;
 		}
-		iface->HasFailed = 1;
-		/* not really a 'success', but we need to schedule new timers.. */
-		return 0;
-	} else {
+		return -1;
+	}
+	else if (iface->is_dead == 1) {
 		/* check_device was successful, act if it has failed previously */
-		if (iface->HasFailed == 1) {
-			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
-			iface->HasFailed = 0;
-			/*
-			 * return -1 so timer_handler() doesn't schedule new timers,
-			 * reload_config() will kick off new timers anyway.  This avoids
-			 * timer list corruption.
-			 */
-			reload_config();
-			return -1;
-		}
+		flog(LOG_WARNING, "interface %s seems to have come back up, proceeding normally", iface->Name);
+		iface->is_dead = 0;
+		iface->init_racount = 0;
+		return -1;
 	}
 
 	/* Make sure that we've joined the all-routers multicast group */
@@ -509,6 +506,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 			flog(LOG_WARNING, "sendmsg: %s", strerror(errno));
 		else
 			dlog(LOG_DEBUG, 3, "sendmsg: %s", strerror(errno));
+		return -1;
 	}
 
 	return 0;

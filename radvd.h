@@ -88,11 +88,12 @@ struct Interface {
 	struct timeval		last_multicast;
 	struct timeval		next_multicast;
 
-	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
-	int			HasFailed;
+	int			is_dead;
 
 	struct Interface	*next;
 };
+
+extern struct Interface *IfaceList;
 
 struct Clients {
 	struct in6_addr		Address;
