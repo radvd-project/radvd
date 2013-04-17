@@ -54,9 +54,9 @@ iface_init_defaults(struct Interface *iface)
 }
 
 void
-prefix_init_defaults(struct Options *prefix)
+prefix_init_defaults(struct Prefix *prefix)
 {
-	memset(prefix, 0, sizeof(struct Options));
+	memset(prefix, 0, sizeof(struct Prefix));
 
 	prefix->AdvOnLinkFlag = DFLT_AdvOnLinkFlag;
 	prefix->AdvAutonomousFlag = DFLT_AdvAutonomousFlag;
@@ -103,7 +103,7 @@ dnssl_init_defaults(struct AdvDNSSL *dnssl, struct Interface *iface)
 int
 check_iface(struct Interface *iface)
 {
-	struct PrefixSpec *prefix;
+	struct Prefix *prefix;
 	struct AdvRoute *route;
 	int res = 0;
 	int MIPv6 = 0;
@@ -116,11 +116,11 @@ check_iface(struct Interface *iface)
 		flog(LOG_INFO, "using Mobile IPv6 extensions");
 	}
 
-	prefix = iface->PrefixSpec;
+	prefix = iface->Prefix;
 
 	while (!MIPv6 && prefix)
 	{
-		if (prefix->options->AdvRouterAddr)
+		if (prefix->AdvRouterAddr)
 		{
 			MIPv6 = 1;
 		}
@@ -224,21 +224,21 @@ check_iface(struct Interface *iface)
 		res = -1;
 	}
 
-	prefix = iface->PrefixSpec;
+	prefix = iface->Prefix;
 
 	while (prefix)
 	{
-		if (prefix->prefix->len > MAX_PrefixLen)
+		if (prefix->len > MAX_PrefixLen)
 		{
-			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->prefix->len, iface->Name);
+			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->len, iface->Name);
 			res = -1;
 		}
 
-		if (prefix->options->AdvPreferredLifetime > prefix->options->AdvValidLifetime)
+		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
 		{
 			flog(LOG_ERR, "AdvValidLifetime for %s (%u) must be "
 				"greater than AdvPreferredLifetime for",
-				iface->Name, prefix->options->AdvValidLifetime);
+				iface->Name, prefix->AdvValidLifetime);
 			res = -1;
 		}
 

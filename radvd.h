@@ -80,7 +80,7 @@ struct Interface {
 	/* NEMO extensions */
 	int			AdvMobRtrSupportFlag;
 
-	struct PrefixSpec	*PrefixSpec;
+	struct Prefix *Prefix;
 	struct AdvRoute		*AdvRouteList;
 	struct AdvRDNSS		*AdvRDNSSList;
 	struct AdvDNSSL		*AdvDNSSLList;
@@ -100,22 +100,10 @@ struct Clients {
 	struct Clients		*next;
 };
 
-struct Prefix
-{
+struct Prefix {
 	struct Prefix * next;
 	struct in6_addr	addr;
 	uint8_t len;
-};
-
-/* PrefixSpec is a group of prefixes which all share a common Options structure */
-struct PrefixSpec
-{
-	struct PrefixSpec * next;
-	struct Prefix * prefix;
-	struct Options * options;
-};
-
-struct Options {
 	int			AdvOnLinkFlag;
 	int			AdvAutonomousFlag;
 	uint32_t		AdvValidLifetime;
@@ -213,7 +201,7 @@ int set_interface_retranstimer(const char *, uint32_t);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);
-void prefix_init_defaults(struct Options *);
+void prefix_init_defaults(struct Prefix *);
 void route_init_defaults(struct AdvRoute *, struct Interface *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);

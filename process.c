@@ -278,7 +278,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		struct nd_opt_rdnss_info_local *rdnssinfo;
 		struct nd_opt_dnssl_info_local *dnsslinfo;
 		struct nd_opt_mtu *mtu;
-		struct PrefixSpec *prefix_addr;
+		struct Prefix *prefix;
 		struct AdvRDNSS *rdnss;
 		char prefix_str[INET6_ADDRSTRLEN];
 		char rdnss_str[INET6_ADDRSTRLEN];
@@ -330,16 +330,16 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			preferred = ntohl(pinfo->nd_opt_pi_preferred_time);
 			valid = ntohl(pinfo->nd_opt_pi_valid_time);
 
-			prefix_addr = iface->PrefixSpec;
-			while (prefix_addr)
+			prefix = iface->Prefix;
+			while (prefix)
 			{
-				if (prefix_addr->options->enabled) {
-					if ((prefix_addr->prefix->len == pinfo->nd_opt_pi_prefix_len) &&
-				    	addr_match(&prefix_addr->prefix->addr, &pinfo->nd_opt_pi_prefix,
-				    	 prefix_addr->prefix->len)) {
-						print_addr(&prefix_addr->prefix->addr, prefix_str, sizeof(prefix_str));
+				if (prefix->enabled) {
+					if ((prefix->len == pinfo->nd_opt_pi_prefix_len) &&
+				    	addr_match(&prefix->addr, &pinfo->nd_opt_pi_prefix,
+				    	 prefix->len)) {
+						print_addr(&prefix->addr, prefix_str, sizeof(prefix_str));
 
-						if (!prefix_addr->options->DecrementLifetimesFlag && valid != prefix_addr->options->AdvValidLifetime)
+						if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime)
 						{
 							flog(LOG_WARNING, "our AdvValidLifetime on"
 							 " %s for %s doesn't agree with %s",
@@ -348,7 +348,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 							 addr_str
 							 );
 						}
-						if (!prefix_addr->options->DecrementLifetimesFlag && preferred != prefix_addr->options->AdvPreferredLifetime)
+						if (!prefix->DecrementLifetimesFlag && preferred != prefix->AdvPreferredLifetime)
 						{
 							flog(LOG_WARNING, "our AdvPreferredLifetime on"
 							 " %s for %s doesn't agree with %s",
@@ -360,7 +360,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 					}
 				}
 
-				prefix_addr = prefix_addr->next;
+				prefix = prefix->next;
 			}
 			break;
 		case ND_OPT_ROUTE_INFORMATION:

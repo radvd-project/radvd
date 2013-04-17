@@ -26,7 +26,7 @@
 
 %{
 #define YYERROR_VERBOSE
-static struct Options * NewOptions(void);
+static struct Prefix * NewOptions(void);
 static void yyerror(void const * loc, void * vp, char const * s);
 #include "config.h"
 #include "includes.h"
@@ -109,7 +109,7 @@ extern char *yytext;
 %token		T_BAD_TOKEN
 
 %type	<str>	name
-%type	<pspec> prefixdef
+%type	<prefix> prefix
 %type	<ainfo> clientslist v6addrlist
 %type	<rinfo>	routedef
 %type	<rdnssinfo> rdnssdef
@@ -122,7 +122,7 @@ extern char *yytext;
 	double			dec;
 	struct in6_addr		*addr;
 	char			*str;
-	struct PrefixSpec	*pspec;
+	struct Prefix	*prefix;
 	struct AdvRoute		*rinfo;
 	struct AdvRDNSS		*rdnssinfo;
 	struct AdvDNSSL		*dnsslinfo;
@@ -197,7 +197,7 @@ ifaceparams :
 		;
 
 ifaceparam 	: ifaceval
-		| prefixdef 	{ ADD_TO_LL(struct PrefixSpec, PrefixSpec, $1); }
+		| prefix 	{ ADD_TO_LL(struct Prefix, Prefix, $1); }
 		| clientslist 	{ ADD_TO_LL(struct Clients, ClientList, $1); }
 		| routedef 	{ ADD_TO_LL(struct AdvRoute, AdvRouteList, $1); }
 		| rdnssdef 	{ ADD_TO_LL(struct AdvRDNSS, AdvRDNSSList, $1); }
@@ -334,9 +334,9 @@ v6addrlist	: IPV6ADDR ';'
 		;
 
 
-prefixdef	: prefixhead optional_prefixplist ';'
+prefix	: prefixhead optional_prefixplist ';'
 		{
-			if (yydata->options->AdvPreferredLifetime > yydata->options->AdvValidLifetime)
+			if (yydata->prefix->AdvPreferredLifetime > yydata->prefix->AdvValidLifetime)
 			{
 				flog(LOG_ERR, "AdvValidLifeTime must be "
 					"greater than AdvPreferredLifetime in %s, line %d",
@@ -344,37 +344,18 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				ABORT;
 			}
 
-			yydata->spec->options = yydata->options;
-			yydata->options = NULL;
-
-			$$ = yydata->spec;
-			yydata->spec = NULL;
+			$$ = yydata->prefix;
+			yydata->prefix = NULL;
 		}
 		;
 
 prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 		{
-			yydata->options = NewOptions();
+			yydata->prefix = NewOptions();
 
-			if (yydata->options == NULL) {
+			if (yydata->prefix == NULL) {
 				ABORT;
 			}
-
-			yydata->spec = malloc(sizeof(struct PrefixSpec));
-
-			if (yydata->spec == NULL) {
-				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
-				ABORT;
-			}
-
-			yydata->spec->prefix = malloc(sizeof(struct Prefix));
-
-			if (yydata->spec->prefix == NULL) {
-				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
-				ABORT;
-			}
-
-			yydata->spec->next = NULL;
 
 			if ($4 > MAX_PrefixLen)
 			{
@@ -382,27 +363,9 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			yydata->spec->prefix->len = $4;
+			yydata->prefix->len = $4;
 
-			memcpy(&yydata->spec->prefix->addr, $2, sizeof(struct in6_addr));
-
-		}
-		| T_PREFIX T_AUTO
-		{
-			yydata->options = NewOptions();
-			
-			if (yydata->options == NULL) {
-				ABORT;
-			}
-
-			yydata->spec = malloc(sizeof(struct PrefixSpec));
-
-			if (yydata->spec == NULL) {
-				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
-				ABORT;
-			}
-
-			yydata->spec->prefix = 0;
+			memcpy(&yydata->prefix->addr, $2, sizeof(struct in6_addr));
 		}
 		;
 
@@ -417,43 +380,43 @@ prefixplist	: prefixplist prefixparms
 
 prefixparms	: T_AdvOnLink SWITCH ';'
 		{
-			if (yydata->options) {
-				yydata->options->AdvOnLinkFlag = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvOnLinkFlag = $2;
 			}
 		}
 		| T_AdvAutonomous SWITCH ';'
 		{
-			if (yydata->options) {
-				yydata->options->AdvAutonomousFlag = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvAutonomousFlag = $2;
 			}
 		}
 		| T_AdvRouterAddr SWITCH ';'
 		{
-			if (yydata->options) {
-				yydata->options->AdvRouterAddr = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvRouterAddr = $2;
 			}
 		}
 		| T_AdvValidLifetime number_or_infinity ';'
 		{
-			if (yydata->options) {
-				yydata->options->AdvValidLifetime = $2;
-				yydata->options->curr_validlft = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvValidLifetime = $2;
+				yydata->prefix->curr_validlft = $2;
 			}
 		}
 		| T_AdvPreferredLifetime number_or_infinity ';'
 		{
-			if (yydata->options) {
-				yydata->options->AdvPreferredLifetime = $2;
-				yydata->options->curr_preferredlft = $2;
+			if (yydata->prefix) {
+				yydata->prefix->AdvPreferredLifetime = $2;
+				yydata->prefix->curr_preferredlft = $2;
 			}
 		}
 		| T_DeprecatePrefix SWITCH ';'
 		{
-			yydata->options->DeprecatePrefixFlag = $2;
+			yydata->prefix->DeprecatePrefixFlag = $2;
 		}
 		| T_DecrementLifetimes SWITCH ';'
 		{
-			yydata->options->DecrementLifetimesFlag = $2;
+			yydata->prefix->DecrementLifetimesFlag = $2;
 		}
 		;
 
@@ -702,9 +665,9 @@ number_or_infinity	: NUMBER
 %%
 
 
-static struct Options * NewOptions(void)
+static struct Prefix * NewOptions(void)
 {
-	struct Options * prefix = malloc(sizeof(struct Options));
+	struct Prefix * prefix = malloc(sizeof(struct Prefix));
 
 	if (prefix == NULL) {
 		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
@@ -721,8 +684,8 @@ static void cleanup(struct yydata * yydata)
 	if (yydata->iface)
 		free(yydata->iface);
 
-	if (yydata->options)
-		free(yydata->options);
+	if (yydata->prefix)
+		free(yydata->prefix);
 
 	if (yydata->route)
 		free(yydata->route);

@@ -122,7 +122,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 {
 	uint8_t all_hosts_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 	struct nd_router_advert *radvert;
-	struct PrefixSpec *spec;
+	struct Prefix *prefix;
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 	struct AdvDNSSL *dnssl;
@@ -181,67 +181,49 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	radvert->nd_ra_reachable  = htonl(iface->AdvReachableTime);
 	radvert->nd_ra_retransmit = htonl(iface->AdvRetransTimer);
 
-	spec = iface->PrefixSpec;
 
 	/*
 	 *	add prefix options
 	 */
+	prefix = iface->Prefix;
+	for (prefix = iface->Prefix; prefix; prefix = prefix->next) {
+		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0) ) {
+			struct nd_opt_prefix_info *pinfo;
 
-	while(spec)
-	{
-		if( spec->options->enabled && (!spec->options->DecrementLifetimesFlag || spec->options->curr_preferredlft > 0) )
-		{
-			struct Prefix * prefix = spec->prefix;
+			pinfo = (struct nd_opt_prefix_info *) (buff + len);
 
-			while (prefix) {
-				struct nd_opt_prefix_info *pinfo;
+			send_ra_inc_len(&len, sizeof(*pinfo));
 
-				pinfo = (struct nd_opt_prefix_info *) (buff + len);
+			pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
+			pinfo->nd_opt_pi_len	     = 4;
+			pinfo->nd_opt_pi_prefix_len  = prefix->len;
+			pinfo->nd_opt_pi_flags_reserved  = (prefix->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
+			pinfo->nd_opt_pi_flags_reserved	|= (prefix->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
 
-				send_ra_inc_len(&len, sizeof(*pinfo));
+			/* Mobile IPv6 ext */
+			pinfo->nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
 
-				pinfo->nd_opt_pi_type	     = ND_OPT_PREFIX_INFORMATION;
-				pinfo->nd_opt_pi_len	     = 4;
-				pinfo->nd_opt_pi_prefix_len  = prefix->len;
-
-				pinfo->nd_opt_pi_flags_reserved  =
-					(spec->options->AdvOnLinkFlag)?ND_OPT_PI_FLAG_ONLINK:0;
-				pinfo->nd_opt_pi_flags_reserved	|=
-					(spec->options->AdvAutonomousFlag)?ND_OPT_PI_FLAG_AUTO:0;
-				/* Mobile IPv6 ext */
-				pinfo->nd_opt_pi_flags_reserved |=
-					(spec->options->AdvRouterAddr)?ND_OPT_PI_FLAG_RADDR:0;
-
-				if (iface->cease_adv && spec->options->DeprecatePrefixFlag) {
-					/* RFC4862, 5.5.3, step e) */
-					pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
-					pinfo->nd_opt_pi_preferred_time = 0;
-				} else {
-					if (spec->options->DecrementLifetimesFlag) {
-						decrement_lifetime(secs_since_last_ra,
-									&spec->options->curr_validlft);
-							
-						decrement_lifetime(secs_since_last_ra,
-									&spec->options->curr_preferredlft);
-						if (spec->options->curr_preferredlft == 0)
-							cease_adv_pfx_msg(iface->Name, &prefix->addr, prefix->len);
-					}
-					pinfo->nd_opt_pi_valid_time	= htonl(spec->options->curr_validlft);
-					pinfo->nd_opt_pi_preferred_time = htonl(spec->options->curr_preferredlft);
-
+			if (iface->cease_adv && prefix->DeprecatePrefixFlag) {
+				/* RFC4862, 5.5.3, step e) */
+				pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
+				pinfo->nd_opt_pi_preferred_time = 0;
+			} else {
+				if (prefix->DecrementLifetimesFlag) {
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_preferredlft);
+					if (prefix->curr_preferredlft == 0)
+						cease_adv_pfx_msg(iface->Name, &prefix->addr, prefix->len);
 				}
-				pinfo->nd_opt_pi_reserved2	= 0;
-
-				memcpy(&pinfo->nd_opt_pi_prefix, &prefix->addr,
-						   sizeof(struct in6_addr));
-				print_addr(&prefix->addr, addr_str, sizeof(addr_str));
-				dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
-
-				prefix = prefix->next;
+				pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
+				pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
 			}
-		}
 
-		spec = spec->next;
+			pinfo->nd_opt_pi_reserved2	= 0;
+
+			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->addr, sizeof(struct in6_addr));
+			print_addr(&prefix->addr, addr_str, sizeof(addr_str));
+			dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s", addr_str, iface->Name);
+		}
 	}
 
 	route = iface->AdvRouteList;

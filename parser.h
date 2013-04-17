@@ -28,8 +28,7 @@ struct yydata
 	yyscan_t scaninfo;
 	char const * filename;
 	struct Interface *iface;
-	struct PrefixSpec * spec;
-	struct Options *options;
+	struct Prefix *prefix;
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 	struct AdvDNSSL *dnssl;

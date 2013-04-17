@@ -38,7 +38,7 @@ int
 setup_deviceinfo(struct Interface *iface)
 {
 	struct ifreq	ifr;
-	struct PrefixSpec *spec;
+	struct Prefix *prefix;
 	char zero[sizeof(iface->if_addr)];
 
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
@@ -110,22 +110,13 @@ setup_deviceinfo(struct Interface *iface)
 				iface->Name);
 	}
 
-	spec = iface->PrefixSpec;
-	while (spec)
-	{
-		struct Prefix * prefix = spec->prefix;
-
-		while (prefix) {
-			if ((iface->if_prefix_len != -1) &&
-				(iface->if_prefix_len != prefix->len))
-			{
-				flog(LOG_WARNING, "prefix length should be %d for %s",
-					iface->if_prefix_len, iface->Name);
-			}
-			prefix = prefix->next;
+	for (prefix = iface->Prefix; prefix; prefix = prefix->next) {
+		if ((iface->if_prefix_len != -1) &&
+			(iface->if_prefix_len != prefix->len))
+		{
+			flog(LOG_WARNING, "prefix length should be %d for %s",
+				iface->if_prefix_len, iface->Name);
 		}
-
-		spec = spec->next;
 	}
 
 	return (0);
