@@ -128,43 +128,31 @@ setup_deviceinfo(struct Interface *iface)
  */
 int setup_linklocal_addr(struct Interface *iface)
 {
-	FILE *fp;
-	char str_addr[40];
-	unsigned int plen, scope, dad_status, if_idx;
-	char devname[IFNAMSIZ];
+	struct ifaddrs * ifaddrs_ptr = 0;
+	struct ifaddrs const * ifa = 0;
 
-	if ((fp = fopen(PATH_PROC_NET_IF_INET6, "r")) == NULL)
-	{
-		flog(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IF_INET6,
-			strerror(errno));
-		return (-1);
-	}
+	getifaddrs(&ifaddrs_ptr);
 
-	while (fscanf(fp, "%32s %x %02x %02x %02x %15s\n",
-		      str_addr, &if_idx, &plen, &scope, &dad_status,
-		      devname) != EOF)
-	{
-		if (scope == IPV6_ADDR_LINKLOCAL &&
-		    strcmp(devname, iface->Name) == 0)
-		{
-			struct in6_addr addr;
-			unsigned int ap;
-			int i;
+	for (ifa = ifaddrs_ptr; ifa; ifa = ifa->ifa_next) {
 
-			for (i=0; i<16; i++)
-			{
-				sscanf(str_addr + i * 2, "%02x", &ap);
-				addr.s6_addr[i] = (unsigned char)ap;
-			}
-			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
+		struct sockaddr_in6 const * sin6 = (struct sockaddr_in6 const *)ifa->ifa_addr;
 
-			fclose(fp);
+		if (ifa->ifa_addr->sa_family == AF_INET6 &&
+			IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr) &&
+			strcmp(ifa->ifa_name, iface->Name) == 0) {
+
+			memcpy(&iface->if_addr, &sin6->sin6_addr, sizeof(iface->if_addr));
+			freeifaddrs(ifaddrs_ptr);
+
+			dlog(LOG_INFO, 5, "linklocal address configured for %s", iface->Name);
 			return 0;
 		}
 	}
 
+	freeifaddrs(ifaddrs_ptr);
+
 	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
-	fclose(fp);
+
 	return (-1);
 }
 
