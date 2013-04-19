@@ -351,6 +351,7 @@ main(int argc, char *argv[])
 	signal(SIGUSR1, sigusr1_handler);
 
 	config_interfaces();
+	privsep_kill();
 	/* Must do this after sock is opened */
 	validate_configuration_or_die();
 

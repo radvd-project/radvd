@@ -171,6 +171,12 @@ privsep_init(void)
 }
 
 /* Interface calls for the unprivileged process */
+
+void privsep_kill(void)
+{
+	close(pfd);
+}
+
 int
 privsep_interface_linkmtu(const char *iface, uint32_t mtu)
 {
