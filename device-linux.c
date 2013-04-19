@@ -23,11 +23,6 @@
 #include "includes.h"
 #include "radvd.h"
 #include "defaults.h"
-#include "pathnames.h"		/* for PATH_PROC_NET_IF_INET6 */
-
-#ifndef IPV6_ADDR_LINKLOCAL
-#define IPV6_ADDR_LINKLOCAL   0x0020U
-#endif
 
 /*
  * this function gets the hardware type and address of an interface,
@@ -120,40 +115,6 @@ setup_deviceinfo(struct Interface *iface)
 	}
 
 	return (0);
-}
-
-/*
- * this function extracts the link local address
- * from PATH_PROC_NET_IF_INET6. 
- */
-int setup_linklocal_addr(struct Interface *iface)
-{
-	struct ifaddrs * ifaddrs_ptr = 0;
-	struct ifaddrs const * ifa = 0;
-
-	getifaddrs(&ifaddrs_ptr);
-
-	for (ifa = ifaddrs_ptr; ifa; ifa = ifa->ifa_next) {
-
-		struct sockaddr_in6 const * sin6 = (struct sockaddr_in6 const *)ifa->ifa_addr;
-
-		if (ifa->ifa_addr->sa_family == AF_INET6 &&
-			IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr) &&
-			strcmp(ifa->ifa_name, iface->Name) == 0) {
-
-			memcpy(&iface->if_addr, &sin6->sin6_addr, sizeof(iface->if_addr));
-			freeifaddrs(ifaddrs_ptr);
-
-			dlog(LOG_INFO, 5, "linklocal address configured for %s", iface->Name);
-			return 0;
-		}
-	}
-
-	freeifaddrs(ifaddrs_ptr);
-
-	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
-
-	return (-1);
 }
 
 int setup_allrouters_membership(struct Interface *iface)

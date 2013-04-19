@@ -63,3 +63,55 @@ check_device(struct Interface *iface)
 	return 0;
 }
 
+
+/*
+ * Saves the first link local address seen on the specified interface to iface->if_addr
+ *
+ */
+int setup_linklocal_addr(struct Interface *iface)
+{
+	struct ifaddrs *addresses = 0;
+	struct ifaddrs const *ifa;
+
+	if (getifaddrs(&addresses) != 0)
+	{
+		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
+		goto ret;
+	}
+
+	for (ifa = addresses; ifa; ifa = ifa->ifa_next)
+	{
+		if (!ifa->ifa_addr)
+			continue;
+
+		if (ifa->ifa_addr->sa_family != AF_INET6)
+			continue;
+
+		struct sockaddr_in6 const *a6 = (struct sockaddr_in6 const*)ifa->ifa_addr;
+
+		if (!IN6_IS_ADDR_LINKLOCAL(&a6->sin6_addr))
+			continue;
+
+		if (strcmp(ifa->ifa_name, iface->Name) != 0)
+			continue;
+
+		memcpy(&iface->if_addr, &(a6->sin6_addr), sizeof(iface->if_addr));
+
+		freeifaddrs(addresses);
+
+		dlog(LOG_INFO, 4, "linklocal address configured for %s", iface->Name);
+
+		return 0;
+	}
+
+ret:
+
+	if(addresses)
+		freeifaddrs(addresses);
+
+	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
+
+	return -1;
+}
+
+
