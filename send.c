@@ -154,7 +154,7 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
 	}
 
 	/* Make sure that we've joined the all-routers multicast group */
-	if (check_allrouters_membership(iface) < 0)
+	if (!disableigmp6check && check_allrouters_membership(iface) < 0)
 		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
 
 	dlog(LOG_DEBUG, 3, "sending RA on %s", iface->Name);

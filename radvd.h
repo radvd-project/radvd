@@ -25,6 +25,8 @@
 
 extern int sock;
 
+extern int disableigmp6check;
+
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 
 struct AdvPrefix;
