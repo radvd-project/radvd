@@ -28,7 +28,7 @@
  * the defined prefixes
  */
 int
-setup_deviceinfo(struct Interface *iface)
+update_device_info(struct Interface *iface)
 {
 	struct ifreq	ifr;
 	struct AdvPrefix *prefix;
