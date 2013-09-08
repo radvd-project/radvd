@@ -822,11 +822,26 @@ check_ip6_forwarding(void)
 	}
 #endif
 
+#ifdef __linux__
+    /* Linux allows the forwarding value to be either 1 or 2.
+     * https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/networking/ip-sysctl.txt?id=ae8abfa00efb8ec550f772cbd1e1854977d06212#n1078
+     *
+     * The value 2 indicates forwarding is enabled and that *AS* *WELL* router solicitions are being done.
+     *
+     * Which is sometimes used on routers performing RS on their WAN (ppp, etc.) links
+     */
+	if ((value != 1 || value != 2) && !warned) {
+		warned = 1;
+		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1 or 2", value);
+		return(-1);
+	}
+#else
 	if (value != 1 && !warned) {
 		warned = 1;
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
 		return(-1);
 	}
+#endif /* __linux__ */
 
 	return(0);
 }
