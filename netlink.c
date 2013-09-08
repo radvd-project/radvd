@@ -81,10 +81,11 @@ int netlink_socket(void)
 	if (sock == -1) {
 		flog(LOG_ERR, "Unable to open netlink socket: %s", strerror(errno));
 	}
+#if defined SOL_NETLINK && defined NETLINK_NO_ENOBUFS
 	else if (setsockopt(sock, SOL_NETLINK, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0 ) {
 		flog(LOG_ERR, "Unable to setsockopt NETLINK_NO_ENOBUFS: %s", strerror(errno));
 	}
-
+#endif
 	memset(&snl, 0, sizeof(snl));
 	snl.nl_family = AF_NETLINK;
 	snl.nl_groups = RTMGRP_LINK;
