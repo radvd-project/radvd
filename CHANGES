@@ -1,3 +1,5 @@
+2013/09/24	Added a Makefile target to generate hashes and a gpg signature
+
 2013/09/07	Netlink processing fix <Nathan Hintz>
 		Correction in IPv6 forwarding setting check <Anand Kumria>
 		fix for kernels with no NETLINK_NO_ENOBUFS defined <Sedat Dilek>

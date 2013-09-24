@@ -1,4 +1,6 @@
 #
-# this file is automatically processed by configure
+# This file is automatically processed by configure
 #
-1.9.4rc1
+# If adding rcX, be sure to separate with a '-' 
+#
+1.9.4-rc2
