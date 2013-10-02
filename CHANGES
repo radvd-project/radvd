@@ -1,3 +1,6 @@
+2013/10/02	releasing 1.9.5
+		minor fix in IPv6 forwarding setting check <akarl10>
+
 2013/10/01	releasing 1.9.4
 
 2013/09/24	Added a Makefile target to generate hashes and a gpg signature

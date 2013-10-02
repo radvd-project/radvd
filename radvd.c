@@ -830,13 +830,13 @@ check_ip6_forwarding(void)
      *
      * Which is sometimes used on routers performing RS on their WAN (ppp, etc.) links
      */
-	if ((value != 1 || value != 2) && !warned) {
+	if (!warned && value != 1 && value != 2) {
 		warned = 1;
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1 or 2", value);
 		return(-1);
 	}
 #else
-	if (value != 1 && !warned) {
+	if (!warned && value != 1) {
 		warned = 1;
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1", value);
 		return(-1);
