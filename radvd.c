@@ -544,6 +544,7 @@ kickoff_adverts(void)
 
 		gettimeofday(&iface->last_multicast, NULL);
 
+		/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
 		if (!iface->AdvSendAdvert)
 			continue;
 
@@ -569,6 +570,7 @@ stop_adverts(void)
 
 	for (iface=IfaceList; iface; iface=iface->next) {
 		if( ! iface->UnicastOnly ) {
+			/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
 			if (iface->AdvSendAdvert) {
 				/* send a final advertisement with zero Router Lifetime */
 				iface->cease_adv = 1;
