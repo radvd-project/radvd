@@ -46,7 +46,7 @@ char usage_str[] = {
 #ifdef HAVE_NETLINK
 "  -L, --disablenetlink     Disable netlink feature\n"
 #endif
-"  -I,  --disableigmp6check    Disable igmp6 check before send\n"
+"  -I, --disableigmp6check    Disable igmp6 check before send\n"
 "  -v, --version          Print the version and quit.\n"
 };
 
