@@ -16,17 +16,6 @@
 #include "includes.h"
 #include "radvd.h"
 
-void
-mdelay(double msecs)
-{
-	struct timeval tv;
-
-	tv.tv_sec = (time_t)(msecs / 1000.0);
-	tv.tv_usec = (suseconds_t)((msecs - tv.tv_sec * 1000.0) * 1000.0);
-
-	select(0,(fd_set *)NULL,(fd_set *)NULL,(fd_set *)NULL, &tv);
-}
-
 double
 rand_between(double lower, double upper)
 {
