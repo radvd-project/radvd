@@ -866,6 +866,7 @@ int check_ip6_forwarding(void)
 
 int readin_config(char *fname)
 {
+	FILE * yyin;
 	if ((yyin = fopen(fname, "r")) == NULL) {
 		flog(LOG_ERR, "can't open %s: %s", fname, strerror(errno));
 		return (-1);
