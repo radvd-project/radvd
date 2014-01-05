@@ -30,7 +30,7 @@ struct Interface *IfaceList = NULL;
 
 #ifdef HAVE_GETOPT_LONG
 
-char usage_str[] = {
+static char usage_str[] = {
 "\n"
 "  -c, --configtest        Parse the config file and exit.\n"
 "  -C, --config=PATH       Sets the config file.  Default is /etc/radvd.conf.\n"
@@ -50,7 +50,7 @@ char usage_str[] = {
 "  -v, --version           Print the version and quit.\n"
 };
 
-struct option prog_opt[] = {
+static struct option prog_opt[] = {
 	{"debug", 1, 0, 'd'},
 	{"configtest", 0, 0, 'c'},
 	{"config", 1, 0, 'C'},
@@ -73,7 +73,7 @@ struct option prog_opt[] = {
 
 #else
 
-char usage_str[] = {
+static char usage_str[] = {
 "[-hsvcn] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 };
@@ -83,18 +83,18 @@ char usage_str[] = {
 extern FILE *yyin;
 
 char *conf_file = NULL;
-char *pidfile = NULL;
-char *pname;
 int sock = -1;
+static char *pidfile = NULL;
+static char *pname;
 #ifdef HAVE_NETLINK
-int disablenetlink = 0;
+static int disablenetlink = 0;
 #endif
 int disableigmp6check = 0;
 
-volatile int sighup_received = 0;
-volatile int sigterm_received = 0;
-volatile int sigint_received = 0;
-volatile int sigusr1_received = 0;
+static volatile int sighup_received = 0;
+static volatile int sigterm_received = 0;
+static volatile int sigint_received = 0;
+static volatile int sigusr1_received = 0;
 
 void sighup_handler(int sig);
 void sigterm_handler(int sig);
