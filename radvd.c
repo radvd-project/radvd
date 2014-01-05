@@ -101,7 +101,7 @@ void sigusr1_handler(int sig);
 void timer_handler(int sock, struct Interface *iface);
 void config_interface(struct Interface *IfaceList);
 void kickoff_adverts(int sock, struct Interface *IfaceList);
-void stop_adverts(void);
+void stop_adverts(int sock, struct Interface *IfaceList);
 void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
 	kickoff_adverts(sock, IfaceList);
 	main_loop(sock, IfaceList);
 	flog(LOG_INFO, "sending stop adverts", pidfile);
-	stop_adverts();
+	stop_adverts(sock, IfaceList);
 	if (daemonize) {
 		flog(LOG_INFO, "removing %s", pidfile);
 		unlink(pidfile);
@@ -550,7 +550,7 @@ void kickoff_adverts(int sock, struct Interface *IfaceList)
 	}
 }
 
-void stop_adverts(void)
+void stop_adverts(int sock, struct Interface *IfaceList)
 {
 	struct Interface *iface;
 
