@@ -109,6 +109,7 @@ int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void check_ifaces(int sock, struct Interface *IfaceList);
 void main_loop(int sock, struct Interface *IfaceList);
+void reset_prefix_lifetimes(struct Interface *IfaceList);
 
 int main(int argc, char *argv[])
 {
@@ -475,7 +476,7 @@ void main_loop(int sock, struct Interface *IfaceList)
 
 		if (sigusr1_received) {
 			dlog(LOG_INFO, 3, "sig usr1 received.");
-			reset_prefix_lifetimes();
+			reset_prefix_lifetimes(IfaceList);
 			sigusr1_received = 0;
 		}
 
@@ -735,7 +736,7 @@ void sigusr1_handler(int sig)
 	sigusr1_received = 1;
 }
 
-void reset_prefix_lifetimes(void)
+void reset_prefix_lifetimes(struct Interface *IfaceList)
 {
 	struct Interface *iface;
 	struct AdvPrefix *prefix;
