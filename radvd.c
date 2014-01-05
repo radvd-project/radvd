@@ -332,9 +332,6 @@ int main(int argc, char *argv[])
 		daemon_retval_send(0);
 	}
 
-	/*
-	 *      config signal handlers
-	 */
 	signal(SIGHUP, sighup_handler);
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigint_handler);
