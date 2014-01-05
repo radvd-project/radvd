@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 	 */
 	if (check_conffile_perm(username, conf_file) < 0) {
 		if (get_debuglevel() == 0) {
-			flog(LOG_ERR, "Exiting, permissions on conf_file invalid.\n");
+			flog(LOG_ERR, "Exiting, permissions on conf_file invalid.");
 			exit(1);
 		} else
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 
 	/* parse config file */
 	if (readin_config(conf_file) < 0) {
-		flog(LOG_ERR, "Exiting, failed to read config file.\n");
+		flog(LOG_ERR, "Exiting, failed to read config file.");
 		exit(1);
 	}
 
@@ -434,18 +434,18 @@ void main_loop(void)
 		}
 
 		if (sigterm_received || sigint_received) {
-			flog(LOG_WARNING, "Exiting, sigterm or sigint received.\n");
+			flog(LOG_WARNING, "Exiting, sigterm or sigint received.");
 			break;
 		}
 
 		if (sighup_received) {
-			dlog(LOG_INFO, 3, "sig hup received.\n");
+			dlog(LOG_INFO, 3, "sig hup received.");
 			reload_config();
 			sighup_received = 0;
 		}
 
 		if (sigusr1_received) {
-			dlog(LOG_INFO, 3, "sig usr1 received.\n");
+			dlog(LOG_INFO, 3, "sig usr1 received.");
 			reset_prefix_lifetimes();
 			sigusr1_received = 0;
 		}

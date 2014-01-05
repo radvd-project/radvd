@@ -57,7 +57,7 @@ void process_netlink_msg(int sock)
 			return;
 
 		if (nh->nlmsg_type == NLMSG_ERROR) {
-			flog(LOG_ERR, "%s:%d Some type of netlink error.\n", __FILE__, __LINE__);
+			flog(LOG_ERR, "%s:%d Some type of netlink error.", __FILE__, __LINE__);
 			abort();
 		}
 

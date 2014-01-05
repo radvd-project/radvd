@@ -51,9 +51,9 @@ void privsep_read_loop(void)
 		if (ret <= 0) {
 			/* Error or EOF, give up */
 			if (ret < 0) {
-				flog(LOG_ERR, "Exiting, privsep_read_loop had readn error: %s\n", strerror(errno));
+				flog(LOG_ERR, "Exiting, privsep_read_loop had readn error: %s", strerror(errno));
 			} else {
-				flog(LOG_ERR, "Exiting, privsep_read_loop had readn return 0 bytes\n");
+				flog(LOG_ERR, "Exiting, privsep_read_loop had readn return 0 bytes");
 			}
 			close(pfd);
 			_exit(0);
@@ -151,7 +151,7 @@ int privsep_init(void)
 
 		privsep_read_loop();
 		close(pfd);
-		flog(LOG_ERR, "Exiting, privsep_read_loop is complete.\n");
+		flog(LOG_ERR, "Exiting, privsep_read_loop is complete.");
 		_exit(0);
 	}
 
