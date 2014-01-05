@@ -665,7 +665,7 @@ void reset_prefix_lifetimes(void)
 	for (iface = IfaceList; iface; iface = iface->next) {
 		for (prefix = iface->AdvPrefixList; prefix; prefix = prefix->next) {
 			if (prefix->DecrementLifetimesFlag) {
-				print_addr(&prefix->Prefix, pfx_str);
+				print_addr(&prefix->Prefix, pfx_str, sizeof(pfx_str));
 				dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_preferredlft,
 				     prefix->AdvPreferredLifetime);
 				dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs", pfx_str, prefix->PrefixLen, iface->Name, prefix->curr_validlft,

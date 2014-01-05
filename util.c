@@ -21,12 +21,12 @@ double rand_between(double lower, double upper)
 	return ((upper - lower) / (RAND_MAX + 1.0) * rand() + lower);
 }
 
-void print_addr(struct in6_addr *addr, char *str)
+void print_addr(struct in6_addr *addr, char *str, size_t str_size)
 {
 	const char *res;
 
-	/* XXX: overflows 'str' if it isn't big enough */
-	res = inet_ntop(AF_INET6, (void *)addr, str, INET6_ADDRSTRLEN);
+	/* TODO: Will str be null terminated if str isn't big enough? */
+	res = inet_ntop(AF_INET6, (void *)addr, str, str_size);
 
 	if (res == NULL) {
 		flog(LOG_ERR, "print_addr: inet_ntop: %s", strerror(errno));
