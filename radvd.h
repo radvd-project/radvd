@@ -22,6 +22,7 @@
 
 #define CONTACT_EMAIL	"Reuben Hawkins <reubenhwk@gmail.com>"
 
+/* TODO: remove global vars */
 extern int disableigmp6check;
 
 #define min(a,b)	(((a) < (b)) ? (a) : (b))

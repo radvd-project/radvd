@@ -71,6 +71,7 @@ static struct option prog_opt[] = {
 
 #else
 
+/* TODO: Make sure these are the same as in the long usage string. */
 static char usage_str[] = {
 "[-hsvcn] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
@@ -81,7 +82,8 @@ int sock = -1;
 struct Interface * IfaceList = 0;
 extern FILE *yyin;
 
-char *conf_file = NULL;
+/* TODO: remove global vars. */
+char *conf_file = NULL;		/* TODO: this is referenced by gram.y */
 static char *pidfile = NULL;
 static char *pname;
 #ifdef HAVE_NETLINK
@@ -394,6 +396,7 @@ void main_loop(void)
 		int rc;
 
 		if (IfaceList) {
+			/* TODO: This is a great place to use a min heap. */
 			timeout = next_time_msec(IfaceList);
 			next = IfaceList;
 			for (iface = IfaceList; iface; iface = iface->next) {

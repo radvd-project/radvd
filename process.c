@@ -30,6 +30,8 @@ void process(int sock, struct Interface *ifacel, unsigned char *msg, int len, st
 
 	print_addr(&addr->sin6_addr, addr_str, sizeof(addr_str));
 
+	/* TODO: handle error...
+	 * On success, if_indextoname() returns ifname; on error, NULL is returned and errno is set appropriately. */
 	if_indextoname(pkt_info->ipi6_ifindex, if_name);
 	dlog(LOG_DEBUG, 2, "received packet on interface: %d %s", pkt_info->ipi6_ifindex, if_name);
 
@@ -83,7 +85,7 @@ void process(int sock, struct Interface *ifacel, unsigned char *msg, int len, st
 	}
 
 	/* get iface by received if_index */
-
+	/* TODO: This is a great place to use a hash table */
 	for (iface = ifacel; iface; iface = iface->next) {
 		if (iface->if_index == pkt_info->ipi6_ifindex) {
 			break;

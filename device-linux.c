@@ -139,6 +139,8 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	return (0);
 }
 
+/* TODO: Is check_allrouters_membership needed? */
+/* TODO: I don't like how this reads files.  Can we do this with getsockopt? */
 int check_allrouters_membership(int sock, struct Interface *iface)
 {
 #define ALL_ROUTERS_MCAST "ff020000000000000000000000000002"
