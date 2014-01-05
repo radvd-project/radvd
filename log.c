@@ -44,17 +44,17 @@ int log_open(int method, char *ident, char *log, int facility)
 		break;
 	case L_LOGFILE:
 		if (!log) {
-			fprintf(stderr, "%s: no logfile specified\n", log_ident);
+			fprintf(stderr, "%s (%d): no logfile specified\n", log_ident, getpid());
 			return (-1);
 		}
 		log_file = log;
 		if ((log_file_fd = fopen(log_file, "a")) == NULL) {
-			fprintf(stderr, "%s: can't open %s: %s\n", log_ident, log_file, strerror(errno));
+			fprintf(stderr, "%s (%d): can't open %s: %s\n", log_ident, getpid(), log_file, strerror(errno));
 			return (-1);
 		}
 		break;
 	default:
-		fprintf(stderr, "%s: unknown logging method: %d\n", log_ident, log_method);
+		fprintf(stderr, "%s (%d): unknown logging method: %d\n", log_ident, getpid(), log_method);
 		log_method = L_NONE;
 		return (-1);
 	}
@@ -85,7 +85,7 @@ static int vlog(int prio, char *format, va_list ap)
 		tm = localtime(&current);
 		(void)strftime(tstamp, sizeof(tstamp), LOG_TIME_FORMAT, tm);
 
-		fprintf(stderr, "[%s] %s: %s\n", tstamp, log_ident, buff);
+		fprintf(stderr, "[%s] %s (%d): %s\n", tstamp, log_ident, getpid(), buff);
 		fflush(stderr);
 		break;
 	case L_LOGFILE:
@@ -93,11 +93,11 @@ static int vlog(int prio, char *format, va_list ap)
 		tm = localtime(&current);
 		(void)strftime(tstamp, sizeof(tstamp), LOG_TIME_FORMAT, tm);
 
-		fprintf(log_file_fd, "[%s] %s: %s\n", tstamp, log_ident, buff);
+		fprintf(log_file_fd, "[%s] %s (%d): %s\n", tstamp, log_ident, getpid(), buff);
 		fflush(log_file_fd);
 		break;
 	default:
-		fprintf(stderr, "%s: unknown logging method: %d\n", log_ident, log_method);
+		fprintf(stderr, "%s (%d): unknown logging method: %d\n", log_ident, getpid(), log_method);
 		log_method = L_NONE;
 		return (-1);
 	}
@@ -139,7 +139,7 @@ int log_close(void)
 		fclose(log_file_fd);
 		break;
 	default:
-		fprintf(stderr, "%s: unknown logging method: %d\n", log_ident, log_method);
+		fprintf(stderr, "%s (%d): unknown logging method: %d\n", log_ident, getpid(), log_method);
 		log_method = L_NONE;
 		return (-1);
 	}
