@@ -98,7 +98,7 @@ void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void sigusr1_handler(int sig);
-void timer_handler(void *data);
+void timer_handler(int sock, struct Interface *iface);
 void config_interface(void);
 void kickoff_adverts(void);
 void stop_adverts(void);
@@ -457,7 +457,7 @@ void main_loop(int sock, struct Interface *IfaceList)
 #endif
 		} else if (rc == 0) {
 			if (next)
-				timer_handler(next);
+				timer_handler(sock, next);
 		} else if (rc == -1) {
 			dlog(LOG_INFO, 3, "poll returned early: %s", strerror(errno));
 		}
@@ -482,9 +482,8 @@ void main_loop(int sock, struct Interface *IfaceList)
 	}
 }
 
-void timer_handler(void *data)
+void timer_handler(int sock, struct Interface *iface)
 {
-	struct Interface *iface = (struct Interface *)data;
 	double next;
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
