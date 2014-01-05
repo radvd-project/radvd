@@ -26,8 +26,12 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 	struct Interface *iface;
 	struct icmp6_hdr *icmph;
 	char addr_str[INET6_ADDRSTRLEN];
+	char if_name[IF_NAMESIZE] = { "" };
 
 	print_addr(&addr->sin6_addr, addr_str, sizeof(addr_str));
+
+	if_indextoname(pkt_info->ipi6_ifindex, if_name);
+	dlog(LOG_DEBUG, 2, "received packet on interface: %d %s", pkt_info->ipi6_ifindex, if_name);
 
 	if (!pkt_info) {
 		flog(LOG_WARNING, "received packet with no pkt_info from %s!", addr_str);
@@ -78,8 +82,6 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 		return;
 	}
 
-	dlog(LOG_DEBUG, 4, "if_index %u", pkt_info->ipi6_ifindex);
-
 	/* get iface by received if_index */
 
 	for (iface = ifacel; iface; iface = iface->next) {
@@ -89,7 +91,6 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 	}
 
 	if (iface == NULL) {
-		dlog(LOG_DEBUG, 2, "received packet from unknown interface: %d", pkt_info->ipi6_ifindex);
 		return;
 	}
 
@@ -98,18 +99,11 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 		return;
 	}
 
-	if (!iface->AdvSendAdvert) {
-		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
-		return;
-	}
-
-	dlog(LOG_DEBUG, 4, "found Interface: %s", iface->Name);
-
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT) {
-		dlog(LOG_DEBUG, 4, "received RS from %s", addr_str);
+		dlog(LOG_DEBUG, 4, "received RS from %s on %s", addr_str, if_name);
 		process_rs(iface, msg, len, addr);
 	} else if (icmph->icmp6_type == ND_ROUTER_ADVERT) {
-		dlog(LOG_DEBUG, 4, "received RA from %s", addr_str);
+		dlog(LOG_DEBUG, 4, "received RA from %s on %s", addr_str, if_name);
 		process_ra(iface, msg, len, addr);
 	}
 }

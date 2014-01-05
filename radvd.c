@@ -399,7 +399,7 @@ void main_loop(void)
 			}
 		}
 
-		dlog(LOG_DEBUG, 5, "polling for %g seconds.", timeout / 1000.0);
+		dlog(LOG_DEBUG, 5, "polling for %g seconds. Next iface is %s.", timeout / 1000.0, next->Name);
 
 		rc = poll(fds, sizeof(fds) / sizeof(fds[0]), timeout);
 
@@ -535,6 +535,7 @@ void stop_adverts(void)
 			/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
 			if (iface->AdvSendAdvert) {
 				/* send a final advertisement with zero Router Lifetime */
+				dlog(LOG_DEBUG, 4, "stopping all adverts on %s.", iface->Name);
 				iface->cease_adv = 1;
 				send_ra_forall(iface, NULL);
 			}

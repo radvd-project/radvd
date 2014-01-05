@@ -153,7 +153,7 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
 
 	if (!iface->AdvSendAdvert) {
-		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
+		dlog(LOG_DEBUG, 3, "AdvSendAdvert is off for %s", iface->Name);
 		return 0;
 	}
 
