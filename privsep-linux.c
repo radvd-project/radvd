@@ -153,6 +153,8 @@ int privsep_init(void)
 		_exit(0);
 	}
 
+	dlog(LOG_DEBUG, 3, "radvd privsep PID is %d", pid);
+
 	/* Continue execution (will drop privileges soon) */
 	close(pipefds[0]);
 	pfd = pipefds[1];

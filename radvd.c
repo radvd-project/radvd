@@ -125,7 +125,6 @@ int main(int argc, char *argv[])
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
-	pid_t pid;
 
 	pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
 
@@ -285,13 +284,17 @@ int main(int argc, char *argv[])
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
+	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
 	if (daemonize) {
+		pid_t pid;
+
 		if (daemon_retval_init()) {
 			flog(LOG_ERR, "Could not initialize daemon IPC.");
 			exit(1);
 		}
 
 		pid = daemon_fork();
+
 		if (-1 == pid) {
 			flog(LOG_ERR, "Could not fork: %s", strerror(errno));
 			daemon_retval_done();
@@ -299,25 +302,44 @@ int main(int argc, char *argv[])
 		}
 
 		if (0 < pid) {
-			if (daemon_retval_wait(0)) {
-				flog(LOG_ERR, "Could not daemonize.");
+			switch (daemon_retval_wait(1)) {
+			case 0:
+				dlog(LOG_DEBUG, 3, "radvd PID is %d", pid);
+				exit(0);
+			break;
+
+			case 1:
+				flog(LOG_ERR, "radvd already running, terminating.");
 				exit(1);
+			break;
+
+			case 2:
+				flog(LOG_ERR, "Cannot create radvd PID file, terminating: %s", strerror(errno));
+				exit(2);
+			break;
+
+			default:
+				flog(LOG_ERR, "Could not daemonize.");
+				exit(-1);
+			break;
 			}
-			exit(0);
 		}
 
 		daemon_pid_file_proc = get_pidfile;
+
 		if (daemon_pid_file_is_running() >= 0) {
-			flog(LOG_ERR, "radvd already running, terminating.");
 			daemon_retval_send(1);
 			exit(1);
 		}
+
 		if (daemon_pid_file_create()) {
-			flog(LOG_ERR, "Cannot create radvd PID file, terminating: %s", strerror(errno));
 			daemon_retval_send(2);
-			exit(1);
+			exit(2);
 		}
+
 		daemon_retval_send(0);
+	} else {
+		dlog(LOG_DEBUG, 3, "radvd PID is %d", getpid());
 	}
 
 	dlog(LOG_DEBUG, 3, "Initializing privsep");
