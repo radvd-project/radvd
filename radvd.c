@@ -300,11 +300,6 @@ int main(int argc, char *argv[])
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
-
-	if (get_debuglevel() > 0) {
-		daemonize = 0;
-	}
-
 	if (daemonize) {
 		if (daemon_retval_init()) {
 			flog(LOG_ERR, "Could not initialize daemon IPC.");
