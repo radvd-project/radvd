@@ -105,14 +105,6 @@ EXTRA_DIST = \
 	redhat/radvd.sysconfig \
 	redhat/radvd-tmpfs.conf
 
-CLEANFILES = \
-	gram.c \
-	gram.h \
-	radvd.8 \
-	radvd.conf.5 \
-	radvdump.8 \
-	scanner.c
-
 SUFFIXES = .man
 
 .man:
@@ -178,5 +170,26 @@ dist-hook:
 	rm -f $(distdir)/gram.h
 	rm -f $(distdir)/scanner.c
 
-scanner.c: gram.h
+gram.h: gram.c
+gram.c: gram.y
+	$(AM_V_GEN) ${YACC} --defines=gram.h --graph=gram.dot --output=gram.c gram.y
+
+scanner.h: scanner.c
+scanner.c: scanner.l
+	$(AM_V_GEN) ${LEX} --header-file=scanner.h --outfile=scanner.c scanner.l
+
+radvd-gram.o gram.o: gram.c scanner.h
+radvd-scanner.o scanner.o: scanner.c gram.h
+
+
+CLEANFILES = \
+	radvd.8 \
+	radvd.conf.5 \
+	radvdump.8 \
+	gram.c \
+	gram.h \
+	gram.dot \
+	scanner.c \
+	scanner.h \
+	gram.dot
 
