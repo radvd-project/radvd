@@ -22,6 +22,8 @@
 #define IPV6_ADDR_LINKLOCAL   0x0020U
 #endif
 
+static char const *hwstr(unsigned short sa_family);
+
 /*
  * this function gets the hardware type and address of an interface,
  * determines the link layer token length and checks it against
@@ -48,37 +50,38 @@ int update_device_info(struct Interface *iface)
 		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s", iface->Name, strerror(errno));
 		return (-1);
 	}
+
+	dlog(LOG_DEBUG, 3, "hardware type for %s is %s", iface->Name, hwstr(ifr.ifr_hwaddr.sa_family));
+
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_ETHER", iface->Name);
 		break;
+
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_FDDI", iface->Name);
 		break;
-#endif				/* ARPHDR_FDDI */
+#endif
+
 #ifdef ARPHRD_ARCNET
 	case ARPHRD_ARCNET:
 		iface->if_hwaddr_len = 8;
 		iface->if_prefix_len = -1;
 		iface->if_maxmtu = -1;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_ARCNET", iface->Name);
 		break;
-#endif				/* ARPHDR_ARCNET */
+#endif
+
 	default:
 		iface->if_hwaddr_len = -1;
 		iface->if_prefix_len = -1;
 		iface->if_maxmtu = -1;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is %d", iface->Name, ifr.ifr_hwaddr.sa_family);
 		break;
 	}
 
 	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->Name, iface->if_hwaddr_len);
-
 	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->if_prefix_len);
 
 	if (iface->if_hwaddr_len != -1) {
@@ -213,4 +216,182 @@ int set_interface_reachtime(const char *iface, uint32_t rtime)
 int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 {
 	return privsep_interface_retranstimer(iface, rettimer);
+}
+
+static char const *hwstr(unsigned short sa_family)
+{
+	char const *rc = 0;
+
+	switch (sa_family) {
+	case ARPHRD_NETROM:
+		rc = "ARPHRD_NETROM";
+		break;
+	case ARPHRD_ETHER:
+		rc = "ARPHRD_ETHER";
+		break;
+	case ARPHRD_EETHER:
+		rc = "ARPHRD_EETHER";
+		break;
+	case ARPHRD_AX25:
+		rc = "ARPHRD_AX25";
+		break;
+	case ARPHRD_PRONET:
+		rc = "ARPHRD_PRONET";
+		break;
+	case ARPHRD_CHAOS:
+		rc = "ARPHRD_CHAOS";
+		break;
+	case ARPHRD_IEEE802:
+		rc = "ARPHRD_IEEE802";
+		break;
+	case ARPHRD_APPLETLK:
+		rc = "ARPHRD_APPLETLK";
+		break;
+	case ARPHRD_DLCI:
+		rc = "ARPHRD_DLCI";
+		break;
+	case ARPHRD_ATM:
+		rc = "ARPHRD_ATM";
+		break;
+	case ARPHRD_METRICOM:
+		rc = "ARPHRD_METRICOM";
+		break;
+	case ARPHRD_IEEE1394:
+		rc = "ARPHRD_IEEE1394";
+		break;
+	case ARPHRD_EUI64:
+		rc = "ARPHRD_EUI64";
+		break;
+	case ARPHRD_INFINIBAND:
+		rc = "ARPHRD_INFINIBAND";
+		break;
+	case ARPHRD_SLIP:
+		rc = "ARPHRD_SLIP";
+		break;
+	case ARPHRD_CSLIP:
+		rc = "ARPHRD_CSLIP";
+		break;
+	case ARPHRD_SLIP6:
+		rc = "ARPHRD_SLIP6";
+		break;
+	case ARPHRD_CSLIP6:
+		rc = "ARPHRD_CSLIP6";
+		break;
+	case ARPHRD_RSRVD:
+		rc = "ARPHRD_RSRVD";
+		break;
+	case ARPHRD_ADAPT:
+		return "ARPHRD_ADAPT";
+		break;
+	case ARPHRD_ROSE:
+		rc = "ARPHRD_ROSE";
+		break;
+	case ARPHRD_X25:
+		rc = "ARPHRD_X25";
+		break;
+	case ARPHRD_HWX25:
+		rc = "ARPHRD_HWX25";
+		break;
+	case ARPHRD_PPP:
+		rc = "ARPHRD_PPP";
+		break;
+	case ARPHRD_CISCO:
+		rc = "ARPHRD_CISCO";
+		break;
+	case ARPHRD_LAPB:
+		rc = "ARPHRD_LAPB";
+		break;
+	case ARPHRD_DDCMP:
+		rc = "ARPHRD_DDCMP";
+		break;
+	case ARPHRD_RAWHDLC:
+		rc = "ARPHRD_RAWHDLC";
+		break;
+	case ARPHRD_TUNNEL:
+		rc = "ARPHRD_TUNNEL";
+		break;
+	case ARPHRD_TUNNEL6:
+		rc = "ARPHRD_TUNNEL6";
+		break;
+	case ARPHRD_FRAD:
+		rc = "ARPHRD_FRAD";
+		break;
+	case ARPHRD_SKIP:
+		rc = "ARPHRD_SKIP";
+		break;
+	case ARPHRD_LOOPBACK:
+		rc = "ARPHRD_LOOPBACK";
+		break;
+	case ARPHRD_LOCALTLK:
+		rc = "ARPHRD_LOCALTLK";
+		break;
+	case ARPHRD_BIF:
+		rc = "ARPHRD_BIF";
+		break;
+	case ARPHRD_SIT:
+		rc = "ARPHRD_SIT";
+		break;
+	case ARPHRD_IPDDP:
+		rc = "ARPHRD_IPDDP";
+		break;
+	case ARPHRD_IPGRE:
+		rc = "ARPHRD_IPGRE";
+		break;
+	case ARPHRD_PIMREG:
+		rc = "ARPHRD_PIMREG";
+		break;
+	case ARPHRD_HIPPI:
+		rc = "ARPHRD_HIPPI";
+		break;
+	case ARPHRD_ASH:
+		rc = "ARPHRD_ASH";
+		break;
+	case ARPHRD_ECONET:
+		rc = "ARPHRD_ECONET";
+		break;
+	case ARPHRD_IRDA:
+		rc = "ARPHRD_IRDA";
+		break;
+	case ARPHRD_FCPP:
+		rc = "ARPHRD_FCPP";
+		break;
+	case ARPHRD_FCAL:
+		rc = "ARPHRD_FCAL";
+		break;
+	case ARPHRD_FCPL:
+		rc = "ARPHRD_FCPL";
+		break;
+	case ARPHRD_FCFABRIC:
+		rc = "ARPHRD_FCFABRIC";
+		break;
+	case ARPHRD_IEEE802_TR:
+		rc = "ARPHRD_IEEE802_TR";
+		break;
+	case ARPHRD_IEEE80211:
+		rc = "ARPHRD_IEEE80211";
+		break;
+	case ARPHRD_IEEE80211_PRISM:
+		rc = "ARPHRD_IEEE80211_PRISM";
+		break;
+	case ARPHRD_IEEE80211_RADIOTAP:
+		rc = "ARPHRD_IEEE80211_RADIOTAP";
+		break;
+	case ARPHRD_IEEE802154:
+		rc = "ARPHRD_IEEE802154";
+		break;
+	case ARPHRD_IEEE802154_PHY:
+		rc = "ARPHRD_IEEE802154_PHY";
+		break;
+	case ARPHRD_VOID:
+		rc = "ARPHRD_VOID";
+		break;
+	case ARPHRD_NONE:
+		rc = "ARPHRD_NONE";
+		break;
+	default:
+		rc = "unknown";
+		break;
+	}
+
+	return rc;
 }
