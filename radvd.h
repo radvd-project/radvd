@@ -176,6 +176,9 @@ struct HomeAgentInfo {
 	uint16_t lifetime;
 };
 
+/* gram.y */
+struct Interface *readin_config(char *fname);
+
 /* radvd.c */
 int check_ip6_forwarding(void);
 void reload_config(void);

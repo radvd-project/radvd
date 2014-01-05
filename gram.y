@@ -1013,3 +1013,36 @@ static void yyerror(void const * loc, void * vp, char const * msg)
 		free(str3);
 	}
 }
+
+struct Interface * readin_config(char *fname)
+{
+	struct yydata yydata;
+	FILE * in;
+
+	in = fopen(fname, "r");
+
+	if (!in)
+	{
+		flog(LOG_ERR, "can't open %s: %s", fname, strerror(errno));
+		return 0;
+	}
+
+	yydata.filename = fname;
+	yylex_init(&yydata.scaninfo);
+	yyset_in(in, yydata.scaninfo);
+
+	IfaceList = 0;
+	if (yyparse(&yydata) != 0) {
+		flog(LOG_ERR, "error parsing or activating the config file: %s", fname);
+	}
+	else {
+		dlog(LOG_DEBUG, 1, "config file syntax ok.");
+	}
+
+	yylex_destroy(yydata.scaninfo);
+
+	fclose(in);
+
+	return IfaceList;
+}
+

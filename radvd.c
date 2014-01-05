@@ -80,7 +80,6 @@ static char usage_str[] = {
 #endif
 int sock = -1;
 struct Interface * IfaceList = 0;
-extern FILE *yyin;
 
 /* TODO: remove global vars. */
 char *conf_file = NULL;		/* TODO: this is referenced by gram.y */
@@ -107,7 +106,6 @@ void stop_adverts(void);
 void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
-int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void main_loop(void);
@@ -270,13 +268,12 @@ int main(int argc, char *argv[])
 	}
 
 	/* parse config file */
-	if (readin_config(conf_file) < 0) {
+	if ((IfaceList = readin_config(conf_file)) == 0) {
 		flog(LOG_ERR, "Exiting, failed to read config file.");
 		exit(1);
 	}
 
 	if (configtest) {
-		fprintf(stderr, "Syntax OK\n");
 		exit(0);
 	}
 
@@ -680,8 +677,8 @@ void reload_config(void)
 	IfaceList = NULL;
 
 	/* reread config file */
-	if (readin_config(conf_file) < 0) {
-		perror("readin_config failed.");
+	if ((IfaceList = readin_config(conf_file)) == 0) {
+		flog(LOG_ERR, "Exiting, failed to read config file.");
 		exit(1);
 	}
 	check_ifaces(sock, IfaceList);
@@ -862,23 +859,6 @@ int check_ip6_forwarding(void)
 #endif				/* __linux__ */
 
 	return (0);
-}
-
-int readin_config(char *fname)
-{
-	FILE * yyin;
-	if ((yyin = fopen(fname, "r")) == NULL) {
-		flog(LOG_ERR, "can't open %s: %s", fname, strerror(errno));
-		return (-1);
-	}
-
-	if (yyparse() != 0) {
-		flog(LOG_ERR, "error parsing or activating the config file: %s", fname);
-		return (-1);
-	}
-
-	fclose(yyin);
-	return 0;
 }
 
 void version(void)
