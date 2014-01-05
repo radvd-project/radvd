@@ -254,11 +254,6 @@ int main(int argc, char *argv[])
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
 	}
 
-	/* if we know how to do it, check whether forwarding is enabled */
-	if (check_ip6_forwarding()) {
-		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
-	}
-
 	/* parse config file */
 	if ((IfaceList = readin_config(conf_file)) == 0) {
 		flog(LOG_ERR, "Exiting, failed to read config file.");
@@ -274,6 +269,11 @@ int main(int argc, char *argv[])
 	if (sock < 0) {
 		perror("open_icmpv6_socket");
 		exit(1);
+	}
+
+	/* if we know how to do it, check whether forwarding is enabled */
+	if (check_ip6_forwarding()) {
+		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
 	/*
