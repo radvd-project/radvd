@@ -12,6 +12,8 @@
  *
  */
 
+#pragma once
+
 #define	L_NONE		0
 #define L_SYSLOG	1
 #define L_STDERR	2

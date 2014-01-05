@@ -12,8 +12,7 @@
  *
  */
 
-#ifndef INCLUDES_H
-#define INCLUDES_H
+#pragma once
 
 #include "config.h"
 
@@ -99,5 +98,3 @@
 #ifdef HAVE_IFADDRS_H
 #include <ifaddrs.h>
 #endif
-
-#endif				/* INCLUDES_H */

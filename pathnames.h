@@ -13,8 +13,7 @@
  *
  */
 
-#ifndef PATHNAMES_H
-#define PATHNAMES_H
+#pragma once
 
 #ifndef PATH_RADVD_CONF
 #define PATH_RADVD_CONF "/etc/radvd.conf"
@@ -41,6 +40,4 @@
 #define PROC_SYS_IP6_RETRANSTIMER "/proc/sys/net/ipv6/neigh/%s/retrans_time"
 #else				/* BSD */
 #define SYSCTL_IP6_FORWARDING CTL_NET, PF_INET6, IPPROTO_IPV6, IPV6CTL_FORWARDING
-#endif
-
 #endif

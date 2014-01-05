@@ -13,8 +13,7 @@
  *
  */
 
-#ifndef RADV_H
-#define RADV_H
+#pragma once
 
 #include "config.h"
 #include "includes.h"
@@ -274,6 +273,4 @@ int privsep_interface_retranstimer(const char *iface, uint32_t rettimer);
 #endif
 #endif
 #endif
-#endif
-
 #endif
