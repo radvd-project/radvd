@@ -99,7 +99,7 @@ void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void sigusr1_handler(int sig);
 void timer_handler(int sock, struct Interface *iface);
-void config_interface(void);
+void config_interface(struct Interface *IfaceList);
 void kickoff_adverts(void);
 void stop_adverts(void);
 void version(void);
@@ -357,9 +357,9 @@ int main(int argc, char *argv[])
 	signal(SIGINT, sigint_handler);
 	signal(SIGUSR1, sigusr1_handler);
 
-	config_interface();
 	kickoff_adverts();
 	check_ifaces(sock, IfaceList);
+	config_interface(IfaceList);
 	main_loop(sock, IfaceList);
 	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts();
@@ -502,7 +502,7 @@ void timer_handler(int sock, struct Interface *iface)
 	iface->next_multicast = next_timeval(next);
 }
 
-void config_interface(void)
+void config_interface(struct Interface *IfaceList)
 {
 	struct Interface *iface;
 	for (iface = IfaceList; iface; iface = iface->next) {
@@ -687,7 +687,7 @@ struct Interface *reload_config(int sock, struct Interface *IfaceList)
 	check_ifaces(sock, IfaceList);
 
 	/* XXX: fails due to lack of permissions with non-root user */
-	config_interface();
+	config_interface(IfaceList);
 	kickoff_adverts();
 
 	flog(LOG_INFO, "resuming normal operation");
