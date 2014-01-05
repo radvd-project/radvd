@@ -13,6 +13,7 @@
  *
  */
 
+#include "config.h"
 #include "radvd.h"
 
 struct timeval next_timeval(double next)
