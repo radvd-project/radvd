@@ -16,9 +16,6 @@
 #include "includes.h"
 #include "radvd.h"
 #include "defaults.h"
-#include "pathnames.h"		/* for PATH_PROC_NET_IF_INET6 */
-
-static uint8_t ll_prefix[] = { 0xfe, 0x80 };
 
 /*
  * this function gets the hardware type and address of an interface,
@@ -118,54 +115,6 @@ int update_device_info(struct Interface *iface)
 	iface->if_prefix_len = -1;
 	if (addresses != 0)
 		freeifaddrs(addresses);
-	return -1;
-}
-
-/*
- * Saves the first link local address seen on the specified interface to iface->if_addr
- *
- */
-int setup_linklocal_addr(struct Interface *iface)
-{
-	struct ifaddrs *addresses = 0, *ifa;
-
-	if (getifaddrs(&addresses) != 0) {
-		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
-		goto ret;
-	}
-
-	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
-		if (strcmp(ifa->ifa_name, iface->Name) != 0)
-			continue;
-
-		if (ifa->ifa_addr == NULL)
-			continue;
-
-		if (ifa->ifa_addr->sa_family == AF_LINK) {
-			struct sockaddr_dl *dl = (struct sockaddr_dl *)ifa->ifa_addr;
-			if (memcmp(iface->Name, dl->sdl_data, dl->sdl_nlen) == 0)
-				iface->if_index = dl->sdl_index;
-			continue;
-		}
-
-		if (ifa->ifa_addr->sa_family != AF_INET6)
-			continue;
-
-		struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)ifa->ifa_addr;
-
-		/* Skip if it is not a linklocal address */
-		if (memcmp(&(a6->sin6_addr), ll_prefix, sizeof(ll_prefix)) != 0)
-			continue;
-
-		memcpy(&iface->if_addr, &(a6->sin6_addr), sizeof(struct in6_addr));
-		freeifaddrs(addresses);
-		return 0;
-	}
-
- ret:
-	if (addresses)
-		freeifaddrs(addresses);
-	flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 	return -1;
 }
 

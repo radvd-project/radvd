@@ -82,3 +82,59 @@ int get_v4addr(const char *ifn, unsigned int *dst)
 
 	return 0;
 }
+
+/*
+ * Saves the first link local address seen on the specified interface to iface->if_addr
+ *
+ */
+int setup_linklocal_addr(struct Interface *iface)
+{
+	struct ifaddrs *addresses = 0, *ifa;
+	uint8_t ll_prefix[] = { 0xfe, 0x80 };
+
+	if (getifaddrs(&addresses) != 0) {
+		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
+	} else {
+		for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
+
+			if (!ifa->ifa_addr)
+				continue;
+
+			/* TODO: We use to set the iface->if_index here, make sure
+			 * it's getting set somewhere. (preferable with if_nametoindex because
+			 * it's so easy to read that way) */
+
+			if (ifa->ifa_addr->sa_family != AF_INET6)
+				continue;
+
+			struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)ifa->ifa_addr;
+
+			/* Skip if it is not a linklocal address */
+			if (memcmp(&(a6->sin6_addr), ll_prefix, sizeof(ll_prefix)) != 0)
+				continue;
+
+			/* Skip if it is not the interface we're looking for. */
+			/* TODO: Can this be made to check the ifa_index instead? */
+			if (strcmp(ifa->ifa_name, iface->Name) != 0)
+				continue;
+
+			memcpy(&iface->if_addr, &(a6->sin6_addr), sizeof(struct in6_addr));
+
+			freeifaddrs(addresses);
+
+			return 0;
+		}
+	}
+
+	if (addresses)
+		freeifaddrs(addresses);
+
+	if (iface->IgnoreIfMissing)
+		dlog(LOG_DEBUG, 4, "no linklocal address configured for %s", iface->Name);
+	else
+		flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
+
+	iface->if_index = 0;
+
+	return -1;
+}

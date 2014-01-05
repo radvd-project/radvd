@@ -16,7 +16,7 @@
 #include "includes.h"
 #include "radvd.h"
 #include "defaults.h"
-#include "pathnames.h"		/* for PATH_PROC_NET_IF_INET6 */
+#include "pathnames.h"
 
 #ifndef IPV6_ADDR_LINKLOCAL
 #define IPV6_ADDR_LINKLOCAL   0x0020U
@@ -104,52 +104,7 @@ int update_device_info(struct Interface *iface)
 		prefix = prefix->next;
 	}
 
-	return (0);
-}
-
-/*
- * this function extracts the link local address and interface index
- * from PATH_PROC_NET_IF_INET6.  Note: 'sock' unused in Linux.
- */
-int setup_linklocal_addr(struct Interface *iface)
-{
-	FILE *fp;
-	char str_addr[40];
-	unsigned int plen, scope, dad_status, if_idx;
-	char devname[IFNAMSIZ];
-
-	if ((fp = fopen(PATH_PROC_NET_IF_INET6, "r")) == NULL) {
-		flog(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IF_INET6, strerror(errno));
-		return (-1);
-	}
-
-	while (fscanf(fp, "%32s %x %02x %02x %02x %15s\n", str_addr, &if_idx, &plen, &scope, &dad_status, devname) != EOF) {
-		if (scope == IPV6_ADDR_LINKLOCAL && strcmp(devname, iface->Name) == 0) {
-			struct in6_addr addr;
-			unsigned int ap;
-			int i;
-
-			for (i = 0; i < 16; i++) {
-				sscanf(str_addr + i * 2, "%02x", &ap);
-				addr.s6_addr[i] = (unsigned char)ap;
-			}
-			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
-
-			iface->if_index = if_idx;
-			fclose(fp);
-			return 0;
-		}
-	}
-
-	if (iface->IgnoreIfMissing)
-		dlog(LOG_DEBUG, 4, "no linklocal address configured for %s", iface->Name);
-	else
-		flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
-
-	iface->if_index = 0;
-
-	fclose(fp);
-	return (-1);
+	return 0;
 }
 
 int setup_allrouters_membership(struct Interface *iface)
