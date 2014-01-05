@@ -21,8 +21,8 @@ int check_device(struct Interface *iface)
 {
 	struct ifreq ifr;
 
+	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
-	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
 		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", iface->Name, strerror(errno));
