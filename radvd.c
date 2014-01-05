@@ -392,7 +392,7 @@ void main_loop(void)
 	for (;;) {
 		struct Interface *next = NULL;
 		struct Interface *iface;
-		int timeout = -1;
+		int timeout = -1;	/* negative timeout means poll waits forever until IO */
 		int rc;
 
 		if (IfaceList) {
