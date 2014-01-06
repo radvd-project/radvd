@@ -143,7 +143,7 @@ int send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 			 * reload_config() will kick off new timers anyway.  This avoids
 			 * timer list corruption.
 			 */
-			reload_config();
+			IfaceList = reload_config(sock, IfaceList);
 			return -1;
 		}
 	}

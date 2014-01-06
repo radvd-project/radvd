@@ -182,7 +182,7 @@ struct Interface *readin_config(char *fname);
 
 /* radvd.c */
 int check_ip6_forwarding(void);
-void reload_config(void);
+struct Interface * reload_config(int sock, struct Interface * IfaceList);
 void reset_prefix_lifetimes(void);
 
 /* timer.c */

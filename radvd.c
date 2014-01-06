@@ -463,7 +463,7 @@ void main_loop(void)
 
 		if (sighup_received) {
 			dlog(LOG_INFO, 3, "sig hup received.");
-			reload_config();
+			IfaceList = reload_config(sock, IfaceList);
 			sighup_received = 0;
 		}
 
@@ -616,13 +616,12 @@ void check_ifaces(int sock, struct Interface *IfaceList)
 	}
 }
 
-void reload_config(void)
+struct Interface *reload_config(int sock, struct Interface *IfaceList)
 {
-	struct Interface *iface;
+	struct Interface *iface = IfaceList;
 
 	flog(LOG_INFO, "attempting to reread config file");
 
-	iface = IfaceList;
 	while (iface) {
 		struct Interface *next_iface = iface->next;
 		struct AdvPrefix *prefix;
@@ -687,6 +686,8 @@ void reload_config(void)
 	kickoff_adverts();
 
 	flog(LOG_INFO, "resuming normal operation");
+
+	return IfaceList;
 }
 
 void sighup_handler(int sig)
