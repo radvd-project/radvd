@@ -79,7 +79,6 @@ static char usage_str[] = {
 
 #endif
 int sock = -1;
-struct Interface * IfaceList = 0;
 
 /* TODO: remove global vars. */
 char *conf_file = NULL;		/* TODO: this is referenced by gram.y */

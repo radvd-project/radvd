@@ -177,6 +177,7 @@ struct HomeAgentInfo {
 };
 
 /* gram.y */
+extern struct Interface * IfaceList;
 struct Interface *readin_config(char *fname);
 
 /* radvd.c */
