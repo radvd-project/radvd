@@ -26,8 +26,6 @@
 #include <libdaemon/dfork.h>
 #include <libdaemon/dpid.h>
 
-struct Interface *IfaceList = NULL;
-
 #ifdef HAVE_GETOPT_LONG
 
 static char usage_str[] = {
@@ -79,11 +77,11 @@ static char usage_str[] = {
 };
 
 #endif
-
+int sock = -1;
+struct Interface * IfaceList = 0;
 extern FILE *yyin;
 
 char *conf_file = NULL;
-int sock = -1;
 static char *pidfile = NULL;
 static char *pname;
 #ifdef HAVE_NETLINK
