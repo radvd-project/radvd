@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (;;) {
-		len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
+		len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
 		if (len > 0) {
 			struct icmp6_hdr *icmph;
 

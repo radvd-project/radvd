@@ -109,7 +109,7 @@ int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void main_loop(void);
-void check_ifaces(struct Interface *IfaceList);
+void check_ifaces(int sock, struct Interface *IfaceList);
 
 int main(int argc, char *argv[])
 {
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
 
 	config_interface();
 	kickoff_adverts();
-	check_ifaces(IfaceList);
+	check_ifaces(sock, IfaceList);
 	main_loop();
 	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts();
@@ -418,9 +418,9 @@ void main_loop(void)
 				struct in6_pktinfo *pkt_info = NULL;
 				unsigned char msg[MSG_SIZE_RECV];
 
-				len = recv_rs_ra(msg, &rcv_addr, &pkt_info, &hoplimit);
+				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
 				if (len > 0) {
-					process(IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
+					process(sock, IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
 				}
 			}
 #ifdef HAVE_NETLINK
@@ -466,7 +466,7 @@ void timer_handler(void *data)
 
 	dlog(LOG_DEBUG, 4, "timer_handler called for %s", iface->Name);
 
-	if (send_ra_forall(iface, NULL) != 0) {
+	if (send_ra_forall(sock, iface, NULL) != 0) {
 		return;
 	}
 
@@ -518,7 +518,7 @@ void kickoff_adverts(void)
 			continue;
 
 		/* send an initial advertisement */
-		if (send_ra_forall(iface, NULL) == 0) {
+		if (send_ra_forall(sock, iface, NULL) == 0) {
 
 			iface->init_racount++;
 
@@ -543,17 +543,17 @@ void stop_adverts(void)
 				/* send a final advertisement with zero Router Lifetime */
 				dlog(LOG_DEBUG, 4, "stopping all adverts on %s.", iface->Name);
 				iface->cease_adv = 1;
-				send_ra_forall(iface, NULL);
+				send_ra_forall(sock, iface, NULL);
 			}
 		}
 	}
 }
 
-void check_ifaces(struct Interface *IfaceList)
+void check_ifaces(int sock, struct Interface *IfaceList)
 {
 	struct Interface *iface;
 	for (iface = IfaceList; iface; iface = iface->next) {
-		if (check_device(iface) < 0) {
+		if (check_device(sock, iface) < 0) {
 			if (iface->IgnoreIfMissing) {
 				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
 			} else {
@@ -563,7 +563,7 @@ void check_ifaces(struct Interface *IfaceList)
 			iface->HasFailed = 1;
 		}
 
-		if (update_device_info(iface) < 0) {
+		if (update_device_info(sock, iface) < 0) {
 			if (!iface->IgnoreIfMissing) {
 				flog(LOG_ERR, "interface %s does not exist", iface->Name);
 				exit(1);
@@ -587,7 +587,7 @@ void check_ifaces(struct Interface *IfaceList)
 			iface->HasFailed = 1;
 		}
 
-		if (setup_allrouters_membership(iface) < 0) {
+		if (setup_allrouters_membership(sock, iface) < 0) {
 			if (!iface->IgnoreIfMissing) {
 				flog(LOG_ERR, "interface %s does not exist", iface->Name);
 				exit(1);
@@ -663,7 +663,7 @@ void reload_config(void)
 		perror("readin_config failed.");
 		exit(1);
 	}
-	check_ifaces(IfaceList);
+	check_ifaces(sock, IfaceList);
 
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();

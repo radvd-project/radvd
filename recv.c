@@ -17,7 +17,7 @@
 #include "includes.h"
 #include "radvd.h"
 
-int recv_rs_ra(unsigned char *msg, struct sockaddr_in6 *addr, struct in6_pktinfo **pkt_info, int *hoplimit)
+int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct in6_pktinfo **pkt_info, int *hoplimit)
 {
 	struct msghdr mhdr;
 	struct cmsghdr *cmsg;

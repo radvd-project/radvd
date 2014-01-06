@@ -29,7 +29,7 @@ static char const *hwstr(unsigned short sa_family);
  * determines the link layer token length and checks it against
  * the defined prefixes
  */
-int update_device_info(struct Interface *iface)
+int update_device_info(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
 	struct AdvPrefix *prefix;
@@ -117,7 +117,7 @@ int update_device_info(struct Interface *iface)
 	return 0;
 }
 
-int setup_allrouters_membership(struct Interface *iface)
+int setup_allrouters_membership(int sock, struct Interface *iface)
 {
 	struct ipv6_mreq mreq;
 
@@ -139,7 +139,7 @@ int setup_allrouters_membership(struct Interface *iface)
 	return (0);
 }
 
-int check_allrouters_membership(struct Interface *iface)
+int check_allrouters_membership(int sock, struct Interface *iface)
 {
 #define ALL_ROUTERS_MCAST "ff020000000000000000000000000002"
 
@@ -172,7 +172,7 @@ int check_allrouters_membership(struct Interface *iface)
 
 	if (!allrouters_ok) {
 		flog(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
-		return setup_allrouters_membership(iface);
+		return setup_allrouters_membership(sock, iface);
 	}
 
 	return (0);
