@@ -27,11 +27,11 @@ static void yyerror(void const * loc, void * vp, char const * s);
 #include "defaults.h"
 
 struct Interface *IfaceList = NULL;
-struct Interface *iface = NULL;
-struct AdvPrefix *prefix = NULL;
-struct AdvRoute *route = NULL;
-struct AdvRDNSS *rdnss = NULL;
-struct AdvDNSSL *dnssl = NULL;
+static struct Interface *iface = NULL;
+static struct AdvPrefix *prefix = NULL;
+static struct AdvRoute *route = NULL;
+static struct AdvRDNSS *rdnss = NULL;
+static struct AdvDNSSL *dnssl = NULL;
 
 extern char *conf_file;
 extern int num_lines;
