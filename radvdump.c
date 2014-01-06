@@ -31,7 +31,6 @@ struct option prog_opt[] = {
 #endif
 
 char *pname;
-int sock = -1;
 
 void version(void);
 void usage(void);
@@ -40,6 +39,7 @@ void print_preferences(int);
 
 int main(int argc, char *argv[])
 {
+	int sock = -1;
 	unsigned char msg[MSG_SIZE_RECV];
 	int c, len, hoplimit;
 	int edefs = 0;

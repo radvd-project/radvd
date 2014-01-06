@@ -78,7 +78,6 @@ static char usage_str[] = {
 };
 
 #endif
-int sock = -1;
 
 /* TODO: remove global vars. */
 char *conf_file = NULL;		/* TODO: this is referenced by gram.y */
@@ -113,6 +112,8 @@ void reset_prefix_lifetimes(struct Interface *IfaceList);
 
 int main(int argc, char *argv[])
 {
+	struct Interface *IfaceList = NULL;
+	int sock = -1;
 	int c, log_method;
 	char *logfile;
 	int facility;

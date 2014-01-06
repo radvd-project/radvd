@@ -26,7 +26,7 @@ static void yyerror(void const * loc, void * vp, char const * s);
 #include "radvd.h"
 #include "defaults.h"
 
-struct Interface *IfaceList = NULL;
+static struct Interface *IfaceList = NULL;
 static struct Interface *iface = NULL;
 static struct AdvPrefix *prefix = NULL;
 static struct AdvRoute *route = NULL;
