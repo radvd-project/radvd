@@ -109,6 +109,7 @@ int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void main_loop(void);
+void check_ifaces(struct Interface *IfaceList);
 
 int main(int argc, char *argv[])
 {
@@ -343,6 +344,7 @@ int main(int argc, char *argv[])
 
 	config_interface();
 	kickoff_adverts();
+	check_ifaces(IfaceList);
 	main_loop();
 	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts();
@@ -547,6 +549,56 @@ void stop_adverts(void)
 	}
 }
 
+void check_ifaces(struct Interface *IfaceList)
+{
+	struct Interface *iface;
+	for (iface = IfaceList; iface; iface = iface->next) {
+		if (check_device(iface) < 0) {
+			if (iface->IgnoreIfMissing) {
+				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
+			} else {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+			iface->HasFailed = 1;
+		}
+
+		if (update_device_info(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+			iface->HasFailed = 1;
+		}
+
+		if (check_iface(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+			iface->HasFailed = 1;
+		}
+
+		if (setup_linklocal_addr(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+			iface->HasFailed = 1;
+		}
+
+		if (setup_allrouters_membership(iface) < 0) {
+			if (!iface->IgnoreIfMissing) {
+				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				exit(1);
+			}
+			iface->HasFailed = 1;
+		}
+
+		dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
+	}
+}
+
 void reload_config(void)
 {
 	struct Interface *iface;
@@ -611,6 +663,7 @@ void reload_config(void)
 		perror("readin_config failed.");
 		exit(1);
 	}
+	check_ifaces(IfaceList);
 
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface();

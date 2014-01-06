@@ -168,44 +168,6 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 				iface2 = iface2->next;
 			}
 
-			if (check_device(iface) < 0) {
-				if (iface->IgnoreIfMissing) {
-					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
-				}
-				else {
-					flog(LOG_ERR, "interface %s does not exist", iface->Name);
-					ABORT;
-				}
-
-				iface->HasFailed = 1;
-			}
-			if (update_device_info(iface) < 0) {
-				if (!iface->IgnoreIfMissing)
-					ABORT;
-
-				iface->HasFailed = 1;
-			}
-			if (check_iface(iface) < 0) {
-				if (!iface->IgnoreIfMissing)
-					ABORT;
-
-				iface->HasFailed = 1;
-			}
-			if (setup_linklocal_addr(iface) < 0) {
-				if (!iface->IgnoreIfMissing)
-					ABORT;
-
-				iface->HasFailed = 1;
-			}
-			if (setup_allrouters_membership(iface) < 0) {
-				if (!iface->IgnoreIfMissing)
-					ABORT;
-
-				iface->HasFailed = 1;
-			}
-
-			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
-
 			iface->next = IfaceList;
 			IfaceList = iface;
 
