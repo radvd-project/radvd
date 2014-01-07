@@ -134,16 +134,13 @@ int send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		/* not really a 'success', but we need to schedule new timers.. */
 		return 0;
 	} else {
-		/* check_device was successful, act if it has failed previously */
+		/* TODO: check_device was successful, if this interface previously was dead, we need to start sending init adverts on it.
+		 * Bail out here, after marking the interface HasFailed to zero, and hope the calling code knows to reinitialize
+		 * this interface and schedule it. */
 		if (iface->HasFailed == 1) {
 			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
 			iface->HasFailed = 0;
-			/*
-			 * return -1 so timer_handler() doesn't schedule new timers,
-			 * reload_config() will kick off new timers anyway.  This avoids
-			 * timer list corruption.
-			 */
-			IfaceList = reload_config(sock, IfaceList);
+			/* TODO: What does the calling code do with -1? */
 			return -1;
 		}
 	}
