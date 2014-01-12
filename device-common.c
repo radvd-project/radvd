@@ -95,7 +95,7 @@ int get_v4addr(const char *ifn, unsigned int *dst)
 int setup_linklocal_addr(struct Interface *iface)
 {
 	struct ifaddrs *addresses = 0, *ifa;
-	uint8_t ll_prefix[] = { 0xfe, 0x80 };
+	uint8_t ll_prefix[] = { 0xfe, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 
 	if (getifaddrs(&addresses) != 0) {
 		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
