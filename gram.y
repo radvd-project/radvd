@@ -18,6 +18,10 @@
 %locations
 %defines
 
+%code requires {
+struct yydata;
+}
+
 %{
 #define YYERROR_VERBOSE
 static void yyerror(void const * loc, void * vp, char const * s);
