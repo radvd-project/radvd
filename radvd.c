@@ -106,7 +106,8 @@ void usage(void);
 int drop_root_privileges(const char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
-void check_ifaces(int sock, struct Interface *IfaceList);
+int setup_iface(int sock, struct Interface *iface);
+void setup_ifaces(int sock, struct Interface *IfaceList);
 void main_loop(int sock, struct Interface *IfaceList);
 void reset_prefix_lifetimes(struct Interface *IfaceList);
 
@@ -359,7 +360,7 @@ int main(int argc, char *argv[])
 	signal(SIGINT, sigint_handler);
 	signal(SIGUSR1, sigusr1_handler);
 
-	check_ifaces(sock, IfaceList);
+	setup_ifaces(sock, IfaceList);
 	config_interface(IfaceList);
 	kickoff_adverts(sock, IfaceList);
 	main_loop(sock, IfaceList);
@@ -573,53 +574,43 @@ void stop_adverts(int sock, struct Interface *IfaceList)
 	}
 }
 
-void check_ifaces(int sock, struct Interface *IfaceList)
+int setup_iface(int sock, struct Interface *iface)
+{
+	iface->HasFailed = 1;
+
+	if (check_device(sock, iface) < 0)
+		return (-1);
+
+	if (update_device_info(sock, iface) < 0)
+		return (-1);
+
+	if (check_iface(iface) < 0)
+		return (-1);
+
+	if (setup_linklocal_addr(iface) < 0)
+		return (-1);
+
+	if (setup_allrouters_membership(sock, iface) < 0)
+		return (-1);
+
+	iface->HasFailed = 0;
+	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
+
+	return 0;
+}
+
+void setup_ifaces(int sock, struct Interface *IfaceList)
 {
 	struct Interface *iface;
 	for (iface = IfaceList; iface; iface = iface->next) {
-		if (check_device(sock, iface) < 0) {
+		if (setup_iface(sock, iface) < 0) {
 			if (iface->IgnoreIfMissing) {
-				dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
+				dlog(LOG_DEBUG, 4, "interface %s does not exist or is not set up properly, ignoring the interface", iface->Name);
 			} else {
-				flog(LOG_ERR, "interface %s does not exist", iface->Name);
+				flog(LOG_ERR, "interface %s does not exist or is not set up properly", iface->Name);
 				exit(1);
 			}
-			iface->HasFailed = 1;
 		}
-
-		if (update_device_info(sock, iface) < 0) {
-			if (!iface->IgnoreIfMissing) {
-				flog(LOG_ERR, "interface %s does not exist", iface->Name);
-				exit(1);
-			}
-			iface->HasFailed = 1;
-		}
-
-		if (check_iface(iface) < 0) {
-			if (!iface->IgnoreIfMissing) {
-				flog(LOG_ERR, "interface %s does not exist", iface->Name);
-				exit(1);
-			}
-			iface->HasFailed = 1;
-		}
-
-		if (setup_linklocal_addr(iface) < 0) {
-			if (!iface->IgnoreIfMissing) {
-				flog(LOG_ERR, "interface %s does not exist", iface->Name);
-				exit(1);
-			}
-			iface->HasFailed = 1;
-		}
-
-		if (setup_allrouters_membership(sock, iface) < 0) {
-			if (!iface->IgnoreIfMissing) {
-				flog(LOG_ERR, "interface %s does not exist", iface->Name);
-				exit(1);
-			}
-			iface->HasFailed = 1;
-		}
-
-		dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
 	}
 }
 
@@ -686,7 +677,7 @@ struct Interface *reload_config(int sock, struct Interface *IfaceList)
 		flog(LOG_ERR, "Exiting, failed to read config file.");
 		exit(1);
 	}
-	check_ifaces(sock, IfaceList);
+	setup_ifaces(sock, IfaceList);
 
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface(IfaceList);
