@@ -124,7 +124,7 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	update_device_info(iface);
 
 	/* First we need to check that the interface hasn't been removed or deactivated */
-	if (check_device(iface) < 0) {
+	if (check_device(iface) < 0 || (iface->if_index == 0 && setup_linklocal_addr(iface) < 0)) {
 		if (iface->IgnoreIfMissing)	/* a bit more quiet warning message.. */
 			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
 		else {
