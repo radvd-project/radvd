@@ -361,8 +361,6 @@ int main(int argc, char *argv[])
 	signal(SIGUSR1, sigusr1_handler);
 
 	setup_ifaces(sock, IfaceList);
-	config_interface(IfaceList);
-	kickoff_adverts(sock, IfaceList);
 	main_loop(sock, IfaceList);
 	flog(LOG_INFO, "sending stop adverts", pidfile);
 	stop_adverts(sock, IfaceList);
@@ -612,6 +610,11 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 			}
 		}
 	}
+
+	/* XXX: fails due to lack of permissions with non-root user */
+	config_interface(IfaceList);
+
+	kickoff_adverts(sock, IfaceList);
 }
 
 struct Interface *reload_config(int sock, struct Interface *IfaceList)
@@ -678,10 +681,6 @@ struct Interface *reload_config(int sock, struct Interface *IfaceList)
 		exit(1);
 	}
 	setup_ifaces(sock, IfaceList);
-
-	/* XXX: fails due to lack of permissions with non-root user */
-	config_interface(IfaceList);
-	kickoff_adverts(sock, IfaceList);
 
 	flog(LOG_INFO, "resuming normal operation");
 
