@@ -30,7 +30,8 @@ int update_device_info(struct Interface *iface)
 	struct AdvPrefix *prefix;
 	char zero[sizeof(iface->if_addr)];
 
-	if (if_nametoindex(iface->Name) == 0) {
+	iface->if_index = if_nametoindex(iface->Name);
+	if (!iface->if_index) {
 		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
 		goto ret;
 	}
