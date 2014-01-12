@@ -139,7 +139,5 @@ int setup_linklocal_addr(struct Interface *iface)
 	else
 		flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
 
-	iface->if_index = 0;
-
 	return -1;
 }

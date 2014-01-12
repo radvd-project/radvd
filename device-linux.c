@@ -36,6 +36,12 @@ int update_device_info(int sock, struct Interface *iface)
 	char zero[sizeof(iface->if_addr)];
 	char hwaddr[3 * 6];
 
+	iface->if_index = if_nametoindex(iface->Name);
+	if (!iface->if_index) {
+		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
+		return -1;
+	}
+
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
 
