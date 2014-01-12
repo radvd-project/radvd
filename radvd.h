@@ -84,8 +84,8 @@ struct Interface {
 	struct timeval last_multicast;
 	struct timeval next_multicast;
 
-	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
-	int HasFailed;
+	/* Info whether this interface has been initialized successfully */
+	int IsReady;
 
 	struct Interface *next;
 };
