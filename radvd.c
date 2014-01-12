@@ -448,10 +448,7 @@ void main_loop(int sock, struct Interface *IfaceList)
 				} else if (fds[1].revents & POLLIN) {
 					int rc = process_netlink_msg(fds[1].fd);
 					if (rc > 0) {
-						/* TODO: If ANY netlink message was received (on one of our
-						 * network interfaces anyway), reload_config?  This
-						 * is maybe one of the worst ways to deal with this. */
-						IfaceList = reload_config(sock, IfaceList);
+						setup_ifaces(sock, IfaceList);
 					}
 				}
 			}
