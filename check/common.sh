@@ -8,6 +8,7 @@ function die {
 BASELINE=$(mktemp /tmp/radvd-baseline.XXXXXXXXXXXXXXX)
 OUTPUT=$(mktemp /tmp/radvd-output.XXXXXXXXXXXXXXX)
 RADVD_CONF=$(mktemp /tmp/radvd.conf.XXXXXXXXXXXXXXX)
+RADVD_LOG=$(mktemp /tmp/radvd.log.XXXXXXXXXXXXXXX)
 
 function check {
 DIFF=$(mktemp /tmp/radvd-check-diff.XXXXXXXXXXXXXXX)
@@ -22,7 +23,7 @@ if ! diff $1 $2> $DIFF ; then
 fi
 }
 
-function trim_logging {
+function trim_log {
 while read data; do
 	echo "$data" | sed 's/^.*): //g'
 done

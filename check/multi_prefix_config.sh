@@ -58,7 +58,7 @@ interface eth1 {
 
 EOF
 
-./radvd -C $RADVD_CONF -c 2>&1 | trim_logging || die "radvd failed"
+./radvd -C $RADVD_CONF -c 2>&1 | trim_log || die "radvd failed"
 }
 
 run
