@@ -576,7 +576,7 @@ void stop_adverts(int sock, struct Interface *IfaceList)
 
 int setup_iface(int sock, struct Interface *iface)
 {
-	iface->IsReady = 0;
+	iface->ready = 0;
 
 	if (check_device(sock, iface) < 0)
 		return (-1);
@@ -593,7 +593,7 @@ int setup_iface(int sock, struct Interface *iface)
 	if (setup_allrouters_membership(sock, iface) < 0)
 		return (-1);
 
-	iface->IsReady = 1;
+	iface->ready = 1;
 	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
 
 	return 0;

@@ -85,7 +85,7 @@ struct Interface {
 	struct timeval next_multicast;
 
 	/* Info whether this interface has been initialized successfully */
-	int IsReady;
+	int ready;
 
 	struct Interface *next;
 };
