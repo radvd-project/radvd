@@ -198,12 +198,16 @@ TESTS = \
 	check/multi_prefix_config.sh \
 	check/rdnss_config.sh \
 	check/simple_config.sh \
-	check/parse_error.sh
+	check/parse_error.sh \
+	check/kill_radvd_daemon.sh \
+	check/kill_radvd.sh
 
 check_SCRIPTS= \
 	check/multi_interface_config.sh \
 	check/multi_prefix_config.sh \
 	check/rdnss_config.sh \
 	check/simple_config.sh \
-	check/parse_error.sh
+	check/parse_error.sh \
+	check/kill_radvd_daemon.sh \
+	check/kill_radvd.sh
 
