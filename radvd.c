@@ -448,6 +448,10 @@ void main_loop(int sock, struct Interface *IfaceList)
 				} else if (fds[1].revents & POLLIN) {
 					int rc = process_netlink_msg(fds[1].fd);
 					if (rc > 0) {
+						/* TODO: This is still a bit coarse.  We used to reload the
+						 * whole config file here, which was overkill.  Now we're just
+						 * resetting up the ifaces.  Can we get it down to setting up
+						 * only the ifaces which have changed state? */
 						setup_ifaces(sock, IfaceList);
 					}
 				}
@@ -613,6 +617,8 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 		}
 	}
 
+	/* TODO: I think this next comment is out of date because it
+	 * will always call through to privsep */
 	/* XXX: fails due to lack of permissions with non-root user */
 	config_interface(IfaceList);
 
