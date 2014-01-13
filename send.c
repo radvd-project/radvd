@@ -130,16 +130,16 @@ int send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 		else {
 			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
 		}
-		iface->IsReady = 0;
+		iface->ready = 0;
 		/* not really a 'success', but we need to schedule new timers.. */
 		return 0;
 	} else {
 		/* TODO: check_device was successful, if this interface previously was dead, we need to start sending init adverts on it.
-		 * Bail out here, after marking the interface IsReady to 1, and hope the calling code knows to reinitialize
+		 * Bail out here, after marking the interface ready to 1, and hope the calling code knows to reinitialize
 		 * this interface and schedule it. */
-		if (!iface->IsReady) {
+		if (!iface->ready) {
 			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
-			iface->IsReady = 1;
+			iface->ready = 1;
 			/* TODO: What does the calling code do with -1? */
 			return -1;
 		}
