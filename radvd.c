@@ -460,8 +460,13 @@ void main_loop(int sock, struct Interface *IfaceList)
 			dlog(LOG_INFO, 3, "poll returned early: %s", strerror(errno));
 		}
 
-		if (sigterm_received || sigint_received) {
-			flog(LOG_WARNING, "Exiting, sigterm or sigint received.");
+		if (sigint_received) {
+			flog(LOG_WARNING, "Exiting, %d sigint(s) received.", sigint_received);
+			break;
+		}
+
+		if (sigterm_received) {
+			flog(LOG_WARNING, "Exiting, %d sigterm(s) received.", sigterm_received);
 			break;
 		}
 
@@ -699,7 +704,7 @@ void sigterm_handler(int sig)
 
 	++sigterm_received;
 
-	if (sigterm_received > 1) {
+	if (sigterm_received > 2) {
 		abort();
 	}
 }
@@ -711,7 +716,7 @@ void sigint_handler(int sig)
 
 	++sigint_received;
 
-	if (sigint_received > 1) {
+	if (sigint_received > 2) {
 		abort();
 	}
 }
