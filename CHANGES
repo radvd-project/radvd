@@ -1,3 +1,12 @@
+2014/01/13	2.0.0-alpha
+		using parser locations
+		the parser can run without root
+		added a 'make check' target
+		reworked the initialization of interfaces <Schiffer>
+		a few global variables are now local
+		logging radvd PIDs
+		using 'indent -linux' code style
+
 2014/01/10	use -no-strict-aliasing
 
 2013/11/20	Fixed attempt to get multiple values in an ioctl
