@@ -28,6 +28,7 @@
 
 #ifdef HAVE_GETOPT_LONG
 
+/* *INDENT-OFF* */
 static char usage_str[] = {
 "\n"
 "  -c, --configtest        Parse the config file and exit.\n"
@@ -77,6 +78,7 @@ static char usage_str[] = {
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 };
 
+/* *INDENT-ON* */
 #endif
 
 /* TODO: remove global vars. */
