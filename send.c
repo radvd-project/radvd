@@ -442,8 +442,7 @@ int send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	 * Dynamic Home Agent Address Discovery
 	 */
 
-	if (iface->AdvHomeAgentInfo && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 || iface->HomeAgentLifetime != iface->AdvDefaultLifetime))
-	{
+	if (iface->AdvHomeAgentInfo && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 || iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
 		struct HomeAgentInfo ha_info;
 		ha_info.type = ND_OPT_HOME_AGENT_INFO;
 		ha_info.length = 1;

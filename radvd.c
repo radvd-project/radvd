@@ -307,22 +307,22 @@ int main(int argc, char *argv[])
 			case 0:
 				dlog(LOG_DEBUG, 3, "radvd PID is %d", pid);
 				exit(0);
-			break;
+				break;
 
 			case 1:
 				flog(LOG_ERR, "radvd already running, terminating.");
 				exit(1);
-			break;
+				break;
 
 			case 2:
 				flog(LOG_ERR, "Cannot create radvd PID file, terminating: %s", strerror(errno));
 				exit(2);
-			break;
+				break;
 
 			default:
 				flog(LOG_ERR, "Could not daemonize.");
 				exit(-1);
-			break;
+				break;
 			}
 		}
 

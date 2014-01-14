@@ -62,10 +62,7 @@ int process_netlink_msg(int sock)
 		}
 
 		/* Continue with parsing payload. */
-		if (nh->nlmsg_type == RTM_NEWLINK
-			|| nh->nlmsg_type == RTM_DELLINK
-			|| nh->nlmsg_type == RTM_SETLINK
-			|| nh->nlmsg_type == RTM_NEWADDR) {
+		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK || nh->nlmsg_type == RTM_NEWADDR) {
 			ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
 			if_indextoname(ifinfo->ifi_index, ifname);
 			rta = IFLA_RTA(NLMSG_DATA(nh));
