@@ -146,47 +146,6 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	return (0);
 }
 
-/* TODO: Is check_allrouters_membership needed? */
-/* TODO: I don't like how this reads files.  Can we do this with getsockopt? */
-int check_allrouters_membership(int sock, struct Interface *iface)
-{
-#define ALL_ROUTERS_MCAST "ff020000000000000000000000000002"
-
-	FILE *fp;
-	unsigned int if_idx, allrouters_ok = 0;
-	char addr[32 + 1];
-	char buffer[301] = { "" }, *str;
-	int ret = 0;
-
-	if ((fp = fopen(PATH_PROC_NET_IGMP6, "r")) == NULL) {
-		flog(LOG_ERR, "can't open %s: %s", PATH_PROC_NET_IGMP6, strerror(errno));
-		return -1;
-	}
-
-	str = fgets(buffer, 300, fp);
-
-	while (str && (ret = sscanf(str, "%u %*s %32[0-9A-Fa-f]", &if_idx, addr))) {
-		if (ret == 2) {
-			if (iface->if_index == if_idx) {
-				if (strncmp(addr, ALL_ROUTERS_MCAST, sizeof(addr)) == 0) {
-					allrouters_ok = 1;
-					break;
-				}
-			}
-		}
-		str = fgets(buffer, 300, fp);
-	}
-
-	fclose(fp);
-
-	if (!allrouters_ok) {
-		flog(LOG_WARNING, "resetting ipv6-allrouters membership on %s", iface->Name);
-		return setup_allrouters_membership(sock, iface);
-	}
-
-	return (0);
-}
-
 /* note: also called from the root context */
 int set_interface_var(const char *iface, const char *var, const char *name, uint32_t val)
 {

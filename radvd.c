@@ -45,7 +45,6 @@ static char usage_str[] = {
 #ifdef HAVE_NETLINK
 "  -L, --disablenetlink    Disable netlink feature\n"
 #endif
-"  -I, --disableigmp6check Disable igmp6 check before send\n"
 "  -v, --version           Print the version and quit.\n"
 };
 
@@ -66,7 +65,6 @@ static struct option prog_opt[] = {
 #ifdef HAVE_NETLINK
 	{"disablenetlink", 0, 0, 'L'},
 #endif
-	{"disableigmp6check", 0, 0, 'I'},
 	{NULL, 0, 0, 0}
 };
 
@@ -88,7 +86,6 @@ static char *pname;
 #ifdef HAVE_NETLINK
 static int disablenetlink = 0;
 #endif
-int disableigmp6check = 0;
 
 static volatile int sighup_received = 0;
 static volatile int sigterm_received = 0;
@@ -201,9 +198,6 @@ int main(int argc, char *argv[])
 			disablenetlink = 1;
 			break;
 #endif
-		case 'I':
-			disableigmp6check = 1;
-			break;
 		case 'h':
 			usage();
 #ifdef HAVE_GETOPT_LONG
