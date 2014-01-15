@@ -115,7 +115,7 @@ int netlink_socket(void)
 #endif
 	memset(&snl, 0, sizeof(snl));
 	snl.nl_family = AF_NETLINK;
-	snl.nl_groups = RTMGRP_LINK;
+	snl.nl_groups = RTMGRP_LINK|RTMGRP_IPV6_IFADDR;
 
 	rc = bind(sock, (struct sockaddr *)&snl, sizeof(snl));
 	if (rc == -1) {
