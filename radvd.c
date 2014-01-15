@@ -401,19 +401,6 @@ void main_loop(int sock, struct Interface *IfaceList)
 		rc = poll(fds, sizeof(fds) / sizeof(fds[0]), timeout);
 
 		if (rc > 0) {
-			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-				flog(LOG_WARNING, "socket error on fds[0].fd");
-			} else if (fds[0].revents & POLLIN) {
-				int len, hoplimit;
-				struct sockaddr_in6 rcv_addr;
-				struct in6_pktinfo *pkt_info = NULL;
-				unsigned char msg[MSG_SIZE_RECV];
-
-				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
-				if (len > 0) {
-					process(sock, IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
-				}
-			}
 #ifdef HAVE_NETLINK
 			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 				flog(LOG_WARNING, "socket error on fds[1].fd");
@@ -427,6 +414,20 @@ void main_loop(int sock, struct Interface *IfaceList)
 				}
 			}
 #endif
+
+			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[0].fd");
+			} else if (fds[0].revents & POLLIN) {
+				int len, hoplimit;
+				struct sockaddr_in6 rcv_addr;
+				struct in6_pktinfo *pkt_info = NULL;
+				unsigned char msg[MSG_SIZE_RECV];
+
+				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+				if (len > 0) {
+					process(sock, IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
+				}
+			}
 		} else if (rc == 0) {
 			if (next)
 				timer_handler(sock, next);
