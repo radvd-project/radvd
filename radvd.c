@@ -580,6 +580,15 @@ int setup_iface(int sock, struct Interface *iface)
 	return 0;
 }
 
+int ensure_iface_setup(int sock, struct Interface *iface)
+{
+#ifndef HAVE_NETLINK
+	setup_iface(sock, iface);
+#endif
+
+	return (iface->ready ? 0 : -1);
+}
+
 void setup_ifaces(int sock, struct Interface *IfaceList)
 {
 	struct Interface *iface;
