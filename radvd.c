@@ -42,9 +42,6 @@ static char usage_str[] = {
 "  -t, --chrootdir=PATH    Chroot to the specified path.\n"
 "  -u, --username=USER     Switch to the specified user.\n"
 "  -n, --nodaemon          Prevent the daemonizing.\n"
-#ifdef HAVE_NETLINK
-"  -L, --disablenetlink    Disable netlink feature\n"
-#endif
 "  -v, --version           Print the version and quit.\n"
 };
 
@@ -62,9 +59,6 @@ static struct option prog_opt[] = {
 	{"help", 0, 0, 'h'},
 	{"singleprocess", 0, 0, 's'},
 	{"nodaemon", 0, 0, 'n'},
-#ifdef HAVE_NETLINK
-	{"disablenetlink", 0, 0, 'L'},
-#endif
 	{NULL, 0, 0, 0}
 };
 
@@ -83,9 +77,6 @@ static char usage_str[] = {
 static char *conf_file = NULL;
 static char *pidfile = NULL;
 static char *pname;
-#ifdef HAVE_NETLINK
-static int disablenetlink = 0;
-#endif
 
 static volatile int sighup_received = 0;
 static volatile int sigterm_received = 0;
@@ -193,11 +184,6 @@ int main(int argc, char *argv[])
 		case 'n':
 			daemonize = 0;
 			break;
-#ifdef HAVE_NETLINK
-		case 'L':
-			disablenetlink = 1;
-			break;
-#endif
 		case 'h':
 			usage();
 #ifdef HAVE_GETOPT_LONG
@@ -382,21 +368,12 @@ void main_loop(int sock, struct Interface *IfaceList)
 
 	fds[0].fd = sock;
 	fds[0].events = POLLIN;
-	fds[0].revents = 0;
 
 #if HAVE_NETLINK
-	if (!disablenetlink) {
-		fds[1].fd = netlink_socket();
-		fds[1].events = POLLIN;
-	} else {
-		fds[1].fd = -1;
-		fds[1].events = 0;
-	}
-	fds[1].revents = 0;
+	fds[1].fd = netlink_socket();
+	fds[1].events = POLLIN;
 #else
 	fds[1].fd = -1;
-	fds[1].events = 0;
-	fds[1].revents = 0;
 #endif
 
 	for (;;) {
@@ -438,18 +415,15 @@ void main_loop(int sock, struct Interface *IfaceList)
 				}
 			}
 #ifdef HAVE_NETLINK
-			if (!disablenetlink) {
-				if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-					flog(LOG_WARNING, "socket error on fds[1].fd");
-				} else if (fds[1].revents & POLLIN) {
-					int rc = process_netlink_msg(fds[1].fd);
-					if (rc > 0) {
-						/* TODO: This is still a bit coarse.  We used to reload the
-						 * whole config file here, which was overkill.  Now we're just
-						 * resetting up the ifaces.  Can we get it down to setting up
-						 * only the ifaces which have changed state? */
-						setup_ifaces(sock, IfaceList);
-					}
+			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[1].fd");
+			} else if (fds[1].revents & POLLIN) {
+				if (process_netlink_msg(fds[1].fd) > 0) {
+					/* TODO: This is still a bit coarse.  We used to reload the
+					 * whole config file here, which was overkill.  Now we're just
+					 * resetting up the ifaces.  Can we get it down to setting up
+					 * only the ifaces which have changed state? */
+					setup_ifaces(sock, IfaceList);
 				}
 			}
 #endif
