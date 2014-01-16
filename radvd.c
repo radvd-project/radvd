@@ -100,7 +100,7 @@ void sigterm_handler(int sig);
 void sigint_handler(int sig);
 void sigusr1_handler(int sig);
 void timer_handler(int sock, struct Interface *iface);
-void config_interface(struct Interface *IfaceList);
+void config_interfaces(struct Interface *IfaceList);
 void kickoff_adverts(int sock, struct Interface *IfaceList);
 void stop_adverts(int sock, struct Interface *IfaceList);
 void version(void);
@@ -511,7 +511,7 @@ void timer_handler(int sock, struct Interface *iface)
 	iface->next_multicast = next_timeval(next);
 }
 
-void config_interface(struct Interface *IfaceList)
+void config_interfaces(struct Interface *IfaceList)
 {
 	struct Interface *iface;
 	for (iface = IfaceList; iface; iface = iface->next) {
@@ -623,7 +623,7 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 	/* TODO: I think this next comment is out of date because it
 	 * will always call through to privsep */
 	/* XXX: fails due to lack of permissions with non-root user */
-	config_interface(IfaceList);
+	config_interfaces(IfaceList);
 
 	kickoff_adverts(sock, IfaceList);
 }
