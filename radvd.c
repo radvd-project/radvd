@@ -42,10 +42,6 @@ static char usage_str[] = {
 "  -t, --chrootdir=PATH    Chroot to the specified path.\n"
 "  -u, --username=USER     Switch to the specified user.\n"
 "  -n, --nodaemon          Prevent the daemonizing.\n"
-#ifdef HAVE_NETLINK
-"  -L, --disablenetlink    Disable netlink feature\n"
-#endif
-"  -I, --disableigmp6check Disable igmp6 check before send\n"
 "  -v, --version           Print the version and quit.\n"
 };
 
@@ -63,10 +59,6 @@ static struct option prog_opt[] = {
 	{"help", 0, 0, 'h'},
 	{"singleprocess", 0, 0, 's'},
 	{"nodaemon", 0, 0, 'n'},
-#ifdef HAVE_NETLINK
-	{"disablenetlink", 0, 0, 'L'},
-#endif
-	{"disableigmp6check", 0, 0, 'I'},
 	{NULL, 0, 0, 0}
 };
 
@@ -85,10 +77,6 @@ static char usage_str[] = {
 static char *conf_file = NULL;
 static char *pidfile = NULL;
 static char *pname;
-#ifdef HAVE_NETLINK
-static int disablenetlink = 0;
-#endif
-int disableigmp6check = 0;
 
 static volatile int sighup_received = 0;
 static volatile int sigterm_received = 0;
@@ -195,14 +183,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			daemonize = 0;
-			break;
-#ifdef HAVE_NETLINK
-		case 'L':
-			disablenetlink = 1;
-			break;
-#endif
-		case 'I':
-			disableigmp6check = 1;
 			break;
 		case 'h':
 			usage();
@@ -388,21 +368,12 @@ void main_loop(int sock, struct Interface *IfaceList)
 
 	fds[0].fd = sock;
 	fds[0].events = POLLIN;
-	fds[0].revents = 0;
 
 #if HAVE_NETLINK
-	if (!disablenetlink) {
-		fds[1].fd = netlink_socket();
-		fds[1].events = POLLIN;
-	} else {
-		fds[1].fd = -1;
-		fds[1].events = 0;
-	}
-	fds[1].revents = 0;
+	fds[1].fd = netlink_socket();
+	fds[1].events = POLLIN;
 #else
 	fds[1].fd = -1;
-	fds[1].events = 0;
-	fds[1].revents = 0;
 #endif
 
 	for (;;) {
@@ -430,6 +401,20 @@ void main_loop(int sock, struct Interface *IfaceList)
 		rc = poll(fds, sizeof(fds) / sizeof(fds[0]), timeout);
 
 		if (rc > 0) {
+#ifdef HAVE_NETLINK
+			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[1].fd");
+			} else if (fds[1].revents & POLLIN) {
+				if (process_netlink_msg(fds[1].fd) > 0) {
+					/* TODO: This is still a bit coarse.  We used to reload the
+					 * whole config file here, which was overkill.  Now we're just
+					 * resetting up the ifaces.  Can we get it down to setting up
+					 * only the ifaces which have changed state? */
+					setup_ifaces(sock, IfaceList);
+				}
+			}
+#endif
+
 			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 				flog(LOG_WARNING, "socket error on fds[0].fd");
 			} else if (fds[0].revents & POLLIN) {
@@ -443,22 +428,6 @@ void main_loop(int sock, struct Interface *IfaceList)
 					process(sock, IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
 				}
 			}
-#ifdef HAVE_NETLINK
-			if (!disablenetlink) {
-				if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-					flog(LOG_WARNING, "socket error on fds[1].fd");
-				} else if (fds[1].revents & POLLIN) {
-					int rc = process_netlink_msg(fds[1].fd);
-					if (rc > 0) {
-						/* TODO: This is still a bit coarse.  We used to reload the
-						 * whole config file here, which was overkill.  Now we're just
-						 * resetting up the ifaces.  Can we get it down to setting up
-						 * only the ifaces which have changed state? */
-						setup_ifaces(sock, IfaceList);
-					}
-				}
-			}
-#endif
 		} else if (rc == 0) {
 			if (next)
 				timer_handler(sock, next);
@@ -511,51 +480,44 @@ void timer_handler(int sock, struct Interface *iface)
 	iface->next_multicast = next_timeval(next);
 }
 
-void config_interfaces(struct Interface *IfaceList)
+void config_interface(struct Interface *iface)
 {
-	struct Interface *iface;
-	for (iface = IfaceList; iface; iface = iface->next) {
-		if (iface->AdvLinkMTU)
-			set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
-		if (iface->AdvCurHopLimit)
-			set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
-		if (iface->AdvReachableTime)
-			set_interface_reachtime(iface->Name, iface->AdvReachableTime);
-		if (iface->AdvRetransTimer)
-			set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
-	}
+	if (iface->AdvLinkMTU)
+		set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
+	if (iface->AdvCurHopLimit)
+		set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
+	if (iface->AdvReachableTime)
+		set_interface_reachtime(iface->Name, iface->AdvReachableTime);
+	if (iface->AdvRetransTimer)
+		set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
 }
 
-void kickoff_adverts(int sock, struct Interface *IfaceList)
+void kickoff_adverts(int sock, struct Interface *iface)
 {
-	struct Interface *iface;
 
 	/*
 	 *      send initial advertisement and set timers
 	 */
 
-	for (iface = IfaceList; iface; iface = iface->next) {
+	gettimeofday(&iface->last_ra_time, NULL);
+
+	if (iface->UnicastOnly)
+		return;
+
+	gettimeofday(&iface->last_multicast, NULL);
+
+	/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
+	if (!iface->AdvSendAdvert)
+		return;
+
+	/* send an initial advertisement */
+	if (send_ra_forall(sock, iface, NULL) == 0) {
 		double next;
 
-		gettimeofday(&iface->last_ra_time, NULL);
+		iface->init_racount++;
 
-		if (iface->UnicastOnly)
-			continue;
-
-		gettimeofday(&iface->last_multicast, NULL);
-
-		/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
-		if (!iface->AdvSendAdvert)
-			continue;
-
-		/* send an initial advertisement */
-		if (send_ra_forall(sock, iface, NULL) == 0) {
-
-			iface->init_racount++;
-
-			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
-			iface->next_multicast = next_timeval(next);
-		}
+		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
+		iface->next_multicast = next_timeval(next);
 	}
 }
 
@@ -612,6 +574,15 @@ int setup_iface(int sock, struct Interface *iface)
 	return 0;
 }
 
+int ensure_iface_setup(int sock, struct Interface *iface)
+{
+#ifndef HAVE_NETLINK
+	setup_iface(sock, iface);
+#endif
+
+	return (iface->ready ? 0 : -1);
+}
+
 void setup_ifaces(int sock, struct Interface *IfaceList)
 {
 	struct Interface *iface;
@@ -624,11 +595,11 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 				exit(1);
 			}
 		}
+
+		/* TODO: call these for changed interfaces only */
+		config_interface(iface);
+		kickoff_adverts(sock, iface);
 	}
-
-	config_interfaces(IfaceList);
-
-	kickoff_adverts(sock, IfaceList);
 }
 
 struct Interface *reload_config(int sock, struct Interface *IfaceList)

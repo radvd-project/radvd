@@ -106,10 +106,6 @@ int setup_linklocal_addr(struct Interface *iface)
 			if (!ifa->ifa_addr)
 				continue;
 
-			/* TODO: We use to set the iface->if_index here, make sure
-			 * it's getting set somewhere. (preferable with if_nametoindex because
-			 * it's so easy to read that way) */
-
 			if (ifa->ifa_addr->sa_family != AF_INET6)
 				continue;
 

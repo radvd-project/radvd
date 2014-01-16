@@ -22,9 +22,6 @@
 
 #define CONTACT_EMAIL	"Reuben Hawkins <reubenhwk@gmail.com>"
 
-/* TODO: remove global vars */
-extern int disableigmp6check;
-
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 
 struct AdvPrefix;
@@ -181,6 +178,7 @@ struct Interface *readin_config(char *fname);
 
 /* radvd.c */
 int check_ip6_forwarding(void);
+int ensure_iface_setup(int sock, struct Interface *iface);
 struct Interface *reload_config(int sock, struct Interface *IfaceList);
 
 /* timer.c */
@@ -194,7 +192,6 @@ int update_device_info(int sock, struct Interface *);
 int check_device(int sock, struct Interface *);
 int setup_linklocal_addr(struct Interface *);
 int setup_allrouters_membership(int sock, struct Interface *);
-int check_allrouters_membership(int sock, struct Interface *);
 int get_v4addr(const char *, unsigned int *);
 int set_interface_var(const char *, const char *, const char *, uint32_t);
 int set_interface_linkmtu(const char *, uint32_t);

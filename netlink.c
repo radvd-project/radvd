@@ -40,10 +40,7 @@ int process_netlink_msg(int sock)
 	struct sockaddr_nl sa;
 	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
 	struct nlmsghdr *nh;
-	struct ifinfomsg *ifinfo;
-	struct rtattr *rta;
-	int rta_len;
-	char ifname[IF_NAMESIZE] = { "" };
+	char ifnamebuf[IF_NAMESIZE];
 	int rc = 0;
 
 	len = recvmsg(sock, &msg, 0);
@@ -62,11 +59,12 @@ int process_netlink_msg(int sock)
 		}
 
 		/* Continue with parsing payload. */
-		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK || nh->nlmsg_type == RTM_NEWADDR) {
-			ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
-			if_indextoname(ifinfo->ifi_index, ifname);
-			rta = IFLA_RTA(NLMSG_DATA(nh));
-			rta_len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
+		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK) {
+			struct ifinfomsg *ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
+			const char *ifname = if_indextoname(ifinfo->ifi_index, ifnamebuf);
+
+			struct rtattr *rta = IFLA_RTA(NLMSG_DATA(nh));
+			int rta_len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
 			for (; RTA_OK(rta, rta_len); rta = RTA_NEXT(rta, rta_len)) {
 				if (rta->rta_type == IFLA_OPERSTATE || rta->rta_type == IFLA_LINKMODE) {
 					if (ifinfo->ifi_flags & IFF_RUNNING) {
@@ -92,6 +90,17 @@ int process_netlink_msg(int sock)
 			}
 #endif
 
+		} else if (nh->nlmsg_type == RTM_NEWADDR) {
+			struct ifaddrmsg *ifaddr = (struct ifaddrmsg *)NLMSG_DATA(nh);
+			const char *ifname = if_indextoname(ifaddr->ifa_index, ifnamebuf);
+
+			dlog(LOG_DEBUG, 3, "%s, ifindex %d, new address", ifname, ifaddr->ifa_index);
+
+			/* TODO: enable this (can lead to an infinite loop at the moment when we accept RAs on an interface we advertise on,
+			   as we get a RTM_NEWADDR event every time a router advertisement is received on an interface that accepts them,
+			   and process_netlink_msg currently triggers kickoff_adverts)
+			 */
+			// ++rc;
 		}
 	}
 
@@ -115,7 +124,7 @@ int netlink_socket(void)
 #endif
 	memset(&snl, 0, sizeof(snl));
 	snl.nl_family = AF_NETLINK;
-	snl.nl_groups = RTMGRP_LINK;
+	snl.nl_groups = RTMGRP_LINK|RTMGRP_IPV6_IFADDR;
 
 	rc = bind(sock, (struct sockaddr *)&snl, sizeof(snl));
 	if (rc == -1) {

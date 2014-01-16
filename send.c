@@ -121,33 +121,10 @@ int send_ra(int sock, struct Interface *iface, struct in6_addr *dest)
 	size_t len = 0;
 	ssize_t err;
 
-	update_device_info(sock, iface);
-
-	/* First we need to check that the interface hasn't been removed or deactivated */
-	if (check_device(sock, iface) < 0 || (iface->if_index == 0 && setup_linklocal_addr(iface) < 0)) {
-		if (iface->IgnoreIfMissing)	/* a bit more quiet warning message.. */
-			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
-		else {
-			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
-		}
-		iface->ready = 0;
-		/* not really a 'success', but we need to schedule new timers.. */
+	if (ensure_iface_setup(sock, iface) < 0) {
+		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->Name);
 		return 0;
-	} else {
-		/* TODO: check_device was successful, if this interface previously was dead, we need to start sending init adverts on it.
-		 * Bail out here, after marking the interface ready to 1, and hope the calling code knows to reinitialize
-		 * this interface and schedule it. */
-		if (!iface->ready) {
-			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
-			iface->ready = 1;
-			/* TODO: What does the calling code do with -1? */
-			return -1;
-		}
 	}
-
-	/* Make sure that we've joined the all-routers multicast group */
-	if (!disableigmp6check && check_allrouters_membership(sock, iface) < 0)
-		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
 
 	if (!iface->AdvSendAdvert) {
 		dlog(LOG_DEBUG, 3, "AdvSendAdvert is off for %s", iface->Name);
