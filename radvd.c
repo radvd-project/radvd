@@ -480,51 +480,44 @@ void timer_handler(int sock, struct Interface *iface)
 	iface->next_multicast = next_timeval(next);
 }
 
-void config_interfaces(struct Interface *IfaceList)
+void config_interface(struct Interface *iface)
 {
-	struct Interface *iface;
-	for (iface = IfaceList; iface; iface = iface->next) {
-		if (iface->AdvLinkMTU)
-			set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
-		if (iface->AdvCurHopLimit)
-			set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
-		if (iface->AdvReachableTime)
-			set_interface_reachtime(iface->Name, iface->AdvReachableTime);
-		if (iface->AdvRetransTimer)
-			set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
-	}
+	if (iface->AdvLinkMTU)
+		set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
+	if (iface->AdvCurHopLimit)
+		set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
+	if (iface->AdvReachableTime)
+		set_interface_reachtime(iface->Name, iface->AdvReachableTime);
+	if (iface->AdvRetransTimer)
+		set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
 }
 
-void kickoff_adverts(int sock, struct Interface *IfaceList)
+void kickoff_adverts(int sock, struct Interface *iface)
 {
-	struct Interface *iface;
 
 	/*
 	 *      send initial advertisement and set timers
 	 */
 
-	for (iface = IfaceList; iface; iface = iface->next) {
+	gettimeofday(&iface->last_ra_time, NULL);
+
+	if (iface->UnicastOnly)
+		return;
+
+	gettimeofday(&iface->last_multicast, NULL);
+
+	/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
+	if (!iface->AdvSendAdvert)
+		return;
+
+	/* send an initial advertisement */
+	if (send_ra_forall(sock, iface, NULL) == 0) {
 		double next;
 
-		gettimeofday(&iface->last_ra_time, NULL);
+		iface->init_racount++;
 
-		if (iface->UnicastOnly)
-			continue;
-
-		gettimeofday(&iface->last_multicast, NULL);
-
-		/* TODO: AdvSendAdvert is being checked in send_ra now so it can be removed here. */
-		if (!iface->AdvSendAdvert)
-			continue;
-
-		/* send an initial advertisement */
-		if (send_ra_forall(sock, iface, NULL) == 0) {
-
-			iface->init_racount++;
-
-			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
-			iface->next_multicast = next_timeval(next);
-		}
+		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
+		iface->next_multicast = next_timeval(next);
 	}
 }
 
@@ -602,11 +595,11 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 				exit(1);
 			}
 		}
+
+		/* TODO: call these for changed interfaces only */
+		config_interface(iface);
+		kickoff_adverts(sock, iface);
 	}
-
-	config_interfaces(IfaceList);
-
-	kickoff_adverts(sock, IfaceList);
 }
 
 struct Interface *reload_config(int sock, struct Interface *IfaceList)
