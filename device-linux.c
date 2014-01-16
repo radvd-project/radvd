@@ -38,6 +38,7 @@ int update_device_info(int sock, struct Interface *iface)
 
 	iface->if_index = if_nametoindex(iface->Name);
 	if (!iface->if_index) {
+		/* Yes, if_nametoindex returns zero on failure.  2014/01/16 */
 		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
 		return -1;
 	}

@@ -584,18 +584,24 @@ int setup_iface(int sock, struct Interface *iface)
 {
 	iface->ready = 0;
 
+	/* Check IFF_UP, IFF_RUNNING and IFF_MULTICAST */
 	if (check_device(sock, iface) < 0)
 		return -1;
 
+	/* Set iface->if_index, iface->max_mtu and iface hardware address */
 	if (update_device_info(sock, iface) < 0)
 		return -1;
 
+	/* Make sure the settings in the config file for this interface are ok (this depends
+	 * on iface->max_mtu already being set). */
 	if (check_iface(iface) < 0)
 		return -1;
 
+	/* Save the first link local address seen on the specified interface to iface->if_addr */
 	if (setup_linklocal_addr(iface) < 0)
 		return -1;
 
+	/* join the allrouters multicast group so we get the solicitations */
 	if (setup_allrouters_membership(sock, iface) < 0)
 		return -1;
 
@@ -620,9 +626,6 @@ void setup_ifaces(int sock, struct Interface *IfaceList)
 		}
 	}
 
-	/* TODO: I think this next comment is out of date because it
-	 * will always call through to privsep */
-	/* XXX: fails due to lack of permissions with non-root user */
 	config_interfaces(IfaceList);
 
 	kickoff_adverts(sock, IfaceList);
