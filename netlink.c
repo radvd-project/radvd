@@ -90,6 +90,17 @@ int process_netlink_msg(int sock)
 			}
 #endif
 
+		} else if (nh->nlmsg_type == RTM_NEWADDR) {
+			struct ifaddrmsg *ifaddr = (struct ifaddrmsg *)NLMSG_DATA(nh);
+			const char *ifname = if_indextoname(ifaddr->ifa_index, ifnamebuf);
+
+			dlog(LOG_DEBUG, 3, "%s, ifindex %d, new address", ifname, ifaddr->ifa_index);
+
+			/* TODO: enable this (can lead to an infinite loop at the moment when we accept RAs on an interface we advertise on,
+			   as we get a RTM_NEWADDR event every time a router advertisement is received on an interface that accepts them,
+			   and process_netlink_msg currently triggers kickoff_adverts)
+			 */
+			// ++rc;
 		}
 	}
 
