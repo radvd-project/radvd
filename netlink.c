@@ -40,9 +40,6 @@ int process_netlink_msg(int sock)
 	struct sockaddr_nl sa;
 	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
 	struct nlmsghdr *nh;
-	struct ifinfomsg *ifinfo;
-	struct rtattr *rta;
-	int rta_len;
 	char ifname[IF_NAMESIZE] = { "" };
 	int rc = 0;
 
@@ -62,9 +59,12 @@ int process_netlink_msg(int sock)
 		}
 
 		/* Continue with parsing payload. */
-		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK || nh->nlmsg_type == RTM_NEWADDR) {
-			ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
+		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK) {
+			struct rtattr *rta;
+			int rta_len;
+			struct ifinfomsg *ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
 			if_indextoname(ifinfo->ifi_index, ifname);
+
 			rta = IFLA_RTA(NLMSG_DATA(nh));
 			rta_len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
 			for (; RTA_OK(rta, rta_len); rta = RTA_NEXT(rta, rta_len)) {
