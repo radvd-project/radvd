@@ -30,8 +30,6 @@
 static void user_action(void * p, int lineno, int leng, int * column);
 #define YY_USER_ACTION user_action(yylloc, yylineno, yyleng, &yycolumn);
 
-extern char *conf_file;
-
 int num_lines = 1;
 %}
 
@@ -111,8 +109,6 @@ AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 {addr}		{
 			static struct in6_addr addr;
 			if (inet_pton(AF_INET6, yytext, &addr) < 1) {
-				flog(LOG_ERR, "invalid address in %s, line %d", conf_file,
-					num_lines);
 				return T_BAD_TOKEN;
 			}
 

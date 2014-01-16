@@ -82,7 +82,7 @@ static char usage_str[] = {
 #endif
 
 /* TODO: remove global vars. */
-char *conf_file = NULL;		/* TODO: this is referenced by gram.y */
+static char *conf_file = NULL;
 static char *pidfile = NULL;
 static char *pname;
 #ifdef HAVE_NETLINK

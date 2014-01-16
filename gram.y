@@ -37,7 +37,6 @@ static struct AdvRoute *route = NULL;
 static struct AdvRDNSS *rdnss = NULL;
 static struct AdvDNSSL *dnssl = NULL;
 
-extern char *conf_file;
 extern int num_lines;
 extern char *yytext;
 
@@ -369,7 +368,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				{
 					flog(LOG_ERR, "AdvValidLifeTime must be "
 						"greater than AdvPreferredLifetime in %s, line %d",
-						conf_file, num_lines);
+						yydata->filename, num_lines);
 					ABORT;
 				}
 
@@ -395,14 +394,14 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				if ( prefix->if6[0] )
 				{
 #ifndef HAVE_IFADDRS_H
-					flog(LOG_ERR, "Base6Interface not supported in %s, line %d", conf_file, num_lines);
+					flog(LOG_ERR, "Base6Interface not supported in %s, line %d", yydata->filename, num_lines);
 					ABORT;
 #else
 					struct ifaddrs *ifap = 0, *ifa = 0;
 					struct AdvPrefix *next = prefix->next;
 
 					if (prefix->PrefixLen != 64) {
-						flog(LOG_ERR, "Only /64 is allowed with Base6Interface.  %s:%d", conf_file, num_lines);
+						flog(LOG_ERR, "Only /64 is allowed with Base6Interface.  %s:%d", yydata->filename, num_lines);
 						ABORT;
 					}
 
@@ -438,7 +437,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 						prefix->next = next;
 
 						if (inet_ntop(ifa->ifa_addr->sa_family, (void *)&(prefix->Prefix), buf, sizeof(buf)) == NULL)
-							flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, conf_file, num_lines);
+							flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, yydata->filename, num_lines);
 						else
 							dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s from interface %s",
 								buf, prefix->PrefixLen, iface->Name, ifa->ifa_name);
@@ -465,7 +464,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 
 			if (!memcmp($2, &zeroaddr, sizeof(struct in6_addr))) {
 #ifndef HAVE_IFADDRS_H
-				flog(LOG_ERR, "invalid all-zeros prefix in %s, line %d", conf_file, num_lines);
+				flog(LOG_ERR, "invalid all-zeros prefix in %s, line %d", yydata->filename, num_lines);
 				ABORT;
 #else
 				struct ifaddrs *ifap = 0, *ifa = 0;
@@ -473,14 +472,14 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 
 				while (next) {
 					if (next->AutoSelected) {
-						flog(LOG_ERR, "auto selecting prefixes works only once per interface.  See %s, line %d", conf_file, num_lines);
+						flog(LOG_ERR, "auto selecting prefixes works only once per interface.  See %s, line %d", yydata->filename, num_lines);
 						ABORT;
 					}
 					next = next->next;
 				}
 				next = 0;
 
-				dlog(LOG_DEBUG, 5, "all-zeros prefix in %s, line %d, parsing..", conf_file, num_lines);
+				dlog(LOG_DEBUG, 5, "all-zeros prefix in %s, line %d, parsing..", yydata->filename, num_lines);
 
 				if (getifaddrs(&ifap) != 0)
 					flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
@@ -519,7 +518,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 						prefix->PrefixLen = count_mask(mask);
 
 					if (inet_ntop(ifa->ifa_addr->sa_family, (void *)&(prefix->Prefix), buf, sizeof(buf)) == NULL)
-						flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, conf_file, num_lines);
+						flog(LOG_ERR, "%s: inet_ntop failed in %s, line %d!", ifa->ifa_name, yydata->filename, num_lines);
 					else
 						dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s", buf, prefix->PrefixLen, ifa->ifa_name);
 				}
@@ -544,7 +543,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 
 				if ($4 > MAX_PrefixLen)
 				{
-					flog(LOG_ERR, "invalid prefix length in %s, line %d", conf_file, num_lines);
+					flog(LOG_ERR, "invalid prefix length in %s, line %d", yydata->filename, num_lines);
 					ABORT;
 				}
 
@@ -689,7 +688,7 @@ routehead	: T_ROUTE IPV6ADDR '/' NUMBER
 
 			if ($4 > MAX_PrefixLen)
 			{
-				flog(LOG_ERR, "invalid route prefix length in %s, line %d", conf_file, num_lines);
+				flog(LOG_ERR, "invalid route prefix length in %s, line %d", yydata->filename, num_lines);
 				ABORT;
 			}
 
