@@ -30,6 +30,7 @@
 static void user_action(void * p, int lineno, int leng, int * column);
 #define YY_USER_ACTION user_action(yylloc, yylineno, yyleng, &yycolumn);
 
+/* TODO: num lines should be replaced with locations */
 int num_lines = 1;
 %}
 
