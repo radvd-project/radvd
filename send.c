@@ -116,6 +116,8 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	struct AdvRoute *route;
 	struct AdvRDNSS *rdnss;
 	struct AdvDNSSL *dnssl;
+	struct AdvLowpanCo *lowpanco;
+	struct AdvAbro *abroo;
 	struct timeval time_now;
 	time_t secs_since_last_ra;
 	char addr_str[INET6_ADDRSTRLEN];
@@ -411,7 +413,10 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 		*ucp++ = ND_OPT_SOURCE_LINKADDR;
 		*ucp++ = (uint8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
 
-		i = (iface->if_hwaddr_len + 7) >> 3;
+		if (iface->if_hwaddr_len == 64)
+			i = ((iface->if_hwaddr_len) >> 2) - 2;
+		else
+			i = (iface->if_hwaddr_len + 7) >> 3;
 
 		buff_dest = len;
 
@@ -461,6 +466,45 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 		buff_dest = len;
 		send_ra_inc_len(&len, sizeof(ha_info));
 		memcpy(buff + buff_dest, &ha_info, sizeof(ha_info));
+	}
+
+	lowpanco = iface->AdvLowpanCoList;
+	/*
+	 * Add 6co option
+	 */
+	if (lowpanco)
+	{
+		struct nd_opt_6co *co;
+		co = (struct nd_opt_6co *)(buff+len);
+
+		send_ra_inc_len(&len,sizeof(*co));
+
+		co->nd_opt_6co_type = ND_OPT_6CO;
+		co->nd_opt_6co_len = 3;
+		co->nd_opt_6co_context_len = lowpanco->ContextLength;
+		co->nd_opt_6co_c = lowpanco->ContextCompressionFlag;
+		co->nd_opt_6co_cid = lowpanco->AdvContextID;
+		co->nd_opt_6co_valid_lifetime = lowpanco->AdvLifeTime;
+		co->nd_opt_6co_con_prefix = lowpanco->AdvContextPrefix;
+	}
+
+	abroo = iface->AdvAbroList;
+	/*
+         * Add ABRO option
+	 */
+	if (abroo)
+	{
+		struct nd_opt_abro *abro;
+		abro = (struct nd_opt_abro *)(buff+len);
+
+		send_ra_inc_len(&len,sizeof(*abro));
+
+		abro->nd_opt_abro_type = ND_OPT_ABRO;
+		abro->nd_opt_abro_len = 3;
+		abro->nd_opt_abro_ver_low = abroo->Version[1];
+		abro->nd_opt_abro_ver_high = abroo->Version[0];
+		abro->nd_opt_abro_valid_lifetime = abroo->ValidLifeTime;
+		abro->nd_opt_abro_6lbr_address = abroo->LBRaddress;
 	}
 
 	err = really_send(dest, iface->if_index, iface->if_addr, buff, len);

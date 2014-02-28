@@ -83,6 +83,8 @@ struct Interface {
 	struct AdvRDNSS *AdvRDNSSList;
 	struct AdvDNSSL *AdvDNSSLList;
 	struct Clients *ClientList;
+	struct AdvLowpanCo *AdvLowpanCoList;
+	struct AdvAbro *AdvAbroList;
 	struct timeval last_multicast;
 	struct timeval next_multicast;
 
@@ -159,6 +161,24 @@ struct AdvDNSSL {
 	char **AdvDNSSLSuffixes;
 
 	struct AdvDNSSL *next;
+};
+
+struct AdvLowpanCo {
+	uint8_t ContextLength;
+	uint8_t ContextCompressionFlag;
+	uint8_t AdvContextID;
+	uint16_t AdvLifeTime;
+	struct in6_addr AdvContextPrefix;
+
+	struct AdvLowpanCo      *next;
+};
+
+struct AdvAbro {
+	uint16_t Version[2];
+	uint16_t ValidLifeTime;
+	struct in6_addr LBRaddress;
+
+	struct AdvAbro  *next;
 };
 
 /* Mobile IPv6 extensions */
