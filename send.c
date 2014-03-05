@@ -403,26 +403,18 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	 */
 
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
-		uint8_t *ucp;
-		unsigned int i;
+		/* +16 for the header and the sllao_len, +63 to round up an octet, >>6 (divide by 64 
+		 * to get the number of octets. */
+		size_t sllao_len = (iface->if_hwaddr_len +16 +63) >> 6;
+		uint8_t *sllao = (uint8_t *) (buff + len);
 
-		ucp = (uint8_t *) (buff + len);
+		send_ra_inc_len(&len, sllao_len);
 
-		send_ra_inc_len(&len, 2 * sizeof(uint8_t));
+		*sllao++ = ND_OPT_SOURCE_LINKADDR;
+		*sllao++ = (uint8_t)sllao_len;
 
-		*ucp++ = ND_OPT_SOURCE_LINKADDR;
-		*ucp++ = (uint8_t) ((iface->if_hwaddr_len + 16 + 63) >> 6);
-
-		if (iface->if_hwaddr_len == 64)
-			i = ((iface->if_hwaddr_len) >> 2) - 2;
-		else
-			i = (iface->if_hwaddr_len + 7) >> 3;
-
-		buff_dest = len;
-
-		send_ra_inc_len(&len, i);
-
-		memcpy(buff + buff_dest, iface->if_hwaddr, i);
+		/* if_hwaddr_len is in bits, so divide by 8 (>>3) to get the byte count. */
+		memcpy(sllao, iface->if_hwaddr, iface->if_hwaddr_len >> 3);
 	}
 
 	/*
