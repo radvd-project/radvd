@@ -78,13 +78,15 @@ struct Interface {
 	/* NEMO extensions */
 	int AdvMobRtrSupportFlag;
 
+	/* 6lowpan extension */
+	struct AdvLowpanCo *AdvLowpanCoList;
+	struct AdvAbro *AdvAbroList;
+
 	struct AdvPrefix *AdvPrefixList;
 	struct AdvRoute *AdvRouteList;
 	struct AdvRDNSS *AdvRDNSSList;
 	struct AdvDNSSL *AdvDNSSLList;
 	struct Clients *ClientList;
-	struct AdvLowpanCo *AdvLowpanCoList;
-	struct AdvAbro *AdvAbroList;
 	struct timeval last_multicast;
 	struct timeval next_multicast;
 

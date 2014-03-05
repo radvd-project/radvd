@@ -939,6 +939,8 @@ lowpancohead	: T_LOWPANCO
 				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
 				ABORT;
 			}
+
+			memset(lowpanco, 0, sizeof(struct AdvLowpanCo));
 		}
 		;
 
@@ -977,6 +979,12 @@ abrodef		: abrohead  '{' optional_abroplist '}' ';'
 
 abrohead	: T_ABRO IPV6ADDR '/' NUMBER
 		{
+			if ($4 > MAX_PrefixLen)
+			{
+				flog(LOG_ERR, "invalid abro prefix length in %s, line %d", conf_file, num_lines);
+				ABORT;
+			}
+
 			abro = malloc(sizeof(struct AdvAbro));
 
 			if (abro == NULL) {
@@ -984,11 +992,7 @@ abrohead	: T_ABRO IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			if ($4 > MAX_PrefixLen)
-			{
-				flog(LOG_ERR, "invalid abro prefix length in %s, line %d", conf_file, num_lines);
-				ABORT;
-			}
+			memset(abro, 0, sizeof(struct AdvAbro));
 			memcpy(&abro->LBRaddress, $2, sizeof(struct in6_addr));
 		}
 		;
