@@ -403,18 +403,48 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	 */
 
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
-		/* +16 for the header and the sllao_len, +63 to round up an octet, >>6 (divide by 64 
-		 * to get the number of octets. */
-		size_t sllao_len = (iface->if_hwaddr_len +16 +63) >> 6;
+		/*
+		4.6.1.  Source/Target Link-layer Address
+
+		      0                   1                   2                   3
+		      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		     |     Type      |    Length     |    Link-Layer Address ...
+		     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+		   Fields:
+
+		      Type
+				     1 for Source Link-layer Address
+				     2 for Target Link-layer Address
+
+		      Length         The length of the option (including the type and
+				     length fields) in units of 8 octets.  For example,
+				     the length for IEEE 802 addresses is 1 [IPv6-
+				     ETHER].
+
+		      Link-Layer Address
+				     The variable length link-layer address.
+
+				     The content and format of this field (including
+				     byte and bit ordering) is expected to be specified
+				     in specific documents that describe how IPv6
+				     operates over different link layers.  For instance,
+				     [IPv6-ETHER].
+
+		*/
+		/* +2 for the ND_OPT_SOURCE_LINKADDR and the length (each occupy one byte) */
+		size_t const sllao_bytes = (iface->if_hwaddr_len / 8) +2;
+		size_t const sllao_len = (sllao_bytes +7) / 8;
 		uint8_t *sllao = (uint8_t *) (buff + len);
 
-		send_ra_inc_len(&len, sllao_len);
+		send_ra_inc_len(&len, sllao_len * 8);
 
 		*sllao++ = ND_OPT_SOURCE_LINKADDR;
 		*sllao++ = (uint8_t)sllao_len;
 
-		/* if_hwaddr_len is in bits, so divide by 8 (>>3) to get the byte count. */
-		memcpy(sllao, iface->if_hwaddr, iface->if_hwaddr_len >> 3);
+		/* if_hwaddr_len is in bits, so divide by 8 to get the byte count. */
+		memcpy(sllao, iface->if_hwaddr, iface->if_hwaddr_len / 8);
 	}
 
 	/*
