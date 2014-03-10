@@ -560,12 +560,12 @@ Default: on
 .SH ABRO SPECIFIC OPTIONS
 
 .TP
-.BR "AdvValidLifeTime" seconds
+.BR "AdvValidLifeTime " seconds
 The time in units of that the set of border router information is valid.
 A value of all zero bits assumes a default value of 10,000(~one week).
 
 .TP
-.BR "AdvVersionLow, AdvVersionHigh" unsigned integer
+.BR "AdvVersionLow, AdvVersionHigh " unsigned integer
 Both forms 32-bit unsigned version number corresponding to the set of information contained in RA message.
 
 .SH EXAMPLES
@@ -668,7 +668,7 @@ Furthermore, all RA requests of other clients are denied.
 This may come in handy if you want to roll out IPv6 only partially because
 some clients are broken or untested.
 
-For ABRO support 
+For ABRO support
 .nf
 interface lowpan0
 {

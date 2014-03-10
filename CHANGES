@@ -1,4 +1,4 @@
-2014/03/05	6lowpan support <Bhadram>
+2014/03/05	6LoWPAN-ND (RFC6775) support <Bhadram>
 
 2014/02/28	Bug fix 1048653 - UnicastOnly option still sends multicast RA
 
