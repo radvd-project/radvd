@@ -112,7 +112,6 @@ struct nd_opt_abro
 	uint16_t  nd_opt_abro_ver_low;
 	uint16_t  nd_opt_abro_ver_high;
 	uint16_t  nd_opt_abro_valid_lifetime;
-	uint8_t nd_opt_abro_reserved[3];
 	struct in6_addr nd_opt_abro_6lbr_address;
 };
 
