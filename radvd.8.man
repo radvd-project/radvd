@@ -63,15 +63,6 @@ and then aborts.
 .BR "\-h" , " \-\-help"
 Displays a short usage description and then aborts.
 .TP
-.BR "\-s" , " \-\-singleprocess"
-On Linux if 
-.I username
-is specified, privilege separation is enabled and there will be
-two processes.
-This option disables privilege separation, and as a result,
-the non-privileged radvd process does not have permissions to
-change interface configuration.
-.TP
 .BR "\-c" , " \-\-configtest"
 Test configuration and do startup tests and then exit.
 .TP
