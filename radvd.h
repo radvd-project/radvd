@@ -172,7 +172,7 @@ struct AdvLowpanCo {
 	uint16_t AdvLifeTime;
 	struct in6_addr AdvContextPrefix;
 
-	struct AdvLowpanCo      *next;
+	struct AdvLowpanCo *next;
 };
 
 struct AdvAbro {
@@ -180,7 +180,7 @@ struct AdvAbro {
 	uint16_t ValidLifeTime;
 	struct in6_addr LBRaddress;
 
-	struct AdvAbro  *next;
+	struct AdvAbro *next;
 };
 
 /* Mobile IPv6 extensions */

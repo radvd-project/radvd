@@ -435,14 +435,14 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 
 		*/
 		/* +2 for the ND_OPT_SOURCE_LINKADDR and the length (each occupy one byte) */
-		size_t const sllao_bytes = (iface->if_hwaddr_len / 8) +2;
-		size_t const sllao_len = (sllao_bytes +7) / 8;
+		size_t const sllao_bytes = (iface->if_hwaddr_len / 8) + 2;
+		size_t const sllao_len = (sllao_bytes + 7) / 8;
 		uint8_t *sllao = (uint8_t *) (buff + len);
 
 		send_ra_inc_len(&len, sllao_len * 8);
 
 		*sllao++ = ND_OPT_SOURCE_LINKADDR;
-		*sllao++ = (uint8_t)sllao_len;
+		*sllao++ = (uint8_t) sllao_len;
 
 		/* if_hwaddr_len is in bits, so divide by 8 to get the byte count. */
 		memcpy(sllao, iface->if_hwaddr, iface->if_hwaddr_len / 8);
@@ -477,8 +477,7 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	 * Dynamic Home Agent Address Discovery
 	 */
 
-	if (iface->AdvHomeAgentInfo && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 || iface->HomeAgentLifetime != iface->AdvDefaultLifetime))
-	{
+	if (iface->AdvHomeAgentInfo && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 || iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
 		struct HomeAgentInfo ha_info;
 		ha_info.type = ND_OPT_HOME_AGENT_INFO;
 		ha_info.length = 1;
@@ -497,12 +496,11 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	 * Add 6co option
 	 */
 
-	if (lowpanco)
-	{
+	if (lowpanco) {
 		struct nd_opt_6co *co;
-		co = (struct nd_opt_6co *)(buff+len);
+		co = (struct nd_opt_6co *)(buff + len);
 
-		send_ra_inc_len(&len,sizeof(*co));
+		send_ra_inc_len(&len, sizeof(*co));
 
 		co->nd_opt_6co_type = ND_OPT_6CO;
 		co->nd_opt_6co_len = 3;
@@ -516,15 +514,14 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	abroo = iface->AdvAbroList;
 
 	/*
-         * Add ABRO option
+	 * Add ABRO option
 	 */
 
-	if (abroo)
-	{
+	if (abroo) {
 		struct nd_opt_abro *abro;
-		abro = (struct nd_opt_abro *)(buff+len);
+		abro = (struct nd_opt_abro *)(buff + len);
 
-		send_ra_inc_len(&len,sizeof(*abro));
+		send_ra_inc_len(&len, sizeof(*abro));
 
 		abro->nd_opt_abro_type = ND_OPT_ABRO;
 		abro->nd_opt_abro_len = 3;
