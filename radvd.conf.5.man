@@ -46,7 +46,7 @@ Prefix definitions are of the form:
 .B };
 .fi
 
-Prefix can be network prefix or the address of the inferface.
+Prefix can be network prefix or the address of the interface.
 The address of interface should be used when using Mobile IPv6
 extensions.
 
@@ -107,7 +107,7 @@ The definitions are of the form:
 .B };
 .fi
 
-ABRO (Authorative Border Router Option) definitions are of the form:
+ABRO (Authoritative Border Router Option) definitions are of the form:
 
 .nf
 .BR "abro " prefix / "length " {
@@ -115,7 +115,7 @@ ABRO (Authorative Border Router Option) definitions are of the form:
 .B };
 .fi
 
-Prefix can be network prefix or the address of the inferface.
+Prefix can be network prefix or the address of the interface.
 
 .SH INTERFACE SPECIFIC OPTIONS
 
@@ -583,7 +583,7 @@ interface eth0
 .fi
 
 It says that router advertisement daemon should advertise
-(AdvSendAdvert on;) the prefix 2001:db8:0:1:: which has a lenght of 64
+(AdvSendAdvert on;) the prefix 2001:db8:0:1:: which has a length of 64
 on the interface eth0.  Also the prefix should be marked as autonomous
 (AdvAutonomous on;) and as on-link (AdvOnLink on;).  All the other
 options are left on their default values.
