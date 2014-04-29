@@ -821,14 +821,14 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{
-			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
-				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
-				ABORT;
-			}
 			if ($2 > 2*(iface->MaxRtrAdvInterval))
 				flog(LOG_WARNING, "Warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
-
-			rdnss->AdvRDNSSLifetime = $2;
+			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
+				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
+				rdnss->AdvRDNSSLifetime = iface->MaxRtrAdvInterval;
+			} else {
+				rdnss->AdvRDNSSLifetime = $2;
+			}
 		}
 		| T_FlushRDNSS SWITCH ';'
 		{
