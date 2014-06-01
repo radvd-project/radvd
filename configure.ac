@@ -198,6 +198,7 @@ cat << EOF
 
 Your build configuration:
 
+	CPPFLAGS = $CPPFLAGS
 	CFLAGS = $CFLAGS
 	LDFLAGS = $LDFLAGS
 	Arch = ${arch}
