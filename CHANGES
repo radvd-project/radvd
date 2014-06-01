@@ -1,13 +1,44 @@
-2014/06/01	Add compiler attributes to type check format strings <Cristian Rodríguez>
+2014/05/30	add disable_ipv6_autoconfig function so an interface radvd
+			is using won't autoconfig itself using its own advert
+		improved netlink message processing to *only* reinit an
+			interface that changed.
+
+2014/04/10	Add compiler attributes to type check format strings <Cristian Rodríguez>
 
 2014/03/18	release 1.10.0
 
 2014/03/12	dropped --singleprocess option completely
 		cleaned up some spelling error in the man pages
 
+2014/03/07	log valid and preferred lifetimes
+		clean up sllao code and test
+
 2014/03/05	6LoWPAN-ND (RFC6775) support <Bhadram>
+		using ppoll to prevent signal races
 
 2014/02/28	Bug fix 1048653 - UnicastOnly option still sends multicast RA
+
+2014/02/17	Cleaned up Makefile.am
+		added fstack-protector for security
+		fixed CFLAGS warning settings
+		fixed problems in code raised by CFLAGS fix
+
+2014/02/01	fixed some tests which invoked radvd instead of ./radvd
+		added an iface api which hides the linked list implementation
+		added a sorted list (by iface index) to the iface api
+		make globals in gram.y non-global
+
+2014/01/18	add RTMGRP_IPV6_IFADDR processing code to netlink
+		refactoring, simplification and code cleanup
+
+
+2014/01/13	using parser locations
+		the parser can run without root
+		added a 'make check' target
+		reworked the initialization of interfaces <Schiffer>
+		a few global variables are now local
+		logging radvd PIDs
+		using 'indent -linux' code style
 
 2014/01/10	use -no-strict-aliasing
 
