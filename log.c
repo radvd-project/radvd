@@ -107,11 +107,10 @@ static int vlog(int prio, char const *format, va_list ap)
 
 void dlog(int prio, int level, char const *format, ...)
 {
-	va_list ap;
-
 	if (debug_level < level)
 		return;
 
+	va_list ap;
 	va_start(ap, format);
 	vlog(prio, format, ap);
 	va_end(ap);
