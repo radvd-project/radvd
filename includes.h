@@ -12,8 +12,7 @@
  *
  */
 
-#ifndef INCLUDES_H
-#define INCLUDES_H
+#pragma once
 
 #include "config.h"
 
