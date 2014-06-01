@@ -23,7 +23,7 @@ static FILE *log_file_fd;
 static int log_facility;
 static int debug_level = 0;
 
-int log_open(int method, char *ident, char *log, int facility)
+int log_open(int method, char const *ident, char const *log, int facility)
 {
 	log_method = method;
 	log_ident = ident;
@@ -62,8 +62,8 @@ int log_open(int method, char *ident, char *log, int facility)
 }
 
 /* note: [dfv]log() is also called from root context */
-__attribute__ ((format (printf, 2, 0)))
-static int vlog(int prio, char *format, va_list ap)
+__attribute__ ((format(printf, 2, 0)))
+static int vlog(int prio, char const *format, va_list ap)
 {
 	char tstamp[64], buff[1024];
 	struct tm *tm;
@@ -105,7 +105,7 @@ static int vlog(int prio, char *format, va_list ap)
 	return 0;
 }
 
-void dlog(int prio, int level, char *format, ...)
+void dlog(int prio, int level, char const *format, ...)
 {
 	va_list ap;
 
@@ -117,7 +117,7 @@ void dlog(int prio, int level, char *format, ...)
 	va_end(ap);
 }
 
-void flog(int prio, char *format, ...)
+void flog(int prio, char const *format, ...)
 {
 	va_list ap;
 
