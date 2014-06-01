@@ -47,7 +47,7 @@ you must specifiy it with --target on the configure command line])
 esac
 
 dnl Determine CC and preset CFLAGS
-AC_PROG_CC
+AC_PROG_CC_C99
 AC_PROG_RANLIB
 
 dnl Determine of netlink is available
