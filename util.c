@@ -16,6 +16,23 @@
 #include "includes.h"
 #include "radvd.h"
 
+
+__attribute__ ((format(printf, 1, 2)))
+char * strdupf(char const * format, ...)
+{
+	va_list va;
+	va_start(va, format);
+	char * strp = 0;
+	int rc = vasprintf(&strp, format, va);
+	if (rc == -1 || !strp) {
+		flog(LOG_ERR, "vasprintf failed: %s", strerror(errno));
+		exit(-1);
+	}
+	va_end(va);
+
+	return strp;
+}
+
 double rand_between(double lower, double upper)
 {
 	return ((upper - lower) / (RAND_MAX + 1.0) * rand() + lower);

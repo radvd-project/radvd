@@ -281,6 +281,7 @@ void process(struct Interface *, unsigned char *, int, struct sockaddr_in6 *, st
 int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
 
 /* util.c */
+char * strdupf(char const * format, ...) __attribute__ ((format(printf, 1, 2)));
 double rand_between(double, double);
 void print_addr(struct in6_addr *, char *);
 int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
