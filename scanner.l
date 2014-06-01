@@ -13,7 +13,11 @@
  *
  */
 
-%option nounput noinput noyywrap
+%option noyywrap
+%option nounput
+%option noinput
+
+%option yylineno
 
 %{
 #include "config.h"
@@ -21,9 +25,10 @@
 #include "log.h"
 #include "gram.h"
 
-extern char *conf_file;
+int yycolumn = 1;
+#define YY_USER_ACTION user_action(&yylloc, yylineno, yyleng, &yycolumn);
+static void user_action(YYLTYPE * p, int lineno, int leng, int * column);
 
-int num_lines = 1;
 %}
 
 digit		[0-9]
@@ -40,7 +45,7 @@ string		[a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]+
 %%
 
 #.*$			{/* ignore comments */}
-\n			{num_lines++;}
+\n			{yycolumn = 1;}
 {whitespace}		{}
 
 interface		{ return T_INTERFACE; }
@@ -115,8 +120,6 @@ Adv6LBRaddress		{ return T_Adv6LBRaddress; }
 {addr}		{
 			static struct in6_addr addr;
 			if (inet_pton(AF_INET6, yytext, &addr) < 1) {
-				flog(LOG_ERR, "invalid address in %s, line %d", conf_file,
-					num_lines);
 				return T_BAD_TOKEN;
 			}
 
@@ -165,3 +168,13 @@ high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 .		{ return T_BAD_TOKEN; }
 %%
+
+static void user_action(YYLTYPE * loc, int lineno, int leng, int * column)
+{
+	loc->first_line = loc->last_line = lineno;
+	loc->first_column = *column;
+	loc->last_column = *column +leng -1;
+	*column += leng;
+}
+
+
