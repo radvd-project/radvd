@@ -12,12 +12,14 @@ dnl   may request it from <reubenhwk@gmail.com>.
 dnl
 dnl
 
-AC_INIT(radvd.c)
-
+dnl If adding rcX to version, be sure to separate with a '-' 
+AC_INIT(radvd, [2.0.0-rc1])
+AC_CONFIG_SRCDIR(radvd.c)
 AC_CANONICAL_SYSTEM
-VERSION=`cat ${srcdir}/VERSION | grep -v '^#' | tr -d '\012'`
-AM_INIT_AUTOMAKE(radvd,$VERSION,true)
+AM_INIT_AUTOMAKE
+
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
+
 
 AC_MSG_CHECKING([architecture])
 case "$target" in
