@@ -165,6 +165,8 @@ struct AdvDNSSL {
 	struct AdvDNSSL *next;
 };
 
+/* Options for 6lopan configuration */
+
 struct AdvLowpanCo {
 	uint8_t ContextLength;
 	uint8_t ContextCompressionFlag;
@@ -200,11 +202,34 @@ struct HomeAgentInfo {
 	uint16_t lifetime;
 };
 
+/* Uclibc : include/netinet/icmpv6.h - Added by Bhadram*/
+#define ND_OPT_ARO	33
+#define ND_OPT_6CO	34
+#define ND_OPT_ABRO	35
+
+struct nd_opt_abro {
+	uint8_t nd_opt_abro_type;
+	uint8_t nd_opt_abro_len;
+	uint16_t nd_opt_abro_ver_low;
+	uint16_t nd_opt_abro_ver_high;
+	uint16_t nd_opt_abro_valid_lifetime;
+	struct in6_addr nd_opt_abro_6lbr_address;
+};
 /* gram.y */
 int yyparse(void);
 
-/* scanner.l */
-int yylex(void);
+struct nd_opt_6co {
+	uint8_t nd_opt_6co_type;
+	uint8_t nd_opt_6co_len;
+	uint8_t nd_opt_6co_context_len;
+	uint8_t nd_opt_6co_res:3;
+	uint8_t nd_opt_6co_c:1;
+	uint8_t nd_opt_6co_cid:4;
+	uint16_t nd_opt_6co_reserved;
+	uint16_t nd_opt_6co_valid_lifetime;
+	struct in6_addr nd_opt_6co_con_prefix;
+};				/*Added by Bhadram */
+
 
 /* radvd.c */
 int check_ip6_forwarding(void);
