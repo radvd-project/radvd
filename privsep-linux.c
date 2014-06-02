@@ -116,28 +116,25 @@ void privsep_read_loop(void)
 int privsep_init(void)
 {
 	int pipefds[2];
-	pid_t pid;
 
 	if (pipe(pipefds) != 0) {
 		flog(LOG_ERR, "Couldn't create privsep pipe.");
 		return -1;
 	}
 
-	pid = fork();
+	pid_t pid = fork();
 	if (pid == -1) {
 		flog(LOG_ERR, "Couldn't fork for privsep.");
 		return -1;
 	}
 
 	if (pid == 0) {
-		int nullfd;
-
 		/* This will be the privileged child */
 		close(pipefds[1]);
 		pfd = pipefds[0];
 
 		/* Detach from stdio */
-		nullfd = open("/dev/null", O_RDONLY);
+		int nullfd = open("/dev/null", O_RDONLY);
 		if (nullfd < 0) {
 			perror("/dev/null");
 			close(pfd);
