@@ -26,11 +26,6 @@ int update_device_info(struct Interface *iface)
 {
 	struct ifreq ifr;
 
-	if (if_nametoindex(iface->Name) == 0) {
-		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
-		goto ret;
-	}
-
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
