@@ -16,6 +16,7 @@
 #include "includes.h"
 #include "radvd.h"
 #include "defaults.h"
+#include "pathnames.h"
 
 int check_device(struct Interface *iface)
 {
