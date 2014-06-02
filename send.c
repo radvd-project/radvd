@@ -39,8 +39,7 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
 	for (current = iface->ClientList; current; current = current->next) {
-		char address_text[INET6_ADDRSTRLEN];
-		memset(address_text, 0, sizeof(address_text));
+		char address_text[INET6_ADDRSTRLEN] = { "" };
 		if (get_debuglevel() >= 5)
 			inet_ntop(AF_INET6, &current->Address, address_text, INET6_ADDRSTRLEN);
 
@@ -54,16 +53,17 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 		if (dest != NULL)
 			return 0;
 	}
+
 	if (dest == NULL)
 		return 0;
 
 	/* If we refused a client's solicitation, log it if debugging is high enough */
-	char address_text[INET6_ADDRSTRLEN];
-	memset(address_text, 0, sizeof(address_text));
-	if (get_debuglevel() >= 5)
+	if (get_debuglevel() >= 5) {
+		char address_text[INET6_ADDRSTRLEN] = { "" };
 		inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
+		dlog(LOG_DEBUG, 5, "Not answering request from %s, not configured", address_text);
+	}
 
-	dlog(LOG_DEBUG, 5, "Not answering request from %s, not configured", address_text);
 	return 0;
 }
 
