@@ -312,13 +312,6 @@ int main(int argc, char *argv[])
 		daemon_retval_send(0);
 	}
 
-	/*
-	 *      config signal handlers
-	 */
-	signal(SIGHUP, sighup_handler);
-	signal(SIGTERM, sigterm_handler);
-	signal(SIGINT, sigint_handler);
-	signal(SIGUSR1, sigusr1_handler);
 
 	config_interface();
 	kickoff_adverts();
@@ -341,6 +334,38 @@ const char *get_pidfile(void)
 void main_loop(void)
 {
 	struct pollfd fds[2];
+	sigset_t sigmask;
+	sigset_t sigempty;
+	struct sigaction sa;
+
+	sigemptyset(&sigempty);
+
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGHUP);
+	sigaddset(&sigmask, SIGTERM);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGUSR1);
+	sigprocmask(SIG_BLOCK, &sigmask, NULL);
+
+	sa.sa_handler = sighup_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGHUP, &sa, 0);
+
+	sa.sa_handler = sigterm_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGTERM, &sa, 0);
+
+	sa.sa_handler = sigint_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGINT, &sa, 0);
+
+	sa.sa_handler = sigusr1_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGUSR1, &sa, 0);
 
 	memset(fds, 0, sizeof(fds));
 
@@ -596,17 +621,11 @@ void reload_config(void)
 
 void sighup_handler(int sig)
 {
-	/* Linux has "one-shot" signals, reinstall the signal handler */
-	signal(SIGHUP, sighup_handler);
-
 	sighup_received = 1;
 }
 
 void sigterm_handler(int sig)
 {
-	/* Linux has "one-shot" signals, reinstall the signal handler */
-	signal(SIGTERM, sigterm_handler);
-
 	++sigterm_received;
 
 	if (sigterm_received > 1) {
@@ -616,9 +635,6 @@ void sigterm_handler(int sig)
 
 void sigint_handler(int sig)
 {
-	/* Linux has "one-shot" signals, reinstall the signal handler */
-	signal(SIGINT, sigint_handler);
-
 	++sigint_received;
 
 	if (sigint_received > 1) {
@@ -628,9 +644,6 @@ void sigint_handler(int sig)
 
 void sigusr1_handler(int sig)
 {
-	/* Linux has "one-shot" signals, reinstall the signal handler */
-	signal(SIGUSR1, sigusr1_handler);
-
 	sigusr1_received = 1;
 }
 
