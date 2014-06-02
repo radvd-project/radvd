@@ -24,11 +24,7 @@
  */
 int update_device_info(struct Interface *iface)
 {
-	struct ifaddrs *addresses = 0, *ifa;
-
 	struct ifreq ifr;
-	struct AdvPrefix *prefix;
-	char zero[sizeof(iface->if_addr)];
 
 	if (if_nametoindex(iface->Name) == 0) {
 		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
@@ -47,12 +43,13 @@ int update_device_info(struct Interface *iface)
 	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
 	iface->if_maxmtu = ifr.ifr_mtu;
 
+	struct ifaddrs *addresses = 0;
 	if (getifaddrs(&addresses) != 0) {
 		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
 		goto ret;
 	}
 
-	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
+	for (struct ifaddrs * ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
 		if (strcmp(ifa->ifa_name, iface->Name) != 0)
 			continue;
 
@@ -91,12 +88,13 @@ int update_device_info(struct Interface *iface)
 		dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->if_prefix_len);
 
 		if (iface->if_prefix_len != -1) {
+			char zero[sizeof(iface->if_addr)];
 			memset(zero, 0, dl->sdl_alen);
 			if (!memcmp(iface->if_hwaddr, zero, dl->sdl_alen))
 				flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->Name);
 		}
 
-		prefix = iface->AdvPrefixList;
+		struct AdvPrefix *prefix = iface->AdvPrefixList;
 		while (prefix) {
 			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != prefix->PrefixLen)) {
 				flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->Name);
@@ -113,10 +111,6 @@ int update_device_info(struct Interface *iface)
 	iface->if_maxmtu = -1;
 	iface->if_hwaddr_len = -1;
 	iface->if_prefix_len = -1;
-	if (addresses != 0)
-		freeifaddrs(addresses);
-	return -1;
-}
 
 /*
  * Saves the first link local address seen on the specified interface to iface->if_addr
