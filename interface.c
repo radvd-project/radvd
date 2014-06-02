@@ -91,8 +91,6 @@ void dnssl_init_defaults(struct AdvDNSSL *dnssl, struct Interface *iface)
 
 int check_iface(struct Interface *iface)
 {
-	struct AdvPrefix *prefix;
-	struct AdvRoute *route;
 	int res = 0;
 	int MIPv6 = 0;
 
@@ -102,7 +100,7 @@ int check_iface(struct Interface *iface)
 		flog(LOG_INFO, "using Mobile IPv6 extensions");
 	}
 
-	prefix = iface->AdvPrefixList;
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (!MIPv6 && prefix) {
 		if (prefix->AdvRouterAddr) {
 			MIPv6 = 1;
@@ -204,8 +202,7 @@ int check_iface(struct Interface *iface)
 		prefix = prefix->next;
 	}
 
-	route = iface->AdvRouteList;
-
+	struct AdvRoute *route = iface->AdvRouteList;
 	while (route) {
 		if (route->PrefixLen > MAX_PrefixLen) {
 			flog(LOG_ERR, "invalid route prefix length (%u) for %s", route->PrefixLen, iface->Name);
