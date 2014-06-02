@@ -34,51 +34,80 @@
 
 void process_netlink_msg(int sock)
 {
-	int len;
+	int rc = 0;
+
 	char buf[4096];
 	struct iovec iov = { buf, sizeof(buf) };
 	struct sockaddr_nl sa;
 	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-	struct nlmsghdr *nh;
-	struct ifinfomsg *ifinfo;
-	struct rtattr *rta;
-	int rta_len;
-	char ifname[IF_NAMESIZE] = { "" };
-	int reloaded = 0;
-
-	len = recvmsg(sock, &msg, 0);
+	int len = recvmsg(sock, &msg, 0);
 	if (len == -1) {
-		flog(LOG_ERR, "recvmsg failed: %s", strerror(errno));
+		flog(LOG_ERR, "netlink: recvmsg failed: %s", strerror(errno));
 	}
 
-	for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
+	for (struct nlmsghdr * nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
+		char ifnamebuf[IF_NAMESIZE];
 		/* The end of multipart message. */
 		if (nh->nlmsg_type == NLMSG_DONE)
 			return;
 
 		if (nh->nlmsg_type == NLMSG_ERROR) {
-			flog(LOG_ERR, "%s:%d Some type of netlink error.\n", __FILE__, __LINE__);
+			flog(LOG_ERR, "netlink: unknown error");
 			abort();
 		}
 
 		/* Continue with parsing payload. */
 		if (nh->nlmsg_type == RTM_NEWLINK || nh->nlmsg_type == RTM_DELLINK || nh->nlmsg_type == RTM_SETLINK) {
-			ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
-			if_indextoname(ifinfo->ifi_index, ifname);
-			rta = IFLA_RTA(NLMSG_DATA(nh));
-			rta_len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
+			struct ifinfomsg *ifinfo = (struct ifinfomsg *)NLMSG_DATA(nh);
+			const char *ifname = if_indextoname(ifinfo->ifi_index, ifnamebuf);
+
+			struct rtattr *rta = IFLA_RTA(NLMSG_DATA(nh));
+			int rta_len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(struct ifinfomsg));
 			for (; RTA_OK(rta, rta_len); rta = RTA_NEXT(rta, rta_len)) {
 				if (rta->rta_type == IFLA_OPERSTATE || rta->rta_type == IFLA_LINKMODE) {
 					if (ifinfo->ifi_flags & IFF_RUNNING) {
-						dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is running", ifname, ifinfo->ifi_index);
+						dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, flags is running", ifname,
+						     ifinfo->ifi_index);
 					} else {
-						dlog(LOG_DEBUG, 3, "%s, ifindex %d, flags is *NOT* running", ifname, ifinfo->ifi_index);
+						dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, flags is *NOT* running", ifname,
+						     ifinfo->ifi_index);
 					}
-					if (!reloaded) {
-						reload_config();
-						reloaded = 1;
-					}
+					++rc;
 				}
+			}
+
+			/* Reinit the interfaces which needs it. */
+			struct Interface *iface = find_iface_by_index(interfaces, ifinfo->ifi_index);
+			if (iface) {
+				iface->racount = 0;
+				reschedule_iface(iface, 0);
+			}
+
+		} else if (nh->nlmsg_type == RTM_NEWADDR || nh->nlmsg_type == RTM_DELADDR) {
+			struct ifaddrmsg *ifaddr = (struct ifaddrmsg *)NLMSG_DATA(nh);
+			const char *ifname = if_indextoname(ifaddr->ifa_index, ifnamebuf);
+
+			switch (nh->nlmsg_type) {
+
+			case RTM_DELADDR:
+				dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, address deleted", ifname, ifaddr->ifa_index);
+				break;
+
+			case RTM_NEWADDR:
+				dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, new address", ifname, ifaddr->ifa_index);
+				break;
+
+			default:
+				flog(LOG_ERR, "netlink: unhandled event: %d", nh->nlmsg_type);
+				break;
+			}
+
+			++rc;
+
+			struct Interface *iface = find_iface_by_index(interfaces, ifaddr->ifa_index);
+			if (iface) {
+				iface->racount = 0;
+				reschedule_iface(iface, 0);
 			}
 		}
 	}
@@ -92,7 +121,7 @@ int netlink_socket(void)
 		flog(LOG_ERR, "Unable to open netlink socket: %s", strerror(errno));
 	}
 #if defined SOL_NETLINK && defined NETLINK_NO_ENOBUFS
-	else if (radvd_setsockopt(sock, SOL_NETLINK, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0) {
+	else if (setsockopt(sock, SOL_NETLINK, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0) {
 		flog(LOG_ERR, "Unable to setsockopt NETLINK_NO_ENOBUFS: %s", strerror(errno));
 	}
 #endif
