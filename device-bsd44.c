@@ -17,8 +17,6 @@
 #include "radvd.h"
 #include "defaults.h"
 
-static uint8_t ll_prefix[] = { 0xfe, 0x80 };
-
 /*
  * this function gets the hardware type and address of an interface,
  * determines the link layer token length and checks it against
