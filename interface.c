@@ -214,3 +214,105 @@ int check_iface(struct Interface *iface)
 
 	return res;
 }
+
+struct Interface *find_iface_by_index(struct Interface *iface, int index)
+{
+	for (; iface; iface = iface->next) {
+		if (iface->if_index == index) {
+			return iface;
+		}
+	}
+
+	return 0;
+}
+
+struct Interface *find_iface_by_time(struct Interface *iface)
+{
+	if (!iface) {
+		return 0;
+	}
+
+	int timeout = next_time_msec(iface);
+	struct Interface *next = iface;
+
+	for (iface = iface->next; iface; iface = iface->next) {
+		int t = next_time_msec(iface);
+		if (timeout > t) {
+			timeout = t;
+			next = iface;
+		}
+	}
+
+	return next;
+}
+
+void reschedule_iface(struct Interface *iface, double next)
+{
+	if (iface->racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
+		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
+	}
+
+	iface->next_multicast = next_timeval(next);
+}
+
+void for_each_iface(struct Interface *ifaces, void (*foo) (struct Interface *, void *), void *data)
+{
+	for (; ifaces; ifaces = ifaces->next) {
+		foo(ifaces, data);
+	}
+}
+
+static void free_iface_list(struct Interface *iface)
+{
+	while (iface) {
+		struct Interface *next_iface = iface->next;
+
+		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
+
+		struct AdvPrefix *prefix = iface->AdvPrefixList;
+		while (prefix) {
+			struct AdvPrefix *next_prefix = prefix->next;
+
+			free(prefix);
+			prefix = next_prefix;
+		}
+
+		struct AdvRoute *route = iface->AdvRouteList;
+		while (route) {
+			struct AdvRoute *next_route = route->next;
+
+			free(route);
+			route = next_route;
+		}
+
+		struct AdvRDNSS *rdnss = iface->AdvRDNSSList;
+		while (rdnss) {
+			struct AdvRDNSS *next_rdnss = rdnss->next;
+
+			free(rdnss);
+			rdnss = next_rdnss;
+		}
+
+		struct AdvDNSSL *dnssl = iface->AdvDNSSLList;
+		while (dnssl) {
+			struct AdvDNSSL *next_dnssl = dnssl->next;
+
+			for (int i = 0; i < dnssl->AdvDNSSLNumber; i++)
+				free(dnssl->AdvDNSSLSuffixes[i]);
+			free(dnssl->AdvDNSSLSuffixes);
+			free(dnssl);
+
+			dnssl = next_dnssl;
+		}
+
+		free(iface);
+		iface = next_iface;
+	}
+}
+
+void free_ifaces(struct Interface *ifaces)
+{
+	dlog(LOG_DEBUG, 3, "Freeing Interfaces");
+
+	free_iface_list(ifaces);
+}
