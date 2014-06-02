@@ -466,7 +466,6 @@ void timer_handler(void *data)
 	next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 
 	if (iface->init_racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
-		iface->init_racount++;
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, next);
 	}
 
@@ -513,7 +512,6 @@ void kickoff_adverts(void)
 		/* send an initial advertisement */
 		if (send_ra_forall(iface, NULL) == 0) {
 
-			iface->init_racount++;
 
 			next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
 			iface->next_multicast = next_timeval(next);

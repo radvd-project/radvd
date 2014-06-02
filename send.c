@@ -29,6 +29,9 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 {
 	struct Clients *current;
 
+	if (iface->racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
+		iface->racount++;
+
 	/* If no list of clients was specified for this interface, we broadcast */
 	if (iface->ClientList == NULL) {
 		if (dest == NULL && iface->UnicastOnly) {
