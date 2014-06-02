@@ -43,11 +43,9 @@ struct privsep_command {
 /* Privileged read loop */
 void privsep_read_loop(void)
 {
-	struct privsep_command cmd;
-	int ret;
-
 	while (1) {
-		ret = readn(pfd, &cmd, sizeof(cmd));
+		struct privsep_command cmd;
+		int ret = readn(pfd, &cmd, sizeof(cmd));
 		if (ret <= 0) {
 			/* Error or EOF, give up */
 			if (ret < 0) {
