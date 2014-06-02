@@ -552,30 +552,25 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 
 int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff, size_t len)
 {
-	char __attribute__ ((aligned(8))) chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
-	struct in6_pktinfo *pkt_info;
-	struct msghdr mhdr;
-	struct cmsghdr *cmsg;
-	struct iovec iov;
-	int err;
 	struct sockaddr_in6 addr;
-
 	memset((void *)&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
 	addr.sin6_port = htons(IPPROTO_ICMPV6);
 	memcpy(&addr.sin6_addr, dest, sizeof(struct in6_addr));
 
+	struct iovec iov;
 	iov.iov_len = len;
 	iov.iov_base = (caddr_t) buff;
 
+	char __attribute__ ((aligned(8))) chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
 	memset(chdr, 0, sizeof(chdr));
-	cmsg = (struct cmsghdr *)chdr;
+	struct cmsghdr *cmsg = (struct cmsghdr *)chdr;
 
 	cmsg->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
 	cmsg->cmsg_level = IPPROTO_IPV6;
 	cmsg->cmsg_type = IPV6_PKTINFO;
 
-	pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
+	struct in6_pktinfo *pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 	pkt_info->ipi6_ifindex = if_index;
 	memcpy(&pkt_info->ipi6_addr, &if_addr, sizeof(struct in6_addr));
 
@@ -584,6 +579,7 @@ int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_a
 		addr.sin6_scope_id = if_index;
 #endif
 
+	struct msghdr mhdr;
 	memset(&mhdr, 0, sizeof(mhdr));
 	mhdr.msg_name = (caddr_t) & addr;
 	mhdr.msg_namelen = sizeof(struct sockaddr_in6);
@@ -592,7 +588,7 @@ int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_a
 	mhdr.msg_control = (void *)cmsg;
 	mhdr.msg_controllen = sizeof(chdr);
 
-	err = sendmsg(sock, &mhdr, 0);
+	int err = sendmsg(sock, &mhdr, 0);
 
 	return err;
 }
