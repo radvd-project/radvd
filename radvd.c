@@ -75,9 +75,6 @@ char *conf_file = NULL;
 char *pidfile = NULL;
 char *pname;
 int sock = -1;
-#ifdef HAVE_NETLINK
-int disablenetlink = 0;
-#endif
 int disableigmp6check = 0;
 
 volatile int sighup_received = 0;
@@ -180,11 +177,6 @@ int main(int argc, char *argv[])
 		case 'n':
 			daemonize = 0;
 			break;
-#ifdef HAVE_NETLINK
-		case 'L':
-			disablenetlink = 1;
-			break;
-#endif
 		case 'I':
 			disableigmp6check = 1;
 			break;
@@ -399,6 +391,14 @@ void main_loop(void)
 		rc = poll(fds, sizeof(fds) / sizeof(fds[0]), timeout);
 
 		if (rc > 0) {
+#ifdef HAVE_NETLINK
+			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[1].fd");
+			} else if (fds[1].revents & POLLIN) {
+				process_netlink_msg(fds[1].fd, ifaces);
+			}
+#endif
+
 			if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 				flog(LOG_WARNING, "socket error on fds[0].fd");
 			} else if (fds[0].revents & POLLIN) {
@@ -412,15 +412,6 @@ void main_loop(void)
 					process(IfaceList, msg, len, &rcv_addr, pkt_info, hoplimit);
 				}
 			}
-#ifdef HAVE_NETLINK
-			if (!disablenetlink) {
-				if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-					flog(LOG_WARNING, "socket error on fds[1].fd");
-				} else if (fds[1].revents & POLLIN) {
-					process_netlink_msg(fds[1].fd);
-				}
-			}
-#endif
 		} else if (rc == 0) {
 			if (next)
 				timer_handler(next);
