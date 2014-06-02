@@ -153,7 +153,7 @@ static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const i
 {
 	char pfx_str[INET6_ADDRSTRLEN];
 
-	print_addr(pfx, pfx_str);
+	addrtostr(pfx, pfx_str, sizeof(pfx_str));
 
 	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
 
@@ -283,7 +283,7 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
 			char addr_str[INET6_ADDRSTRLEN];
-			print_addr(&prefix->Prefix, addr_str);
+			addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
 			dlog(LOG_DEBUG, 5,
 			     "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
 			     addr_str, iface->Name, ntohl(pinfo->nd_opt_pi_valid_time),
