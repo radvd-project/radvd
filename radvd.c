@@ -75,7 +75,6 @@ char *conf_file = NULL;
 char *pidfile = NULL;
 char *pname;
 int sock = -1;
-int disableigmp6check = 0;
 
 volatile int sighup_received = 0;
 volatile int sigterm_received = 0;
@@ -176,9 +175,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			daemonize = 0;
-			break;
-		case 'I':
-			disableigmp6check = 1;
 			break;
 		case 'h':
 			usage();
