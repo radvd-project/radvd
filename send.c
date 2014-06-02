@@ -281,8 +281,10 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 			memcpy(&pinfo->nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
 			char addr_str[INET6_ADDRSTRLEN];
 			print_addr(&prefix->Prefix, addr_str);
-			dlog(LOG_DEBUG, 5, "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
-				addr_str, iface->Name, ntohl(pinfo->nd_opt_pi_valid_time), ntohl(pinfo->nd_opt_pi_preferred_time));
+			dlog(LOG_DEBUG, 5,
+			     "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
+			     addr_str, iface->Name, ntohl(pinfo->nd_opt_pi_valid_time),
+			     ntohl(pinfo->nd_opt_pi_preferred_time));
 		}
 
 		prefix = prefix->next;
@@ -350,7 +352,8 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 		struct nd_opt_dnssl_info_local *dnsslinfo = (struct nd_opt_dnssl_info_local *)(buff + len);
 
 		send_ra_inc_len(&len, sizeof(dnsslinfo->nd_opt_dnssli_type) +
-				sizeof(dnsslinfo->nd_opt_dnssli_len) + sizeof(dnsslinfo->nd_opt_dnssli_reserved) + sizeof(dnsslinfo->nd_opt_dnssli_lifetime)
+				sizeof(dnsslinfo->nd_opt_dnssli_len) + sizeof(dnsslinfo->nd_opt_dnssli_reserved) +
+				sizeof(dnsslinfo->nd_opt_dnssli_lifetime)
 		    );
 
 		dnsslinfo->nd_opt_dnssli_type = ND_OPT_DNSSL_INFORMATION;
@@ -452,8 +455,9 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	 * Mobile IPv6 ext: Home Agent Information Option to support
 	 * Dynamic Home Agent Address Discovery
 	 */
-
-	if (iface->AdvHomeAgentInfo && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0 || iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
+	if (iface->AdvHomeAgentInfo
+	    && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0
+		|| iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
 		struct HomeAgentInfo ha_info;
 		ha_info.type = ND_OPT_HOME_AGENT_INFO;
 		ha_info.length = 1;
