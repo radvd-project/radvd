@@ -207,3 +207,40 @@ int privsep_interface_retranstimer(const char *iface, uint32_t rettimer)
 		return -1;
 	return 0;
 }
+
+/* note: also called from the root context */
+static int set_interface_var(const char *iface, const char *var, const char *name, uint32_t val)
+{
+	int retval = -1;
+	FILE * fp = 0;
+	char * spath = strdupf(var, iface);
+
+	/* No path traversal */
+	if (!iface[0] || !strcmp(iface, ".") || !strcmp(iface, "..") || strchr(iface, '/'))
+		goto cleanup;
+
+	if (access(spath, F_OK) != 0)
+		goto cleanup;
+
+	fp = fopen(spath, "w");
+	if (!fp) {
+		if (name)
+			flog(LOG_ERR, "failed to set %s (%u) for %s: %s", name, val, iface, strerror(errno));
+		goto cleanup;
+	}
+
+	if (0 > fprintf(fp, "%u", val)) {
+		goto cleanup;
+	}
+
+	retval = 0;
+
+cleanup:
+	if (fp)
+		fclose(fp);
+
+	free(spath);
+
+	return retval;
+}
+

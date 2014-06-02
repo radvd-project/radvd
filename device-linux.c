@@ -182,33 +182,6 @@ int setup_allrouters_membership(struct Interface *iface)
 	return 0;
 }
 
-/* note: also called from the root context */
-int set_interface_var(const char *iface, const char *var, const char *name, uint32_t val)
-{
-	FILE *fp;
-	char spath[64 + IFNAMSIZ];	/* XXX: magic constant */
-	if (snprintf(spath, sizeof(spath), var, iface) >= sizeof(spath))
-		return -1;
-
-	/* No path traversal */
-	if (!iface[0] || !strcmp(iface, ".") || !strcmp(iface, "..") || strchr(iface, '/'))
-		return -1;
-
-	if (access(spath, F_OK) != 0)
-		return -1;
-
-	fp = fopen(spath, "w");
-	if (!fp) {
-		if (name)
-			flog(LOG_ERR, "failed to set %s (%u) for %s: %s", name, val, iface, strerror(errno));
-		return -1;
-	}
-	fprintf(fp, "%u", val);
-	fclose(fp);
-
-	return 0;
-}
-
 int set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
 	return privsep_interface_linkmtu(iface, mtu);
