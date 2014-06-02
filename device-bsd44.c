@@ -16,7 +16,6 @@
 #include "includes.h"
 #include "radvd.h"
 #include "defaults.h"
-#include "pathnames.h"		/* for PATH_PROC_NET_IF_INET6 */
 
 static uint8_t ll_prefix[] = { 0xfe, 0x80 };
 
