@@ -16,9 +16,12 @@
 #include "includes.h"
 #include "radvd.h"
 
+__attribute__ ((format(printf, 2, 0)))
+static int vlog(int prio, char const *format, va_list ap);
+
 static int log_method = L_NONE;
-static char *log_ident;
-static char *log_file;
+static char const *log_ident;
+static char const *log_file;
 static FILE *log_file_fd;
 static int log_facility;
 static int debug_level = 0;
