@@ -212,6 +212,7 @@ ifacehead	: T_INTERFACE name
 			iface_init_defaults(iface);
 			strncpy(iface->Name, $2, IFNAMSIZ-1);
 			iface->Name[IFNAMSIZ-1] = '\0';
+			iface->lineno = @1.first_line;
 		}
 		;
 

@@ -36,6 +36,7 @@ struct Clients;
 
 struct Interface {
 	char Name[IFNAMSIZ];	/* interface name */
+	int lineno;
 
 	struct in6_addr if_addr;
 	unsigned int if_index;
