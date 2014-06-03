@@ -280,7 +280,7 @@ int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_a
 void process(struct Interface *, unsigned char *, int, struct sockaddr_in6 *, struct in6_pktinfo *, int);
 
 /* recv.c */
-int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
 
 /* util.c */
 char * strdupf(char const * format, ...) __attribute__ ((format(printf, 1, 2)));
