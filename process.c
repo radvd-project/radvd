@@ -82,12 +82,7 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	dlog(LOG_DEBUG, 4, "if_index %u", pkt_info->ipi6_ifindex);
 
 	/* get iface by received if_index */
-
-	for (iface = ifacel; iface; iface = iface->next) {
-		if (iface->if_index == pkt_info->ipi6_ifindex) {
-			break;
-		}
-	}
+	struct Interface *iface = find_iface_by_index(interfaces, pkt_info->ipi6_ifindex);
 
 	if (iface == NULL) {
 		flog(LOG_WARNING, "received icmpv6 RS/RA packet on an unknown interface with index %d",
