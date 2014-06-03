@@ -18,7 +18,7 @@
 #include "defaults.h"
 #include "pathnames.h"
 
-int check_device(struct Interface *iface)
+int check_device(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
