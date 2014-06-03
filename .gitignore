@@ -1,3 +1,7 @@
+cov
+coverage.info
+*.gcda
+*.gcno
 tags
 .deps
 *.o
