@@ -32,8 +32,6 @@ static char const *hwstr(unsigned short sa_family);
 int update_device_info(struct Interface *iface)
 {
 	struct ifreq ifr;
-	struct AdvPrefix *prefix;
-	char zero[sizeof(iface->if_addr)];
 
 	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
@@ -97,12 +95,13 @@ int update_device_info(struct Interface *iface)
 		}
 		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
 
+		char zero[sizeof(iface->if_addr)];
 		memset(zero, 0, sizeof(zero));
 		if (!memcmp(iface->if_hwaddr, zero, if_hwaddr_len_bytes))
 			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->Name);
 	}
 
-	prefix = iface->AdvPrefixList;
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
 		if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != prefix->PrefixLen)) {
 			flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->Name);
