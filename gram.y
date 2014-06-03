@@ -18,19 +18,6 @@
 #include "radvd.h"
 #include "defaults.h"
 
-extern struct Interface *IfaceList;
-struct Interface *iface = NULL;
-struct AdvPrefix *prefix = NULL;
-struct AdvRoute *route = NULL;
-struct AdvRDNSS *rdnss = NULL;
-struct AdvDNSSL *dnssl = NULL;
-struct AdvLowpanCo *lowpanco = NULL;
-struct AdvAbro  *abro = NULL;
-
-extern char *conf_file;
-extern int num_lines;
-extern char *yytext;
-
 #define YYERROR_VERBOSE 1
 static int countbits(int b);
 static int count_mask(struct sockaddr_in6 *m);
@@ -163,9 +150,23 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 	struct AdvAbro		*abroinfo;
 };
 
+%{
+#include "scanner.h"
+extern int yycolumn;
+extern int yylineno;
+static char const * filename;
+static struct Interface *iface;
+static struct Interface *IfaceList;
+static struct AdvPrefix *prefix;
+static struct AdvRoute *route;
+static struct AdvRDNSS *rdnss;
+static struct AdvDNSSL *dnssl;
+static struct AdvLowpanCo *lowpanco;
+static struct AdvAbro  *abro;
 static void cleanup(void);
 #define ABORT	do { cleanup(); YYABORT; } while (0);
 static void yyerror(char const * msg);
+%}
 %%
 
 grammar		: grammar ifacedef
