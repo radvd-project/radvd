@@ -231,7 +231,6 @@ struct nd_opt_6co {
 
 
 /* radvd.c */
-int check_ip6_forwarding(void);
 void reload_config(void);
 void reset_prefix_lifetimes(void);
 
