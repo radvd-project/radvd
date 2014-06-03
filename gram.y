@@ -12,6 +12,10 @@
  *   may request it from <reubenhwk@gmail.com>.
  *
  */
+
+%defines
+%locations
+
 %{
 #include "config.h"
 #include "includes.h"
