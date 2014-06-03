@@ -53,15 +53,14 @@ int check_device(struct Interface *iface)
 
 int get_v4addr(const char *ifn, unsigned int *dst)
 {
-	struct ifreq ifr;
-	struct sockaddr_in *addr;
-	int fd;
 
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
 		flog(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s", ifn, strerror(errno));
 		return -1;
 	}
 
+	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, ifn, IFNAMSIZ - 1);
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
@@ -73,7 +72,7 @@ int get_v4addr(const char *ifn, unsigned int *dst)
 		return -1;
 	}
 
-	addr = (struct sockaddr_in *)(&ifr.ifr_addr);
+	struct sockaddr_in *addr = (struct sockaddr_in *)(&ifr.ifr_addr);
 
 	dlog(LOG_DEBUG, 3, "IPv4 address for %s is %s", ifn, inet_ntoa(addr->sin_addr));
 
