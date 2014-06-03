@@ -78,7 +78,6 @@ void timer_handler(void *data);
 void config_interface(void);
 void kickoff_adverts(void);
 void stop_adverts(void);
-void version(void);
 void usage(void);
 int drop_root_privileges(const char *);
 int readin_config(char *);
@@ -94,6 +93,7 @@ static void sighup_handler(int sig);
 static void sigterm_handler(int sig);
 static void sigint_handler(int sig);
 static void sigusr1_handler(int sig);
+static void version(void);
 
 int main(int argc, char *argv[])
 {
@@ -720,7 +720,7 @@ int check_conffile_perm(const char *username, const char *conf_file)
 	return 0;
 }
 
-void version(void)
+static void version(void)
 {
 	fprintf(stderr, "Version: %s\n\n", VERSION);
 	fprintf(stderr, "Compiled in settings:\n");
