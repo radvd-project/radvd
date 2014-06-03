@@ -17,6 +17,7 @@
 #include "includes.h"
 #include "radvd.h"
 
+static int ensure_iface_setup(int sock, struct Interface *iface);
 /*
  * Sends an advertisement for all specified clients of this interface
  * (or via broadcast, if there are no restrictions configured).
@@ -68,6 +69,15 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 	}
 
 	return 0;
+}
+
+static int ensure_iface_setup(int sock, struct Interface *iface)
+{
+#ifndef HAVE_NETLINK
+	setup_iface(sock, iface);
+#endif
+
+	return (iface->ready ? 0 : -1);
 }
 
 static void send_ra_inc_len(size_t * len, int add)
