@@ -113,8 +113,6 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 
 static void process_rs(int sock, struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
 {
-	double next;
-
 	/* validation */
 	len -= sizeof(struct nd_router_solicit);
 
@@ -155,15 +153,17 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		send_ra_forall(iface, &addr->sin6_addr);
 	} else if (timevaldiff(&tv, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
-		next =
-		    iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) + (iface->last_multicast.tv_sec + iface->last_multicast.tv_usec / 1000000.0) + delay / 1000.0;
-		iface->next_multicast = next_timeval(next);
+		double next =
+		    iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) + (iface->last_multicast.tv_sec +
+											iface->last_multicast.tv_usec /
+											1000000.0) + delay / 1000.0;
 		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->Name, next);
+		reschedule_iface(iface, next);
 	} else {
 		/* no RA sent in a while, send a multicast reply */
 		send_ra_forall(iface, NULL);
-		next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
-		iface->next_multicast = next_timeval(next);
+		double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
+		reschedule_iface(iface, next);
 	}
 	dlog(LOG_DEBUG, 2, "processed RS on %s", iface->Name);
 }
