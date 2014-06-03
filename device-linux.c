@@ -54,6 +54,17 @@ int update_device_info(struct Interface *iface)
 	case ARPHRD_ETHER:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
+		/* *INDENT-OFF* */
+		char hwaddr[3 * 6];
+		sprintf(hwaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
+			(unsigned char)ifr.ifr_hwaddr.sa_data[0],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[1],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[2],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[3],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[4],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[5]);
+		/* *INDENT-ON* */
+		dlog(LOG_DEBUG, 3, "hardware address is %s", hwaddr);
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
