@@ -46,6 +46,7 @@ esac
 
 dnl Determine CC and preset CFLAGS
 AC_PROG_CC
+AC_PROG_RANLIB
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
