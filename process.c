@@ -17,11 +17,12 @@
 #include "includes.h"
 #include "radvd.h"
 
-static void process_rs(struct Interface *, unsigned char *msg, int len, struct sockaddr_in6 *);
+static void process_rs(int sock, struct Interface *, unsigned char *msg, int len, struct sockaddr_in6 *);
 static void process_ra(struct Interface *, unsigned char *msg, int len, struct sockaddr_in6 *);
 static int addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen);
 
-void process(struct Interface *ifacel, unsigned char *msg, int len, struct sockaddr_in6 *addr, struct in6_pktinfo *pkt_info, int hoplimit)
+void process(int sock, struct Interface *interfaces, unsigned char *msg, int len, struct sockaddr_in6 *addr,
+	     struct in6_pktinfo *pkt_info, int hoplimit)
 {
 	struct Interface *iface;
 
@@ -113,7 +114,7 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 	}
 }
 
-static void process_rs(struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
+static void process_rs(int sock, struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
 {
 	double next;
 
