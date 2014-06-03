@@ -76,11 +76,6 @@ char *pidfile = NULL;
 char *pname;
 int sock = -1;
 
-volatile int sighup_received = 0;
-volatile int sigterm_received = 0;
-volatile int sigint_received = 0;
-volatile int sigusr1_received = 0;
-
 void sighup_handler(int sig);
 void sigterm_handler(int sig);
 void sigint_handler(int sig);
@@ -96,6 +91,11 @@ int readin_config(char *);
 int check_conffile_perm(const char *, const char *);
 const char *get_pidfile(void);
 void main_loop(void);
+static volatile int sighup_received = 0;
+static volatile int sigterm_received = 0;
+static volatile int sigint_received = 0;
+static volatile int sigusr1_received = 0;
+
 
 int main(int argc, char *argv[])
 {
