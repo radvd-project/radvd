@@ -812,6 +812,10 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 			} else {
 				rdnss->AdvRDNSSLifetime = $2;
 			}
+			if ($2 > 2*(iface->MaxRtrAdvInterval))
+				flog(LOG_WARNING, "Warning: (%s:%d) AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster", filename, @1.first_line);
+
+			rdnss->AdvRDNSSLifetime = $2;
 		}
 		| T_FlushRDNSS SWITCH ';'
 		{
