@@ -97,9 +97,10 @@ static void version(void);
 
 int main(int argc, char *argv[])
 {
-	int c, log_method;
-	char *logfile;
-	int facility;
+	int c;
+	int log_method = L_STDERR_SYSLOG;
+	char *logfile = PATH_RADVD_LOG;
+	int facility = LOG_FACILITY;
 	char *username = NULL;
 	char *chrootdir = NULL;
 	int configtest = 0;
@@ -113,10 +114,7 @@ int main(int argc, char *argv[])
 
 	srand((unsigned int)time(NULL));
 
-	log_method = L_STDERR_SYSLOG;
-	logfile = PATH_RADVD_LOG;
 	conf_file = PATH_RADVD_CONF;
-	facility = LOG_FACILITY;
 	pidfile = PATH_RADVD_PID;
 
 	/* parse args */
