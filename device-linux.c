@@ -163,6 +163,77 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 	return privsep_interface_retranstimer(iface, rettimer);
 }
 
+int disable_ipv6_autoconfig(char const *iface)
+{
+	int retval = -1;
+	int value = -1;
+
+	char * spath = strdupf(PROC_SYS_IP6_AUTOCONFIG, iface);
+
+	/* No path traversal */
+	if (!iface[0] || !strcmp(iface, ".") || !strcmp(iface, "..") || strchr(iface, '/'))
+		goto cleanup;
+
+	if (access(spath, F_OK) != 0)
+		goto cleanup;
+
+	FILE * fp = fopen(spath, "r");
+	if (fp) {
+		int rc = fscanf(fp, "%d", &value);
+		if (rc != 1) {
+			flog(LOG_ERR, "cannot read value from %s: %s", PROC_SYS_IP6_AUTOCONFIG, strerror(errno));
+			exit(1);
+		}
+		fclose(fp);
+	} else {
+		flog(LOG_DEBUG,
+		     "Correct IPv6 autoconf procfs entry not found, " "perhaps the procfs is disabled, "
+		     "or the kernel interface has changed?");
+	}
+
+#ifdef HAVE_SYS_SYSCTL_H
+	int autoconf_sysctl[] = { SYSCTL_IP6_AUTOCONFIG };
+	size_t size = sizeof(value);
+	if (!fp && sysctl(autoconf_sysctl, sizeof(autoconf_sysctl) / sizeof(autoconf_sysctl[0]), &value, &size, NULL, 0) < 0) {
+		flog(LOG_DEBUG,
+		     "Correct IPv6 autoconf sysctl branch not found, " "perhaps the kernel interface has changed?");
+		goto cleanup;
+	}
+#endif
+
+	static int warned = 0;
+	if (!warned && value != 0) {
+		warned = 1;
+		flog(LOG_DEBUG, "IPv6 autoconfig setting is: %u, should be 0", value);
+	}
+
+
+	if (value != 0) {
+		fp = fopen(spath, "w");
+		if (fp) {
+			int const count = fprintf(fp, "0");
+			if (count == 1) {
+				retval = 0;
+				flog(LOG_DEBUG, "successfully forced IPv6 autoconfig setting to 0");
+			} else {
+				flog(LOG_DEBUG, "unable to force IPv6 autoconfig setting to 0");
+			}
+			fclose(fp);
+		} else {
+			flog(LOG_DEBUG, "unable to open %s in order to force IPv6 autoconfig setting to 0", spath);
+		}
+	} else {
+		retval = 0;
+	}
+
+cleanup:
+
+	if (spath)
+		free(spath);
+
+	return retval;
+}
+
 int check_ip6_forwarding(void)
 {
 	int value;

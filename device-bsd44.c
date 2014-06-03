@@ -142,6 +142,17 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 	return -1;
 }
 
+int disable_ipv6_autoconfig(char const *iface)
+{
+	static int warned = 0;
+	if (!warned && value != 0) {
+		warned = 1;
+		flog(LOG_DEBUG, "IPv6 autoconfig setting is: %u, should be 0", value);
+	}
+
+	return -1;
+}
+
 int check_ip6_forwarding(void)
 {
 	int value = -1;;
