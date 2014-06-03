@@ -189,6 +189,19 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 
 ifacehead	: T_INTERFACE name
 		{
+			iface = IfaceList;
+
+			while (iface)
+			{
+				if (!strcmp($2, iface->Name))
+				{
+					flog(LOG_ERR, "duplicate interface "
+						"definition for %s", $2);
+					ABORT;
+				}
+				iface = iface->next;
+			}
+
 			iface = malloc(sizeof(struct Interface));
 
 			if (iface == NULL) {
