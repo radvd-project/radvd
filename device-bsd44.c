@@ -173,11 +173,6 @@ int setup_allrouters_membership(struct Interface *iface)
 	return 0;
 }
 
-int check_allrouters_membership(struct Interface *iface)
-{
-	return 0;
-}
-
 int set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
 	dlog(LOG_DEBUG, 4, "setting LinkMTU (%u) for %s is not supported", mtu, iface);
