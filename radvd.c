@@ -69,8 +69,6 @@ static char usage_str[] = {
 "[-hsvcn] [-d level] [-C config_path] [-m log_method] [-l log_file]\n"
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 
-extern FILE *yyin;
-
 char *conf_file = NULL;
 char *pidfile = NULL;
 char *pname;
