@@ -47,17 +47,18 @@ int update_device_info(struct Interface *iface)
 		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s", iface->Name, strerror(errno));
 		return -1;
 	}
+
+	dlog(LOG_DEBUG, 3, "hardware type for %s is %s", iface->Name, hwstr(ifr.ifr_hwaddr.sa_family));
+
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_ETHER", iface->Name);
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
 		iface->if_hwaddr_len = 48;
 		iface->if_prefix_len = 64;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_FDDI", iface->Name);
 		break;
 #endif				/* ARPHDR_FDDI */
 #ifdef ARPHRD_ARCNET
@@ -65,19 +66,16 @@ int update_device_info(struct Interface *iface)
 		iface->if_hwaddr_len = 8;
 		iface->if_prefix_len = -1;
 		iface->if_maxmtu = -1;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_ARCNET", iface->Name);
 		break;
 #endif				/* ARPHDR_ARCNET */
 	case ARPHRD_IEEE802154:
 		iface->if_hwaddr_len = 64;
 		iface->if_prefix_len = 64;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is ARPHRD_IEEE802154", iface->Name);
 		break;
 	default:
 		iface->if_hwaddr_len = -1;
 		iface->if_prefix_len = -1;
 		iface->if_maxmtu = -1;
-		dlog(LOG_DEBUG, 3, "hardware type for %s is %d", iface->Name, ifr.ifr_hwaddr.sa_family);
 		break;
 	}
 
