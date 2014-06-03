@@ -31,8 +31,7 @@ extern char *conf_file;
 extern int num_lines;
 extern char *yytext;
 
-static void cleanup(void);
-static void yyerror(char *msg);
+#define YYERROR_VERBOSE 1
 static int countbits(int b);
 static int count_mask(struct sockaddr_in6 *m);
 static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask);
@@ -46,7 +45,6 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 #endif
 #endif
 
-#define ABORT	do { cleanup(); YYABORT; } while (0);
 #define ADD_TO_LL(type, list, value) \
 	do { \
 		if (iface->list == NULL) \
@@ -165,6 +163,9 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 	struct AdvAbro		*abroinfo;
 };
 
+static void cleanup(void);
+#define ABORT	do { cleanup(); YYABORT; } while (0);
+static void yyerror(char const * msg);
 %%
 
 grammar		: grammar ifacedef
@@ -1032,8 +1033,7 @@ number_or_infinity	: NUMBER
 
 %%
 
-static
-int countbits(int b)
+static int countbits(int b)
 {
 	int count;
 
@@ -1044,8 +1044,7 @@ int countbits(int b)
 	return (count);
 }
 
-static
-int count_mask(struct sockaddr_in6 *m)
+static int count_mask(struct sockaddr_in6 *m)
 {
 	struct in6_addr *in6 = &m->sin6_addr;
 	int i;
@@ -1057,8 +1056,7 @@ int count_mask(struct sockaddr_in6 *m)
 	return count;
 }
 
-static
-struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
+static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
 {
 	struct in6_addr prefix = *addr;
 	int i = 0;
@@ -1070,8 +1068,7 @@ struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *
 	return prefix;
 }
 
-static
-void cleanup(void)
+static void cleanup(void)
 {
 	if (iface)
 		free(iface);
@@ -1093,16 +1090,21 @@ void cleanup(void)
 		free(dnssl);
 	}
 
-	if(lowpanco)
+	if (lowpanco)
 		free(lowpanco);
 
-	if(abro)
+	if (abro)
 		free(abro);
 }
 
-static void
-yyerror(char *msg)
 {
-	cleanup();
-	flog(LOG_ERR, "%s in %s, line %d: %s", msg, conf_file, num_lines, yytext);
+
+static void yyerror(char const * msg)
+{
+	fprintf(stderr, "%s:%d:%d: error: %s\n",
+		filename,
+		yylloc.first_line,
+		yylloc.first_column,
+		msg);
 }
+
