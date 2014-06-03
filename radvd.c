@@ -624,7 +624,7 @@ static void sigterm_handler(int sig)
 {
 	++sigterm_received;
 
-	if (sigterm_received > 1) {
+	if (sigterm_received > 2) {
 		abort();
 	}
 }
@@ -633,7 +633,7 @@ static void sigint_handler(int sig)
 {
 	++sigint_received;
 
-	if (sigint_received > 1) {
+	if (sigint_received > 2) {
 		abort();
 	}
 }
