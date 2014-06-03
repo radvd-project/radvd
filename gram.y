@@ -222,9 +222,8 @@ name		: STRING
 		}
 		;
 
-ifaceparams :
-		/* empty */
-		| ifaceparam ifaceparams
+ifaceparams 	: ifaceparams ifaceparam /* This is left recursion and won't overrun the stack. */
+		| /* empty */
 		;
 
 ifaceparam 	: ifaceval
