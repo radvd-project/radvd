@@ -141,3 +141,27 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 	dlog(LOG_DEBUG, 4, "setting RetransTimer (%u) for %s is not supported", rettimer, iface);
 	return -1;
 }
+
+int check_ip6_forwarding(void)
+{
+	int value = -1;;
+
+#ifdef HAVE_SYS_SYSCTL_H
+	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
+	size_t size = sizeof(value);
+	if (sysctl(forw_sysctl, sizeof(forw_sysctl) / sizeof(forw_sysctl[0]), &value, &size, NULL, 0) < 0) {
+		flog(LOG_DEBUG,
+		     "Correct IPv6 forwarding sysctl branch not found, " "perhaps the kernel interface has changed?");
+		return 0;	/* this is of advisory value only */
+	}
+#endif
+
+	static int warned = 0;
+	if (!warned && value != 1 && value != 2) {
+		warned = 1;
+		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1 or 2", value);
+		return -1;
+	}
+
+	return 0;
+}
