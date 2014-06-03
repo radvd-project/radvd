@@ -1097,7 +1097,27 @@ static void cleanup(void)
 		free(abro);
 }
 
+struct Interface * readin_config(char const *path)
 {
+	IfaceList = 0;
+	iface = 0;
+
+	FILE * in = fopen(path, "r");
+	if (in) {
+		yyset_in(in);
+		yycolumn = 1;
+		yylineno = 1;
+		if (yyparse() != 0) {
+			free(iface);
+			iface = 0;
+		} else {
+			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok.", path);
+		}
+		fclose(in);
+	}
+
+	return IfaceList;
+}
 
 static void yyerror(char const * msg)
 {

@@ -214,8 +214,6 @@ struct nd_opt_abro {
 	uint16_t nd_opt_abro_valid_lifetime;
 	struct in6_addr nd_opt_abro_6lbr_address;
 };
-/* gram.y */
-int yyparse(void);
 
 struct nd_opt_6co {
 	uint8_t nd_opt_6co_type;
@@ -229,6 +227,8 @@ struct nd_opt_6co {
 	struct in6_addr nd_opt_6co_con_prefix;
 };				/*Added by Bhadram */
 
+/* gram.y */
+struct Interface *readin_config(char const *fname);
 
 /* radvd.c */
 void reload_config(void);
