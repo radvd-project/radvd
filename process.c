@@ -74,7 +74,8 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	}
 
 	if (icmph->icmp6_code != 0) {
-		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code (%d) from %s", icmph->icmp6_code, addr_str);
+		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code (%d) from %s", icmph->icmp6_code,
+		     addr_str);
 		return;
 	}
 
@@ -89,7 +90,8 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	}
 
 	if (iface == NULL) {
-		dlog(LOG_DEBUG, 2, "received packet from unknown interface: %d", pkt_info->ipi6_ifindex);
+		flog(LOG_WARNING, "received icmpv6 RS/RA packet on an unknown interface with index %d",
+		     pkt_info->ipi6_ifindex);
 		return;
 	}
 
@@ -106,10 +108,10 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	dlog(LOG_DEBUG, 4, "found Interface: %s", iface->Name);
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT) {
-		dlog(LOG_DEBUG, 4, "received RS from %s", addr_str);
+		dlog(LOG_DEBUG, 4, "received RS from %s on %s", addr_str, if_name);
 		process_rs(iface, msg, len, addr);
 	} else if (icmph->icmp6_type == ND_ROUTER_ADVERT) {
-		dlog(LOG_DEBUG, 4, "received RA from %s", addr_str);
+		dlog(LOG_DEBUG, 4, "received RA from %s on %s", addr_str, if_name);
 		process_ra(iface, msg, len, addr);
 	}
 }
@@ -140,7 +142,8 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		}
 
 		if (*opt_str == ND_OPT_SOURCE_LINKADDR && IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr)) {
-			flog(LOG_WARNING, "received icmpv6 RS packet with unspecified source address and there is a lladdr option");
+			flog(LOG_WARNING,
+			     "received icmpv6 RS packet with unspecified source address and there is a lladdr option");
 			return;
 		}
 
@@ -160,12 +163,14 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		next =
 		    iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) + (iface->last_multicast.tv_sec + iface->last_multicast.tv_usec / 1000000.0) + delay / 1000.0;
 		iface->next_multicast = next_timeval(next);
+		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->Name, next);
 	} else {
 		/* no RA sent in a while, send a multicast reply */
 		send_ra_forall(iface, NULL);
 		next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 		iface->next_multicast = next_timeval(next);
 	}
+	dlog(LOG_DEBUG, 2, "processed RS on %s", iface->Name);
 }
 
 /*
@@ -192,11 +197,13 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 
 	/* note: we don't check the default router preference here, because they're likely different */
 
-	if ((radvert->nd_ra_reachable && iface->AdvReachableTime) && (ntohl(radvert->nd_ra_reachable) != iface->AdvReachableTime)) {
+	if ((radvert->nd_ra_reachable && iface->AdvReachableTime)
+	    && (ntohl(radvert->nd_ra_reachable) != iface->AdvReachableTime)) {
 		flog(LOG_WARNING, "our AdvReachableTime on %s doesn't agree with %s", iface->Name, addr_str);
 	}
 
-	if ((radvert->nd_ra_retransmit && iface->AdvRetransTimer) && (ntohl(radvert->nd_ra_retransmit) != iface->AdvRetransTimer)) {
+	if ((radvert->nd_ra_retransmit && iface->AdvRetransTimer)
+	    && (ntohl(radvert->nd_ra_retransmit) != iface->AdvRetransTimer)) {
 		flog(LOG_WARNING, "our AdvRetransTimer on %s doesn't agree with %s", iface->Name, addr_str);
 	}
 
@@ -231,7 +238,8 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			flog(LOG_ERR, "zero length option in RA on %s from %s", iface->Name, addr_str);
 			break;
 		} else if (optlen > len) {
-			flog(LOG_ERR, "option length (%d) greater than total" " length (%d) in RA on %s from %s", optlen, len, iface->Name, addr_str);
+			flog(LOG_ERR, "option length (%d) greater than total" " length (%d) in RA on %s from %s", optlen,
+			     len, iface->Name, addr_str);
 			break;
 		}
 
@@ -373,6 +381,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 		len -= optlen;
 		opt_str += optlen;
 	}
+	dlog(LOG_DEBUG, 2, "processed RA on %s", iface->Name);
 }
 
 static int addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
