@@ -139,6 +139,21 @@ int setup_linklocal_addr(struct Interface *iface)
 
 	return -1;
 }
+
+int update_device_index(struct Interface *iface)
+{
+	int index = if_nametoindex(iface->Name);
+	if (0 == index) {
+		/* Yes, if_nametoindex returns zero on failure.  2014/01/16 */
+		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
+		return -1;
+	}
+	if (iface->if_index != index) {
+		dlog(LOG_DEBUG, 4, "%s if_index changed from %d to %d", iface->Name, iface->if_index, index);
+		iface->if_index = index;
+	}
+	return 0;
+}
 int check_ip6_forwarding(void)
 {
 	int value;

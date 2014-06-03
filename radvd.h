@@ -241,6 +241,7 @@ int next_time_msec(struct Interface const *iface);
 int expired(struct Interface const *iface);
 
 /* device.c */
+int update_device_index(struct Interface *iface);
 int update_device_info(struct Interface *);
 int check_device(struct Interface *);
 int setup_linklocal_addr(struct Interface *);
