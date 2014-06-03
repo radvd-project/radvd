@@ -74,10 +74,6 @@ char *pidfile = NULL;
 char *pname;
 int sock = -1;
 
-void sighup_handler(int sig);
-void sigterm_handler(int sig);
-void sigint_handler(int sig);
-void sigusr1_handler(int sig);
 void timer_handler(void *data);
 void config_interface(void);
 void kickoff_adverts(void);
@@ -94,6 +90,10 @@ static volatile int sigterm_received = 0;
 static volatile int sigint_received = 0;
 static volatile int sigusr1_received = 0;
 
+static void sighup_handler(int sig);
+static void sigterm_handler(int sig);
+static void sigint_handler(int sig);
+static void sigusr1_handler(int sig);
 
 int main(int argc, char *argv[])
 {
@@ -617,12 +617,12 @@ void reload_config(void)
 	flog(LOG_INFO, "resuming normal operation");
 }
 
-void sighup_handler(int sig)
+static void sighup_handler(int sig)
 {
 	sighup_received = 1;
 }
 
-void sigterm_handler(int sig)
+static void sigterm_handler(int sig)
 {
 	++sigterm_received;
 
@@ -631,7 +631,7 @@ void sigterm_handler(int sig)
 	}
 }
 
-void sigint_handler(int sig)
+static void sigint_handler(int sig)
 {
 	++sigint_received;
 
@@ -640,7 +640,7 @@ void sigint_handler(int sig)
 	}
 }
 
-void sigusr1_handler(int sig)
+static void sigusr1_handler(int sig)
 {
 	sigusr1_received = 1;
 }
