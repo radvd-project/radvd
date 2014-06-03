@@ -24,7 +24,6 @@ static int addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen);
 void process(struct Interface *ifacel, unsigned char *msg, int len, struct sockaddr_in6 *addr, struct in6_pktinfo *pkt_info, int hoplimit)
 {
 	struct Interface *iface;
-	struct icmp6_hdr *icmph;
 
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&addr->sin6_addr, addr_str, sizeof(addr_str));
@@ -43,7 +42,7 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 		return;
 	}
 
-	icmph = (struct icmp6_hdr *)msg;
+	struct icmp6_hdr *icmph = (struct icmp6_hdr *)msg;
 
 	if (icmph->icmp6_type != ND_ROUTER_SOLICIT && icmph->icmp6_type != ND_ROUTER_ADVERT) {
 		/*
@@ -116,25 +115,20 @@ void process(struct Interface *ifacel, unsigned char *msg, int len, struct socka
 
 static void process_rs(struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
 {
-	double delay;
 	double next;
-	struct timeval tv;
-	uint8_t *opt_str;
 
 	/* validation */
 	len -= sizeof(struct nd_router_solicit);
 
-	opt_str = (uint8_t *) (msg + sizeof(struct nd_router_solicit));
+	uint8_t *opt_str = (uint8_t *) (msg + sizeof(struct nd_router_solicit));
 
 	while (len > 0) {
-		int optlen;
-
 		if (len < 2) {
 			flog(LOG_WARNING, "trailing garbage in RS");
 			return;
 		}
 
-		optlen = (opt_str[1] << 3);
+		int const optlen = (opt_str[1] << 3);
 
 		if (optlen == 0) {
 			flog(LOG_WARNING, "zero length option in RS");
@@ -153,9 +147,10 @@ static void process_rs(struct Interface *iface, unsigned char *msg, int len, str
 		opt_str += optlen;
 	}
 
+	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
-	delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX + 1.0);
+	double delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX + 1.0);
 
 	if (iface->UnicastOnly) {
 		send_ra_forall(iface, &addr->sin6_addr);
@@ -177,13 +172,10 @@ static void process_rs(struct Interface *iface, unsigned char *msg, int len, str
  */
 static void process_ra(struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
 {
-	struct nd_router_advert *radvert;
-	uint8_t *opt_str;
-
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&addr->sin6_addr, addr_str, sizeof(addr_str));
 
-	radvert = (struct nd_router_advert *)msg;
+	struct nd_router_advert *radvert = (struct nd_router_advert *)msg;
 
 	if ((radvert->nd_ra_curhoplimit && iface->AdvCurHopLimit) && (radvert->nd_ra_curhoplimit != iface->AdvCurHopLimit)) {
 		flog(LOG_WARNING, "our AdvCurHopLimit on %s doesn't agree with %s", iface->Name, addr_str);
@@ -212,10 +204,9 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 	if (len == 0)
 		return;
 
-	opt_str = (uint8_t *) (msg + sizeof(struct nd_router_advert));
+	uint8_t *opt_str = (uint8_t *) (msg + sizeof(struct nd_router_advert));
 
 	while (len > 0) {
-		int optlen;
 		struct nd_opt_prefix_info *pinfo;
 		struct nd_opt_rdnss_info_local *rdnssinfo;
 		struct nd_opt_dnssl_info_local *dnsslinfo;
@@ -233,7 +224,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			break;
 		}
 
-		optlen = (opt_str[1] << 3);
+		int optlen = (opt_str[1] << 3);
 
 		if (optlen == 0) {
 			flog(LOG_ERR, "zero length option in RA on %s from %s", iface->Name, addr_str);
@@ -385,25 +376,18 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 
 static int addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
 {
-	unsigned int pdw;
-	unsigned int pbi;
-
-	pdw = prefixlen >> 0x05;	/* num of whole uint32_t in prefix */
-	pbi = prefixlen & 0x1f;	/* num of bits in incomplete uint32_t in prefix */
-
+	unsigned int pdw = prefixlen >> 0x05;	/* num of whole uint32_t in prefix */
 	if (pdw) {
 		if (memcmp(a1, a2, pdw << 2))
 			return 0;
 	}
 
+	unsigned int pbi = prefixlen & 0x1f;	/* num of bits in incomplete uint32_t in prefix */
 	if (pbi) {
-		uint32_t w1, w2;
-		uint32_t mask;
+		uint32_t w1 = *((uint32_t *) a1 + pdw);
+		uint32_t w2 = *((uint32_t *) a2 + pdw);
 
-		w1 = *((uint32_t *) a1 + pdw);
-		w2 = *((uint32_t *) a2 + pdw);
-
-		mask = htonl(((uint32_t) 0xffffffff) << (0x20 - pbi));
+		uint32_t mask = htonl(((uint32_t) 0xffffffff) << (0x20 - pbi));
 
 		if ((w1 ^ w2) & mask)
 			return 0;
