@@ -48,7 +48,6 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 		} \
 	} while (0)
 
-
 %}
 
 %token		T_INTERFACE
@@ -171,7 +170,9 @@ static void cleanup(void);
 #define ABORT	do { cleanup(); YYABORT; } while (0);
 static void yyerror(char const * msg);
 %}
+
 %%
+
 
 grammar		: grammar ifacedef
 		| ifacedef
