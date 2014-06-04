@@ -182,32 +182,10 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 {
 	size_t buff_dest = 0;
 
-
-	update_device_info(iface);
-
-	/* First we need to check that the interface hasn't been removed or deactivated */
-	if (check_device(iface) < 0) {
-		if (iface->IgnoreIfMissing)	/* a bit more quiet warning message.. */
-			dlog(LOG_DEBUG, 4, "interface %s does not exist, ignoring the interface", iface->Name);
-		else {
-			flog(LOG_WARNING, "interface %s does not exist, ignoring the interface", iface->Name);
-		}
-		iface->HasFailed = 1;
-		/* not really a 'success', but we need to schedule new timers.. */
+	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
+	if (ensure_iface_setup(sock, iface) < 0) {
+		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->Name);
 		return 0;
-	} else {
-		/* check_device was successful, act if it has failed previously */
-		if (iface->HasFailed == 1) {
-			flog(LOG_WARNING, "interface %s seems to have come back up, trying to reinitialize", iface->Name);
-			iface->HasFailed = 0;
-			/*
-			 * return -1 so timer_handler() doesn't schedule new timers,
-			 * reload_config() will kick off new timers anyway.  This avoids
-			 * timer list corruption.
-			 */
-			reload_config();
-			return -1;
-		}
 	}
 
 	/* Make sure that we've joined the all-routers multicast group */
