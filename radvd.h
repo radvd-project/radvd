@@ -273,9 +273,7 @@ void reschedule_iface(struct Interface *iface, double next);
 int open_icmpv6_socket(void);
 
 /* send.c */
-int send_ra(struct Interface *iface, struct in6_addr *dest);
-int send_ra_forall(struct Interface *iface, struct in6_addr *dest);
-int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff, size_t len);
+int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest);
 
 /* process.c */
 void process(int sock, struct Interface *, unsigned char *, int, struct sockaddr_in6 *, struct in6_pktinfo *, int);

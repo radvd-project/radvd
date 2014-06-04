@@ -18,6 +18,15 @@
 #include "radvd.h"
 
 static int ensure_iface_setup(int sock, struct Interface *iface);
+static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
+		size_t len);
+static void send_ra_inc_len(size_t * len, int add);
+static void add_sllao(unsigned char *buff, size_t * len, struct Interface *iface);
+static time_t time_diff_secs(const struct timeval *time_x, const struct timeval *time_y);
+static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
+static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
+static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
+
 /*
  * Sends an advertisement for all specified clients of this interface
  * (or via broadcast, if there are no restrictions configured).
@@ -26,7 +35,7 @@ static int ensure_iface_setup(int sock, struct Interface *iface);
  * address only, but only if it was configured.
  *
  */
-int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
+int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
 	struct Clients *current;
 
@@ -38,7 +47,7 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 		if (dest == NULL && iface->UnicastOnly) {
 			return 0;
 		}
-		return send_ra(iface, dest);
+		return send_ra(sock, iface, dest);
 	}
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
@@ -51,7 +60,7 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest)
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
 		dlog(LOG_DEBUG, 5, "Sending RA to %s", address_text);
-		send_ra(iface, &(current->Address));
+		send_ra(sock, iface, &(current->Address));
 
 		/* If we should only send the RA to a specific address, we are done */
 		if (dest != NULL)
@@ -169,7 +178,7 @@ static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const i
 
 }
 
-int send_ra(struct Interface *iface, struct in6_addr *dest)
+static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
 
 
@@ -530,7 +539,8 @@ int send_ra(struct Interface *iface, struct in6_addr *dest)
 	return 0;
 }
 
-int really_send(struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff, size_t len)
+static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
+		size_t len)
 {
 	struct sockaddr_in6 addr;
 	memset((void *)&addr, 0, sizeof(addr));
