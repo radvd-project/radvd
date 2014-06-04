@@ -180,6 +180,7 @@ static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const i
 
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
+	size_t buff_dest = 0;
 
 
 	update_device_info(iface);
