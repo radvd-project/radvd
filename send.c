@@ -534,6 +534,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 			flog(LOG_WARNING, "sendmsg: %s", strerror(errno));
 		else
 			dlog(LOG_DEBUG, 3, "sendmsg: %s", strerror(errno));
+		return -1;
 	}
 
 	return 0;
