@@ -420,7 +420,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	/*
 	 * add Source Link-layer Address option
 	 */
-
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
 		add_sllao(buff, &len, iface);
 	}
