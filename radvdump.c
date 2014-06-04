@@ -17,7 +17,7 @@
 #include "includes.h"
 #include "radvd.h"
 
-char usage_str[] = "[-vhfe] [-d level]";
+static char usage_str[] = "[-vhfe] [-d level]";
 
 #ifdef HAVE_GETOPT_LONG
 struct option prog_opt[] = {
@@ -30,7 +30,6 @@ struct option prog_opt[] = {
 };
 #endif
 
-char *pname;
 int sock = -1;
 
 void version(void);
@@ -48,8 +47,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
-
-	pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
+	char const * pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
 
 	/* parse args */
 #ifdef HAVE_GETOPT_LONG
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
 			version();
 			break;
 		case 'h':
-			usage();
+			usage(pname);
 #ifdef HAVE_GETOPT_LONG
 		case ':':
 			fprintf(stderr, "%s: option %s: parameter expected\n", pname, prog_opt[opt_idx].name);
@@ -468,11 +466,11 @@ void version(void)
 {
 	fprintf(stderr, "Version: %s\n\n", VERSION);
 	fprintf(stderr, "Please send bug reports and suggestions to %s\n", CONTACT_EMAIL);
-	exit(1);
+	exit(-1);
 }
 
-void usage(void)
+static void usage(char const * pname)
 {
 	fprintf(stderr, "usage: %s %s\n", pname, usage_str);
-	exit(1);
+	exit(-1);
 }
