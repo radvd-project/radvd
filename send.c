@@ -188,10 +188,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 		return 0;
 	}
 
-	/* Make sure that we've joined the all-routers multicast group */
-	if (!disableigmp6check && check_allrouters_membership(iface) < 0)
-		flog(LOG_WARNING, "problem checking all-routers membership on %s", iface->Name);
-
 	if (!iface->AdvSendAdvert) {
 		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
 		return 0;
