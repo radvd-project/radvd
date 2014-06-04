@@ -32,7 +32,7 @@
 #define SOL_NETLINK	270
 #endif
 
-void process_netlink_msg(int sock)
+void process_netlink_msg(int sock, struct Interface * ifaces)
 {
 	int rc = 0;
 
@@ -77,7 +77,7 @@ void process_netlink_msg(int sock)
 			}
 
 			/* Reinit the interfaces which needs it. */
-			struct Interface *iface = find_iface_by_index(interfaces, ifinfo->ifi_index);
+			struct Interface *iface = find_iface_by_index(ifaces, ifinfo->ifi_index);
 			if (iface) {
 				iface->racount = 0;
 				reschedule_iface(iface, 0);
@@ -104,7 +104,7 @@ void process_netlink_msg(int sock)
 
 			++rc;
 
-			struct Interface *iface = find_iface_by_index(interfaces, ifaddr->ifa_index);
+			struct Interface *iface = find_iface_by_index(ifaces, ifaddr->ifa_index);
 			if (iface) {
 				iface->racount = 0;
 				reschedule_iface(iface, 0);
@@ -115,8 +115,8 @@ void process_netlink_msg(int sock)
 
 int netlink_socket(void)
 {
-	int rc, sock;
 	unsigned int val = 1;
+	int sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
 	if (sock == -1) {
 		flog(LOG_ERR, "Unable to open netlink socket: %s", strerror(errno));
 	}
@@ -130,7 +130,7 @@ int netlink_socket(void)
 	snl.nl_family = AF_NETLINK;
 	snl.nl_groups = RTMGRP_LINK | RTMGRP_IPV6_IFADDR;
 
-	rc = bind(sock, (struct sockaddr *)&snl, sizeof(snl));
+	int rc = bind(sock, (struct sockaddr *)&snl, sizeof(snl));
 	if (rc == -1) {
 		flog(LOG_ERR, "Unable to bind netlink socket: %s", strerror(errno));
 		close(sock);

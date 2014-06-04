@@ -40,8 +40,9 @@ struct Interface {
 
 	struct in6_addr if_addr;
 	unsigned int if_index;
+	unsigned int *flags;
 
-	uint8_t init_racount;	/* Initial RAs */
+	uint8_t racount;	/* Initial RAs */
 
 	uint8_t if_hwaddr[HWADDR_MAX];
 	int if_hwaddr_len;
@@ -90,8 +91,8 @@ struct Interface {
 	struct timeval last_multicast;
 	struct timeval next_multicast;
 
-	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
-	int HasFailed;
+	/* Info whether this interface has been initialized successfully */
+	int ready;
 
 	struct Interface *next;
 };
@@ -232,8 +233,8 @@ struct nd_opt_6co {
 struct Interface *readin_config(char const *fname);
 
 /* radvd.c */
-void reload_config(void);
-void reset_prefix_lifetimes(void);
+int disable_ipv6_autoconfig(char const *iface);
+int setup_iface(int sock, struct Interface *iface);
 
 /* timer.c */
 struct timeval next_timeval(double next);
@@ -247,14 +248,13 @@ int update_device_info(int sock, struct Interface *);
 int check_device(int sock, struct Interface *);
 int setup_linklocal_addr(struct Interface *);
 int setup_allrouters_membership(int sock, struct Interface *);
-int check_allrouters_membership(struct Interface *);
 int setup_linklocal_addr(struct Interface *iface);
 int get_v4addr(const char *, unsigned int *);
-int set_interface_var(const char *, const char *, const char *, uint32_t);
 int set_interface_linkmtu(const char *, uint32_t);
 int set_interface_curhlim(const char *, uint8_t);
 int set_interface_reachtime(const char *, uint32_t);
 int set_interface_retranstimer(const char *, uint32_t);
+int check_ip6_forwarding(void);
 
 /* interface.c */
 void iface_init_defaults(struct Interface *);
