@@ -1091,6 +1091,7 @@ struct Interface * readin_config(char const *path)
 
 	FILE * in = fopen(path, "r");
 	if (in) {
+		filename = path;
 		yyset_in(in);
 		yycolumn = 1;
 		yylineno = 1;
@@ -1101,6 +1102,7 @@ struct Interface * readin_config(char const *path)
 			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok.", path);
 		}
 		fclose(in);
+		filename = 0;
 	}
 
 	return IfaceList;
