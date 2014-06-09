@@ -1,3 +1,5 @@
+2014/06/09	reorder and fix some logging
+
 2014/05/30	add disable_ipv6_autoconfig function so an interface radvd
 			is using won't autoconfig itself using its own advert
 		improved netlink message processing to *only* reinit an
