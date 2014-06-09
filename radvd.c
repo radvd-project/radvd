@@ -539,7 +539,7 @@ static void kickoff_adverts(int sock, struct Interface *iface)
 	gettimeofday(&iface->last_multicast, NULL);
 
 	/* send an initial advertisement */
-	if (send_ra_forall(sock, iface, NULL) == 0) {
+	if (send_ra_forall(sock, iface, NULL) != 0) {
 		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->Name);
 	}
 
