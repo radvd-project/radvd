@@ -37,8 +37,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
  */
 int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
-	struct Clients *current;
-
 	if (iface->racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
 		iface->racount++;
 
@@ -52,7 +50,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	}
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
-	for (current = iface->ClientList; current; current = current->next) {
+	for (struct Clients * current = iface->ClientList; current; current = current->next) {
 		/* If a non-authorized client sent a solicitation, ignore it (logging later) */
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
