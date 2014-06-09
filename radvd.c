@@ -621,6 +621,7 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 		if (iface->IgnoreIfMissing) {
 			dlog(LOG_DEBUG, 4, "interface %s does not exist or is not set up properly, ignoring the interface",
 			     iface->Name);
+			return;
 		} else {
 			flog(LOG_ERR, "interface %s does not exist or is not set up properly", iface->Name);
 			exit(1);
