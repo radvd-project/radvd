@@ -45,6 +45,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	/* If no list of clients was specified for this interface, we broadcast */
 	if (iface->ClientList == NULL) {
 		if (dest == NULL && iface->UnicastOnly) {
+			dlog(LOG_DEBUG, 5, "no client list, no destination, unicast only...doing nothing");
 			return 0;
 		}
 		return send_ra(sock, iface, dest);
@@ -52,14 +53,10 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 
 	/* If clients are configured, send the advertisement to all of them via unicast */
 	for (current = iface->ClientList; current; current = current->next) {
-		char address_text[INET6_ADDRSTRLEN] = { "" };
-		if (get_debuglevel() >= 5)
-			inet_ntop(AF_INET6, &current->Address, address_text, INET6_ADDRSTRLEN);
-
 		/* If a non-authorized client sent a solicitation, ignore it (logging later) */
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
-		dlog(LOG_DEBUG, 5, "Sending RA to %s", address_text);
+
 		send_ra(sock, iface, &(current->Address));
 
 		/* If we should only send the RA to a specific address, we are done */
@@ -182,24 +179,26 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 {
 	size_t buff_dest = 0;
 
+	if (!iface->AdvSendAdvert) {
+		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
+		return 0;
+	}
+
 	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
 	if (ensure_iface_setup(sock, iface) < 0) {
 		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->Name);
 		return 0;
 	}
 
-	if (!iface->AdvSendAdvert) {
-		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
-		return 0;
-	}
-
-	dlog(LOG_DEBUG, 3, "sending RA on %s", iface->Name);
-
 	if (dest == NULL) {
 		static uint8_t const all_hosts_addr[] = { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 		dest = (struct in6_addr const *)all_hosts_addr;
 		gettimeofday(&iface->last_multicast, NULL);
 	}
+
+	char address_text[INET6_ADDRSTRLEN] = { "" };
+	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
+	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->Name);
 
 	struct timeval time_now;
 	gettimeofday(&time_now, NULL);
