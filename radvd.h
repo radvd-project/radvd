@@ -51,7 +51,7 @@ struct Interface {
 
 	int cease_adv;
 
-	struct timeval last_ra_time;
+	struct timespec last_ra_time;
 
 	int IgnoreIfMissing;
 	int AdvSendAdvert;
@@ -88,8 +88,8 @@ struct Interface {
 	struct AdvRDNSS *AdvRDNSSList;
 	struct AdvDNSSL *AdvDNSSLList;
 	struct Clients *ClientList;
-	struct timeval last_multicast;
-	struct timeval next_multicast;
+	struct timespec last_multicast;
+	struct timespec next_multicast;
 
 	/* Info whether this interface has been initialized successfully */
 	int ready;
@@ -237,9 +237,9 @@ int disable_ipv6_autoconfig(char const *iface);
 int setup_iface(int sock, struct Interface *iface);
 
 /* timer.c */
-struct timeval next_timeval(double next);
-int timevaldiff(struct timeval const *a, struct timeval const *b);
-int next_time_msec(struct Interface const *iface);
+struct timespec next_timespec(double next);
+int64_t timespecdiff(struct timespec const *a, struct timespec const *b);
+uint64_t next_time_msec(struct Interface const *iface);
 int expired(struct Interface const *iface);
 
 /* device.c */

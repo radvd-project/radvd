@@ -252,7 +252,7 @@ void reschedule_iface(struct Interface *iface, double next)
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
 	}
 
-	iface->next_multicast = next_timeval(next);
+	iface->next_multicast = next_timespec(next);
 }
 
 void for_each_iface(struct Interface *ifaces, void (*foo) (struct Interface *, void *), void *data)

@@ -146,19 +146,19 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		opt_str += optlen;
 	}
 
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
 
 	double delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX + 1.0);
 
 	if (iface->UnicastOnly) {
 		send_ra_forall(sock, iface, &addr->sin6_addr);
-	} else if (timevaldiff(&tv, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
+	} else if (timespecdiff(&ts, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
 		double next =
-		    iface->MinDelayBetweenRAs - (tv.tv_sec + tv.tv_usec / 1000000.0) + (iface->last_multicast.tv_sec +
-											iface->last_multicast.tv_usec /
-											1000000.0) + delay / 1000.0;
+		    iface->MinDelayBetweenRAs - (ts.tv_sec + ts.tv_nsec / 1000000000.0) + (iface->last_multicast.tv_sec +
+											iface->last_multicast.tv_nsec /
+											1000000000.0) + delay / 1000.0;
 		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->Name, next);
 		reschedule_iface(iface, next);
 	} else {

@@ -531,12 +531,12 @@ static void kickoff_adverts(int sock, struct Interface *iface)
 	 *      send initial advertisement and set timers
 	 */
 
-	gettimeofday(&iface->last_ra_time, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &iface->last_ra_time);
 
 	if (iface->UnicastOnly)
 		return;
 
-	gettimeofday(&iface->last_multicast, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &iface->last_multicast);
 
 	/* send an initial advertisement */
 	if (send_ra_forall(sock, iface, NULL) != 0) {

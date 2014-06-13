@@ -22,7 +22,6 @@ static int really_send(int sock, struct in6_addr const *dest, unsigned int if_in
 		size_t len);
 static void send_ra_inc_len(size_t * len, int add);
 static void add_sllao(unsigned char *buff, size_t * len, struct Interface *iface);
-static time_t time_diff_secs(const struct timeval *time_x, const struct timeval *time_y);
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
@@ -141,18 +140,6 @@ static void add_sllao(unsigned char *buff, size_t * len, struct Interface *iface
 	memcpy(sllao, iface->if_hwaddr, iface->if_hwaddr_len / 8);
 }
 
-static time_t time_diff_secs(const struct timeval *time_x, const struct timeval *time_y)
-{
-	time_t secs_diff;
-
-	secs_diff = time_x->tv_sec - time_y->tv_sec;
-	if ((time_x->tv_usec - time_y->tv_usec) >= 500000)
-		secs_diff++;
-
-	return secs_diff;
-
-}
-
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 {
 
@@ -191,19 +178,19 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	if (dest == NULL) {
 		static uint8_t const all_hosts_addr[] = { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 		dest = (struct in6_addr const *)all_hosts_addr;
-		gettimeofday(&iface->last_multicast, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &iface->last_multicast);
 	}
 
 	char address_text[INET6_ADDRSTRLEN] = { "" };
 	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
 	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->Name);
 
-	struct timeval time_now;
-	gettimeofday(&time_now, NULL);
-	time_t secs_since_last_ra = time_diff_secs(&time_now, &iface->last_ra_time);
+	struct timespec time_now;
+	clock_gettime(CLOCK_MONOTONIC, &time_now);
+	time_t secs_since_last_ra = timespecdiff(&time_now, &iface->last_ra_time);
 	if (secs_since_last_ra < 0) {
 		secs_since_last_ra = 0;
-		flog(LOG_WARNING, "gettimeofday() went backwards!");
+		flog(LOG_WARNING, "clock_gettime(CLOCK_MONOTONIC) went backwards!");
 	}
 	iface->last_ra_time = time_now;
 
