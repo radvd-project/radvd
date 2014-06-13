@@ -30,7 +30,6 @@ DEFS = \
 
 ENABLE_WARNINGS = \
 	-Wall \
-	-Wno-cast-align \
 	-Wcast-qual \
 	-Wmissing-declarations \
 	-Wmissing-prototypes \
@@ -38,7 +37,9 @@ ENABLE_WARNINGS = \
 	-Wstrict-prototypes
 
 DISABLE_WARNINGS = \
-	-Wno-strict-aliasing
+	-Wno-strict-aliasing \
+	-Wno-cast-align \
+	-Wno-strict-overflow
 
 AM_CFLAGS = \
 	-fno-strict-aliasing \
