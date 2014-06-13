@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <syslog.h>
 #include <unistd.h>
