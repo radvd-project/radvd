@@ -141,8 +141,6 @@ AC_CHECK_LIB(c, inet_ntop,,
 # prevent caching
 unset ac_cv_lib_inet6_inet_ntop
 
-PKG_CHECK_MODULES([DAEMON], libdaemon)
-
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS( \
