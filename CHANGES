@@ -1,3 +1,8 @@
+2014/06/16	Makefile.am: Fix out of tree builds
+		Makefile.am: disable struct-overflow warning
+		time: Use clock_gettime and monotonic clock <Markus Pargmann>
+		release v2.0-rc3
+
 2014/06/09	reorder and fix some logging
 
 2014/05/30	add disable_ipv6_autoconfig function so an interface radvd
