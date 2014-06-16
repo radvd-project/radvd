@@ -227,11 +227,11 @@ radvd_DEPENDENCIES = \
 
 gram.h: gram.c
 gram.c: gram.y
-	$(AM_V_GEN) ${YACC} --defines=gram.h --graph=gram.dot --output=gram.c gram.y
+	$(AM_V_GEN) ${YACC} --defines=gram.h --graph=gram.dot --output=gram.c $(srcdir)/gram.y
 
 scanner.h: scanner.c
 scanner.c: scanner.l
-	$(AM_V_GEN) ${LEX} --header-file=scanner.h --outfile=scanner.c scanner.l
+	$(AM_V_GEN) ${LEX} --header-file=scanner.h --outfile=scanner.c $(srcdir)/scanner.l
 
 radvd-gram.o gram.o: gram.c scanner.h
 radvd-scanner.o scanner.o: scanner.c gram.h
