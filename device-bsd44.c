@@ -22,8 +22,10 @@
  * determines the link layer token length and checks it against
  * the defined prefixes
  */
-int update_device_info(struct Interface *iface)
+int update_device_info(int sock, struct Interface *iface)
 {
+	struct ifaddrs *addresses = 0;
+
 	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
@@ -38,7 +40,6 @@ int update_device_info(struct Interface *iface)
 	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
 	iface->if_maxmtu = ifr.ifr_mtu;
 
-	struct ifaddrs *addresses = 0;
 	if (getifaddrs(&addresses) != 0) {
 		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
 		goto ret;
@@ -57,7 +58,7 @@ int update_device_info(struct Interface *iface)
 		struct sockaddr_dl *dl = (struct sockaddr_dl *)ifa->ifa_addr;
 
 		if (dl->sdl_alen > sizeof(iface->if_addr)) {
-			flog(LOG_ERR, "address length %d too big for", dl->sdl_alen, iface->Name);
+			flog(LOG_ERR, "address length %d too big for %s", dl->sdl_alen, iface->Name);
 			goto ret;
 		}
 
@@ -113,7 +114,7 @@ int update_device_info(struct Interface *iface)
 	return -1;
 }
 
-int setup_allrouters_membership(struct Interface *iface)
+int setup_allrouters_membership(int sock, struct Interface *iface)
 {
 	return 0;
 }
@@ -145,6 +146,8 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 int disable_ipv6_autoconfig(char const *iface)
 {
 	static int warned = 0;
+	int value = -1;
+
 	if (!warned && value != 0) {
 		warned = 1;
 		flog(LOG_DEBUG, "IPv6 autoconfig setting is: %u, should be 0", value);
@@ -155,19 +158,9 @@ int disable_ipv6_autoconfig(char const *iface)
 
 int check_ip6_forwarding(void)
 {
+	static int warned = 0;
 	int value = -1;;
 
-#ifdef HAVE_SYS_SYSCTL_H
-	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
-	size_t size = sizeof(value);
-	if (sysctl(forw_sysctl, sizeof(forw_sysctl) / sizeof(forw_sysctl[0]), &value, &size, NULL, 0) < 0) {
-		flog(LOG_DEBUG,
-		     "Correct IPv6 forwarding sysctl branch not found, " "perhaps the kernel interface has changed?");
-		return 0;	/* this is of advisory value only */
-	}
-#endif
-
-	static int warned = 0;
 	if (!warned && value != 1 && value != 2) {
 		warned = 1;
 		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1 or 2", value);
