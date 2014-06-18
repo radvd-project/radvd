@@ -51,15 +51,11 @@ AM_CFLAGS = \
 
 AM_YFLAGS = -d
 
-radvd_CPPFLAGS = \
-	@DAEMON_CFLAGS@
-
 noinst_LIBRARIES = libradvd-parser.a
 
 radvd_LDADD = \
 	libradvd-parser.a \
-	@CONDITIONAL_SOURCES@ \
-	@DAEMON_LIBS@
+	@CONDITIONAL_SOURCES@
 
 ### Programs and sources ###
 

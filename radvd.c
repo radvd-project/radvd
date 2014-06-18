@@ -23,8 +23,7 @@
 #endif
 
 #include <poll.h>
-#include <libdaemon/dfork.h>
-#include <libdaemon/dpid.h>
+#include <sys/file.h>
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -90,13 +89,13 @@ static void version(void);
 static void usage(char const *pname);
 static int drop_root_privileges(const char *);
 static int check_conffile_perm(const char *, const char *);
-static const char *get_pidfile(void);
 static void setup_iface_foo(struct Interface *iface, void *data);
 static void setup_ifaces(int sock, struct Interface *ifaces);
 static void main_loop(int sock, struct Interface *ifaces, char const *conf_path);
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
+static int write_pid_file(int pid_fd);
 
 int main(int argc, char *argv[])
 {
@@ -108,7 +107,6 @@ int main(int argc, char *argv[])
 	char *chrootdir = NULL;
 	int configtest = 0;
 	int daemonize = 1;
-	int force_pid_file = 0;
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 #endif
@@ -118,7 +116,7 @@ int main(int argc, char *argv[])
 	srand((unsigned int)time(NULL));
 
 	char const *conf_path = PATH_RADVD_CONF;
-	daemon_pid_file_ident = PATH_RADVD_PID;	/* libdaemon defines daemon_pid_file_ident */
+	char const *daemon_pid_file_ident = PATH_RADVD_PID;
 
 	/* parse args */
 #define OPTIONS_STR "d:C:l:m:p:t:u:vhcn"
@@ -143,7 +141,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'p':
 			daemon_pid_file_ident = optarg;
-			force_pid_file = 1;
 			break;
 		case 'm':
 			if (!strcmp(optarg, "syslog")) {
@@ -188,6 +185,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	/* TODO: Seems like this chroot'ing should happen *after* daemonizing for
+	 * the sake of the PID file. */
 	if (chrootdir) {
 		if (!username) {
 			fprintf(stderr, "Chroot as root is not safe, exiting\n");
@@ -264,79 +263,46 @@ int main(int argc, char *argv[])
 		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
-	daemon_pid_file_proc = get_pidfile;
-
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
 	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
-	if (daemonize) {
-		pid_t pid;
 
-		if (daemon_retval_init()) {
-			flog(LOG_ERR, "Could not initialize daemon IPC.");
-			exit(1);
-		}
-
-		/* TODO: research daemon_log (in libdaemon) and have it log the same as radvd. */
-		pid = daemon_fork();
-
-		if (-1 == pid) {
-			flog(LOG_ERR, "Could not fork: %s", strerror(errno));
-			daemon_retval_done();
-			exit(1);
-		}
-
-		if (0 < pid) {
-			switch (daemon_retval_wait(1)) {
-			case 0:
-				dlog(LOG_DEBUG, 3, "radvd PID is %d", pid);
-				exit(0);
-				break;
-
-			case 1:
-				flog(LOG_ERR, "radvd already running, terminating.");
-				exit(1);
-				break;
-
-			case 2:
-				flog(LOG_ERR, "Cannot create radvd PID file, terminating: %s", strerror(errno));
-				exit(2);
-				break;
-
-			default:
-				flog(LOG_ERR, "Could not daemonize.");
-				exit(-1);
-				break;
-			}
-		}
-
-		if (daemon_pid_file_is_running() >= 0) {
-			daemon_retval_send(1);
-			exit(1);
-		}
-
-		if (daemon_pid_file_create()) {
-			daemon_retval_send(2);
-			exit(2);
-		}
-
-		daemon_retval_send(0);
+	int pid_fd = open(daemon_pid_file_ident, O_CREAT | O_RDWR, 0644);
+	if (-1 == pid_fd) {
+		flog(LOG_ERR, "Unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
 	} else {
-		if (force_pid_file) {
-			if (daemon_pid_file_is_running() >= 0) {
-				flog(LOG_ERR, "radvd already running, terminating.");
-				exit(1);
-			}
+		dlog(LOG_DEBUG, 4, "opened pid file %s", daemon_pid_file_ident);
+	}
 
-			if (daemon_pid_file_create()) {
-				flog(LOG_ERR, "Cannot create radvd PID file, terminating: %s", strerror(errno));
-				exit(2);
-			}
+	int lock = flock(pid_fd, LOCK_EX | LOCK_NB);
+	if (0 != lock) {
+		flog(LOG_ERR, "Unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	} else {
+		dlog(LOG_DEBUG, 4, "locked pid file %s", daemon_pid_file_ident);
+	}
+
+	if (daemonize) {
+		int rc = -1;
+
+		if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
+			rc = daemon(1, 1);
+		} else {
+			rc = daemon(0, 0);
 		}
 
-		dlog(LOG_DEBUG, 3, "radvd PID is %d", getpid());
+		if (-1 == rc) {
+			flog(LOG_ERR, "Unable to daemonize: %s", strerror(errno));
+			exit(-1);
+		}
+	}
+
+	if (0 != write_pid_file(pid_fd)) {
+		flog(LOG_ERR, "Unable to write PID to %s", daemon_pid_file_ident);
+		exit(-1);
 	}
 
 	if (username) {
@@ -352,28 +318,13 @@ int main(int argc, char *argv[])
 	flog(LOG_INFO, "sending stop adverts");
 	stop_adverts(sock, ifaces);
 
-	if (daemonize) {
-		flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
-		daemon_pid_file_remove();
-	} else if (force_pid_file) {
-		flog(LOG_INFO, "removing %s", get_pidfile());
-		daemon_pid_file_remove();
-	}
+	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
+	unlink(daemon_pid_file_ident);
+	close(pid_fd);
 
 	flog(LOG_INFO, "returning from radvd main");
 	log_close();
 	return 0;
-}
-
-/* This function is copied from dpid.c (in libdaemon) and renamed. */
-static const char *get_pidfile(void)
-{
-	static char *fn = NULL;
-	if (fn)
-		free(fn);
-	fn = strdupf("%s", daemon_pid_file_ident ? daemon_pid_file_ident : "unknown");
-
-	return fn;
 }
 
 static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
@@ -498,6 +449,26 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 		}
 
 	}
+}
+
+static int write_pid_file(int pid_fd)
+{
+	char pid_str[20] = {""};
+	sprintf(pid_str, "%d", getpid());
+	dlog(LOG_DEBUG, 3, "radvd PID is %s", pid_str);
+	size_t len = strlen(pid_str);
+	int rc = write(pid_fd, pid_str, len);
+	if (rc != (int)len) {
+		return -1;
+	}
+	char newline[] = {"\n"};
+	len = strlen(newline);
+	rc = write(pid_fd, newline, len);
+	if (rc != (int)len) {
+		return -1;
+	}
+	return 0;
+
 }
 
 static void timer_handler(int sock, struct Interface *iface)
