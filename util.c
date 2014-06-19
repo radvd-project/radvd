@@ -16,6 +16,48 @@
 #include "includes.h"
 #include "radvd.h"
 
+void safe_buffer_free(struct safe_buffer * sb)
+{
+	if (sb->buffer) {
+		free(sb->buffer);
+	}
+
+	if (sb->should_free) {
+		free(sb);
+	}
+}
+
+size_t safe_buffer_pad(struct safe_buffer * sb, size_t count)
+{
+	size_t rc = 0;
+	unsigned char zero = 0;
+
+	while (count--) {
+		rc += safe_buffer_append(sb, &zero, 1);
+	}
+
+	return rc;
+}
+
+size_t safe_buffer_append(struct safe_buffer * sb, void const * v, size_t count)
+{
+	if (sb) {
+		unsigned const char * m = (unsigned const char *)v;
+		if (sb->allocated <= sb->used + count) {
+			sb->allocated = sb->used + count + MSG_SIZE_SEND;
+			sb->buffer = realloc(sb->buffer, sb->allocated);
+		}
+		memcpy(&sb->buffer[sb->used], m, count);
+		sb->used += count;
+
+		if (sb->used >= MSG_SIZE_SEND) {
+			flog(LOG_ERR, "Too many prefixes, routes, rdnss or dnssl to fit in buffer.  Exiting.");
+			exit(1);
+		}
+	}
+
+	return count;
+}
 
 __attribute__ ((format(printf, 1, 2)))
 char * strdupf(char const * format, ...)

@@ -34,6 +34,16 @@ struct Clients;
 #define HWADDR_MAX 16
 #define USER_HZ 100
 
+struct safe_buffer {
+	int should_free;
+	size_t allocated;
+	size_t used;
+	unsigned char * buffer;
+};
+
+#define SAFE_BUFFER_INIT (struct safe_buffer){.should_free = 0, .allocated = 0, .used = 0, .buffer = 0}
+
+
 struct Interface {
 	char Name[IFNAMSIZ];	/* interface name */
 	int lineno;
@@ -289,6 +299,9 @@ int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
 int check_dnssl_presence(struct AdvDNSSL *, const char *);
 ssize_t readn(int fd, void *buf, size_t count);
 ssize_t writen(int fd, const void *buf, size_t count);
+void safe_buffer_free(struct safe_buffer * sb);
+size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
+size_t safe_buffer_append(struct safe_buffer * sb, void const * m, size_t count);
 
 /* privsep.c */
 int privsep_init(void);
