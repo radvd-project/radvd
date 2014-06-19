@@ -95,6 +95,8 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
+static void do_daemonize(int log_method);
+static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
 static int write_pid_file(int pid_fd);
 
 int main(int argc, char *argv[])
@@ -107,9 +109,6 @@ int main(int argc, char *argv[])
 	char *chrootdir = NULL;
 	int configtest = 0;
 	int daemonize = 1;
-#ifdef HAVE_GETOPT_LONG
-	int opt_idx;
-#endif
 
 	char const *pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
 
@@ -121,6 +120,7 @@ int main(int argc, char *argv[])
 	/* parse args */
 #define OPTIONS_STR "d:C:l:m:p:t:u:vhcn"
 #ifdef HAVE_GETOPT_LONG
+	int opt_idx;
 	while ((c = getopt_long(argc, argv, OPTIONS_STR, prog_opt, &opt_idx)) > 0)
 #else
 	while ((c = getopt(argc, argv, OPTIONS_STR)) > 0)
@@ -263,41 +263,14 @@ int main(int argc, char *argv[])
 		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
+	int const pid_fd = open_and_lock_pid_file(daemon_pid_file_ident);
+
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
-	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
-
-	int pid_fd = open(daemon_pid_file_ident, O_CREAT | O_RDWR, 0644);
-	if (-1 == pid_fd) {
-		flog(LOG_ERR, "Unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
-		exit(-1);
-	} else {
-		dlog(LOG_DEBUG, 4, "opened pid file %s", daemon_pid_file_ident);
-	}
-
-	int lock = flock(pid_fd, LOCK_EX | LOCK_NB);
-	if (0 != lock) {
-		flog(LOG_ERR, "Unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
-		exit(-1);
-	} else {
-		dlog(LOG_DEBUG, 4, "locked pid file %s", daemon_pid_file_ident);
-	}
-
 	if (daemonize) {
-		int rc = -1;
-
-		if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
-			rc = daemon(1, 1);
-		} else {
-			rc = daemon(0, 0);
-		}
-
-		if (-1 == rc) {
-			flog(LOG_ERR, "Unable to daemonize: %s", strerror(errno));
-			exit(-1);
-		}
+		do_daemonize(log_method);
 	}
 
 	if (0 != write_pid_file(pid_fd)) {
@@ -315,7 +288,6 @@ int main(int argc, char *argv[])
 
 	setup_ifaces(sock, ifaces);
 	main_loop(sock, ifaces, conf_path);
-	flog(LOG_INFO, "sending stop adverts");
 	stop_adverts(sock, ifaces);
 
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
@@ -324,6 +296,7 @@ int main(int argc, char *argv[])
 
 	flog(LOG_INFO, "returning from radvd main");
 	log_close();
+
 	return 0;
 }
 
@@ -451,6 +424,45 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 	}
 }
 
+static void do_daemonize(int log_method)
+{
+	int rc = -1;
+
+	if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
+		rc = daemon(1, 1);
+	} else {
+		rc = daemon(0, 0);
+	}
+
+	if (-1 == rc) {
+		flog(LOG_ERR, "Unable to daemonize: %s", strerror(errno));
+		exit(-1);
+	}
+}
+
+static int open_and_lock_pid_file(char const * daemon_pid_file_ident)
+{
+	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
+
+	int pid_fd = open(daemon_pid_file_ident, O_CREAT | O_RDWR, 0644);
+	if (-1 == pid_fd) {
+		flog(LOG_ERR, "Unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	} else {
+		dlog(LOG_DEBUG, 4, "opened pid file %s", daemon_pid_file_ident);
+	}
+
+	int lock = flock(pid_fd, LOCK_EX | LOCK_NB);
+	if (0 != lock) {
+		flog(LOG_ERR, "Unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	} else {
+		dlog(LOG_DEBUG, 4, "locked pid file %s", daemon_pid_file_ident);
+	}
+
+	return pid_fd;
+}
+
 static int write_pid_file(int pid_fd)
 {
 	char pid_str[20] = {""};
@@ -531,6 +543,7 @@ static void stop_advert_foo(struct Interface *iface, void *data)
 
 static void stop_adverts(int sock, struct Interface *ifaces)
 {
+	flog(LOG_INFO, "sending stop adverts");
 	/*
 	 *      send final RA (a SHOULD in RFC4861 section 6.2.5)
 	 */
