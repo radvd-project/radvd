@@ -404,8 +404,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 
 				printf("\n\tDNSSL");
 
+				char suffix[256] = { "" };
 				for (int offset = 0; offset < (dnssl_info->nd_opt_dnssli_len - 1) * 8;) {
-					char suffix[256] = { "" };
 					int label_len = dnssl_info->nd_opt_dnssli_suffixes[offset++];
 
 					if (label_len == 0) {
