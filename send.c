@@ -24,19 +24,19 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
 
-static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
+static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl);
 
-static void add_ra_header(struct safe_buffer * sb, struct Interface * iface);
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
-static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv);
-static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv);
-static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL *dnssl, int cease_adv);
+static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface);
+static void add_prefix(struct safe_buffer * sb, struct AdvPrefix * prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
+static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv);
+static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv);
+static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL const *dnssl, int cease_adv);
 static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
-static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
+static void add_sllao(struct safe_buffer * sb, struct Interface const *iface);
 static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
-static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface);
-static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
-static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface);
+static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo const *lowpanco);
+static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
 static void build_ra(struct safe_buffer * sb, struct Interface * iface, time_t secs_since_last_ra);
 
 /*
@@ -127,7 +127,7 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 *       add_ra_*                                                                *
 ********************************************************************************/
 
-static void add_ra_header(struct safe_buffer * sb, struct Interface * iface)
+static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface)
 {
 	struct nd_router_advert radvert;
 
@@ -228,7 +228,7 @@ static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int ce
  *   MUST be padded with zeros.
  */
 /* *INDENT-ON* */
-static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl)
+static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl)
 {
 	size_t len = 0;
 
@@ -261,7 +261,7 @@ static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct Ad
 	return len;
 }
 
-static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv)
+static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl, int cease_adv)
 {
 	while (dnssl) {
 
@@ -353,7 +353,7 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, 
 /*
  * add Source Link-layer Address option
  */
-static void add_sllao(struct safe_buffer * sb, struct Interface *iface)
+static void add_sllao(struct safe_buffer * sb, struct Interface const *iface)
 {
 	/* *INDENT-OFF* */
 	/*
@@ -444,7 +444,7 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
  * Mobile IPv6 ext: Home Agent Information Option to support
  * Dynamic Home Agent Address Discovery
  */
-static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface)
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface)
 {
 	struct HomeAgentInfo ha_info;
 
@@ -462,7 +462,7 @@ static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface 
 /*
  * Add 6co option
  */
-static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
+static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo const *lowpanco)
 {
 	struct nd_opt_6co co;
 
@@ -479,7 +479,7 @@ static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
 	safe_buffer_append(sb, &co, sizeof(co));
 }
 
-static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
+static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo)
 {
 	struct nd_opt_abro abro;
 
@@ -495,7 +495,7 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
 	safe_buffer_append(sb, &abro, sizeof(abro));
 }
 
-static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv)
+static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv)
 {
 	while (route) {
 		struct nd_opt_route_info_local rinfo;
@@ -522,7 +522,7 @@ static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease
 	}
 }
 
-static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv)
+static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv)
 {
 	while (rdnss) {
 		struct nd_opt_rdnss_info_local rdnssinfo;
