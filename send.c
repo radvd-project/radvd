@@ -24,7 +24,7 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
 
-static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
+static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
 
 static void add_ra_header(struct safe_buffer * sb, struct Interface * iface);
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
@@ -37,6 +37,7 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
 static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
+static void build_ra(struct safe_buffer * sb, struct Interface * iface, time_t secs_since_last_ra);
 
 /*
  * Sends an advertisement for all specified clients of this interface
@@ -86,6 +87,23 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	return 0;
 }
 
+
+
+
+/********************************************************************************
+*       support functions                                                       *
+********************************************************************************/
+
+static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len)
+{
+	char pfx_str[INET6_ADDRSTRLEN];
+
+	addrtostr(pfx, pfx_str, sizeof(pfx_str));
+
+	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
+
+}
+
 static int ensure_iface_setup(int sock, struct Interface *iface)
 {
 #ifndef HAVE_NETLINK
@@ -95,7 +113,122 @@ static int ensure_iface_setup(int sock, struct Interface *iface)
 	return (iface->ready ? 0 : -1);
 }
 
-static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl)
+static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
+{
+
+	if (*lifetime > secs) {
+		*lifetime -= secs;
+	} else {
+		*lifetime = 0;
+	}
+}
+
+/********************************************************************************
+*       add_ra_*                                                                *
+********************************************************************************/
+
+static void add_ra_header(struct safe_buffer * sb, struct Interface * iface)
+{
+	struct nd_router_advert radvert;
+
+	memset(&radvert, 0, sizeof(radvert));
+
+	radvert.nd_ra_type = ND_ROUTER_ADVERT;
+	radvert.nd_ra_code = 0;
+	radvert.nd_ra_cksum = 0;
+	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
+	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
+	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
+	/* Mobile IPv6 ext */
+	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+
+	if (iface->cease_adv) {
+		radvert.nd_ra_router_lifetime = 0;
+	} else {
+		/* if forwarding is disabled, send zero router lifetime */
+		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
+	}
+	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+
+	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
+	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
+
+	safe_buffer_append(sb, &radvert, sizeof(radvert));
+}
+
+static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name)
+{
+	while (prefix) {
+		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
+			struct nd_opt_prefix_info pinfo;
+
+			memset(&pinfo, 0, sizeof(pinfo));
+
+			pinfo.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
+			pinfo.nd_opt_pi_len = 4;
+			pinfo.nd_opt_pi_prefix_len = prefix->PrefixLen;
+
+			pinfo.nd_opt_pi_flags_reserved = (prefix->AdvOnLinkFlag) ? ND_OPT_PI_FLAG_ONLINK : 0;
+			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvAutonomousFlag) ? ND_OPT_PI_FLAG_AUTO : 0;
+			/* Mobile IPv6 ext */
+			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
+
+			if (cease_adv && prefix->DeprecatePrefixFlag) {
+				/* RFC4862, 5.5.3, step e) */
+				pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
+				pinfo.nd_opt_pi_preferred_time = 0;
+			} else {
+				if (prefix->DecrementLifetimesFlag) {
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
+
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_preferredlft);
+					if (prefix->curr_preferredlft == 0)
+						cease_adv_pfx_msg(Name, &prefix->Prefix, prefix->PrefixLen);
+				}
+				pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
+				pinfo.nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+
+			}
+			pinfo.nd_opt_pi_reserved2 = 0;
+
+			memcpy(&pinfo.nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
+			char addr_str[INET6_ADDRSTRLEN];
+			addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
+			dlog(LOG_DEBUG, 5,
+			     "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
+			     addr_str, Name, ntohl(pinfo.nd_opt_pi_valid_time),
+			     ntohl(pinfo.nd_opt_pi_preferred_time));
+
+			safe_buffer_append(sb, &pinfo, sizeof(pinfo));
+		}
+
+		prefix = prefix->next;
+	}
+}
+
+
+
+/* *INDENT-OFF* */
+/*
+ * Domain Names of DNS Search List
+ *   One or more domain names of DNS Search List that MUST
+ *   be encoded using the technique described in Section
+ *   3.1 of [RFC1035].  By this technique, each domain
+ *   name is represented as a sequence of labels ending in
+ *   a zero octet, defined as domain name representation.
+ *   For more than one domain name, the corresponding
+ *   domain name representations are concatenated as they
+ *   are.  Note that for the simple decoding, the domain
+ *   names MUST NOT be encoded in a compressed form, as
+ *   described in Section 4.1.4 of [RFC1035].  Because the
+ *   size of this field MUST be a multiple of 8 octets,
+ *   for the minimum multiple including the domain name
+ *   representations, the remaining octets other than the
+ *   encoding parts of the domain name representations
+ *   MUST be padded with zeros.
+ */
+/* *INDENT-ON* */
+static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl)
 {
 	size_t len = 0;
 
@@ -132,6 +265,7 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, 
 {
 	while (dnssl) {
 
+		/* *INDENT-OFF* */
 		/*
 		 * Snippet from RFC 6106...
 		 *
@@ -183,28 +317,17 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, 
 		 *     Domain Names of DNS Search List
 		 *                   One or more domain names of DNS Search List that MUST
 		 *                   be encoded using the technique described in Section
-		 *                   3.1 of [RFC1035].  By this technique, each domain
-		 *                   name is represented as a sequence of labels ending in
-		 *                   a zero octet, defined as domain name representation.
-		 *                   For more than one domain name, the corresponding
-		 *                   domain name representations are concatenated as they
-		 *                   are.  Note that for the simple decoding, the domain
-		 *                   names MUST NOT be encoded in a compressed form, as
-		 *                   described in Section 4.1.4 of [RFC1035].  Because the
-		 *                   size of this field MUST be a multiple of 8 octets,
-		 *                   for the minimum multiple including the domain name
-		 *                   representations, the remaining octets other than the
-		 *                   encoding parts of the domain name representations
-		 *                   MUST be padded with zeros.
+		 *                   3.1 of [RFC1035].
 		 * 
 		 */
-
+		/* *INDENT-ON* */
 		struct nd_opt_dnssl_info_local dnsslinfo;
-		size_t option_bytes = serialize_dnssl(0, dnssl);
-		size_t bytes = sizeof(dnsslinfo) + option_bytes;
-		
+
 		memset(&dnsslinfo, 0, sizeof(dnsslinfo));
 
+		size_t const domain_name_bytes = serialize_domain_names(0, dnssl);
+		size_t const bytes = sizeof(dnsslinfo) + domain_name_bytes;
+		
 		dnsslinfo.nd_opt_dnssli_type = ND_OPT_DNSSL_INFORMATION;
 		dnsslinfo.nd_opt_dnssli_len = (bytes + 7) / 8;
 		dnsslinfo.nd_opt_dnssli_reserved = 0;
@@ -218,7 +341,7 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, 
 		size_t const padding = dnsslinfo.nd_opt_dnssli_len * 8 - bytes;
 
 		safe_buffer_append(safe_buffer, &dnsslinfo, sizeof(dnsslinfo));
-		serialize_dnssl(safe_buffer, dnssl);
+		serialize_domain_names(safe_buffer, dnssl);
 		safe_buffer_pad(safe_buffer, padding);
 
 		dnssl = dnssl->next;
@@ -317,6 +440,10 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
 	safe_buffer_append(sb, &a_ival, sizeof(a_ival));
 }
 
+/*
+ * Mobile IPv6 ext: Home Agent Information Option to support
+ * Dynamic Home Agent Address Discovery
+ */
 static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface)
 {
 	struct HomeAgentInfo ha_info;
@@ -352,9 +479,6 @@ static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
 	safe_buffer_append(sb, &co, sizeof(co));
 }
 
-/*
- * Add ABRO option
- */
 static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
 {
 	struct nd_opt_abro abro;
@@ -369,105 +493,6 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
 	abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
 
 	safe_buffer_append(sb, &abro, sizeof(abro));
-}
-
-static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
-{
-
-	if (*lifetime > secs) {
-		*lifetime -= secs;
-	} else {
-		*lifetime = 0;
-	}
-}
-
-static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len)
-{
-	char pfx_str[INET6_ADDRSTRLEN];
-
-	addrtostr(pfx, pfx_str, sizeof(pfx_str));
-
-	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
-
-}
-
-static void add_ra_header(struct safe_buffer * sb, struct Interface * iface)
-{
-	struct nd_router_advert radvert;
-
-	memset(&radvert, 0, sizeof(radvert));
-
-	radvert.nd_ra_type = ND_ROUTER_ADVERT;
-	radvert.nd_ra_code = 0;
-	radvert.nd_ra_cksum = 0;
-	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
-	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
-	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
-	/* Mobile IPv6 ext */
-	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
-
-	if (iface->cease_adv) {
-		radvert.nd_ra_router_lifetime = 0;
-	} else {
-		/* if forwarding is disabled, send zero router lifetime */
-		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
-	}
-	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-
-	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
-	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
-
-	safe_buffer_append(sb, &radvert, sizeof(radvert));
-}
-
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name)
-{
-	while (prefix) {
-		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
-			struct nd_opt_prefix_info pinfo;
-
-			memset(&pinfo, 0, sizeof(pinfo));
-
-			pinfo.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
-			pinfo.nd_opt_pi_len = 4;
-			pinfo.nd_opt_pi_prefix_len = prefix->PrefixLen;
-
-			pinfo.nd_opt_pi_flags_reserved = (prefix->AdvOnLinkFlag) ? ND_OPT_PI_FLAG_ONLINK : 0;
-			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvAutonomousFlag) ? ND_OPT_PI_FLAG_AUTO : 0;
-			/* Mobile IPv6 ext */
-			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
-
-			if (cease_adv && prefix->DeprecatePrefixFlag) {
-				/* RFC4862, 5.5.3, step e) */
-				pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
-				pinfo.nd_opt_pi_preferred_time = 0;
-			} else {
-				if (prefix->DecrementLifetimesFlag) {
-					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
-
-					decrement_lifetime(secs_since_last_ra, &prefix->curr_preferredlft);
-					if (prefix->curr_preferredlft == 0)
-						cease_adv_pfx_msg(Name, &prefix->Prefix, prefix->PrefixLen);
-				}
-				pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
-				pinfo.nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
-
-			}
-			pinfo.nd_opt_pi_reserved2 = 0;
-
-			memcpy(&pinfo.nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
-			char addr_str[INET6_ADDRSTRLEN];
-			addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 5,
-			     "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
-			     addr_str, Name, ntohl(pinfo.nd_opt_pi_valid_time),
-			     ntohl(pinfo.nd_opt_pi_preferred_time));
-
-			safe_buffer_append(sb, &pinfo, sizeof(pinfo));
-		}
-
-		prefix = prefix->next;
-	}
 }
 
 static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv)
@@ -524,6 +549,55 @@ static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease
 	}
 }
 
+
+static void build_ra(struct safe_buffer * sb, struct Interface * iface, time_t secs_since_last_ra)
+{
+	add_ra_header(sb, iface);
+
+	if (iface->AdvPrefixList) {
+		add_prefix(sb, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
+	}
+
+	if (iface->AdvRouteList) {
+		add_route(sb, iface->AdvRouteList, iface->cease_adv);
+	}
+
+	if (iface->AdvRDNSSList) {
+		add_rdnss(sb, iface->AdvRDNSSList, iface->cease_adv);
+	}
+
+	if (iface->AdvDNSSLList) {
+		add_dnssl(sb, iface->AdvDNSSLList, iface->cease_adv);
+	}
+
+	if (iface->AdvLinkMTU != 0) {
+		add_mtu(sb, iface->AdvLinkMTU);
+	}
+
+	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
+		add_sllao(sb, iface);
+	}
+
+	if (iface->AdvIntervalOpt) {
+		add_mipv6_rtr_adv_interval(sb, iface->MaxRtrAdvInterval);
+	}
+
+	if (iface->AdvHomeAgentInfo
+	    && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0
+		|| iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
+
+		add_mipv6_home_agent_info(sb, iface);
+	}
+
+	if (iface->AdvLowpanCoList) {
+		add_lowpanco(sb, iface->AdvLowpanCoList);
+	}
+
+	if (iface->AdvAbroList) {
+		add_abro(sb, iface->AdvAbroList);
+	}
+}
+
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
 	if (!iface->AdvSendAdvert) {
@@ -558,54 +632,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
 
-	add_ra_header(&safe_buffer, iface);
-
-	if (iface->AdvPrefixList) {
-		add_prefix(&safe_buffer, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
-	}
-
-	if (iface->AdvRouteList) {
-		add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
-	}
-
-	if (iface->AdvRDNSSList) {
-		add_rdnss(&safe_buffer, iface->AdvRDNSSList, iface->cease_adv);
-	}
-
-	if (iface->AdvDNSSLList) {
-		add_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
-	}
-
-	if (iface->AdvLinkMTU != 0) {
-		add_mtu(&safe_buffer, iface->AdvLinkMTU);
-	}
-
-	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
-		add_sllao(&safe_buffer, iface);
-	}
-
-	if (iface->AdvIntervalOpt) {
-		add_mipv6_rtr_adv_interval(&safe_buffer, iface->MaxRtrAdvInterval);
-	}
-
-	/*
-	 * Mobile IPv6 ext: Home Agent Information Option to support
-	 * Dynamic Home Agent Address Discovery
-	 */
-	if (iface->AdvHomeAgentInfo
-	    && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0
-		|| iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
-
-		add_mipv6_home_agent_info(&safe_buffer, iface);
-	}
-
-	if (iface->AdvLowpanCoList) {
-		add_lowpanco(&safe_buffer, iface->AdvLowpanCoList);
-	}
-
-	if (iface->AdvAbroList) {
-		add_abro(&safe_buffer, iface->AdvAbroList);
-	}
+	build_ra(&safe_buffer, iface, secs_since_last_ra);
 
 	int err = really_send(sock, dest, iface->if_index, iface->if_addr, safe_buffer.buffer, safe_buffer.used);
 
