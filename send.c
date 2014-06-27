@@ -28,6 +28,7 @@ static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL 
 
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
 static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv);
+static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv);
 static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv);
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
 
@@ -364,6 +365,33 @@ static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease
 	}
 }
 
+static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv)
+{
+	while (rdnss) {
+		struct nd_opt_rdnss_info_local rdnssinfo;
+
+		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
+
+		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
+		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
+		rdnssinfo.nd_opt_rdnssi_pref_flag_reserved = 0;
+
+		if (cease_adv && rdnss->FlushRDNSSFlag) {
+			rdnssinfo.nd_opt_rdnssi_lifetime = 0;
+		} else {
+			rdnssinfo.nd_opt_rdnssi_lifetime = htonl(rdnss->AdvRDNSSLifetime);
+		}
+
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1, sizeof(struct in6_addr));
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
+
+		safe_buffer_append(sb, &rdnssinfo, sizeof(rdnssinfo));
+
+		rdnss = rdnss->next;
+	}
+}
+
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
 	if (!iface->AdvSendAdvert) {
@@ -396,74 +424,37 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	}
 	iface->last_ra_time = time_now;
 
-	unsigned char buff[MSG_SIZE_SEND];
-	memset(buff, 0, sizeof(buff));
-	struct nd_router_advert radvert;
-
-	radvert.nd_ra_type = ND_ROUTER_ADVERT;
-	radvert.nd_ra_code = 0;
-	radvert.nd_ra_cksum = 0;
-	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
-	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
-	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
-	/* Mobile IPv6 ext */
-	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
-
-	if (iface->cease_adv) {
-		radvert.nd_ra_router_lifetime = 0;
-	} else {
-		/* if forwarding is disabled, send zero router lifetime */
-		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
-	}
-	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-
-	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
-	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
-
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
-	safe_buffer_append(&safe_buffer, &radvert, sizeof(radvert));
+	{
+		/* TODO: split out this as a function */
+		struct nd_router_advert radvert;
 
-	/*
-	 *      add prefix options
-	 */
-	add_prefix(&safe_buffer, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
+		radvert.nd_ra_type = ND_ROUTER_ADVERT;
+		radvert.nd_ra_code = 0;
+		radvert.nd_ra_cksum = 0;
+		radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
+		radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
+		radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
+		/* Mobile IPv6 ext */
+		radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
 
-	/*
-	 *      add route options
-	 */
-	add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
-
-	/*
-	 *      add rdnss options
-	 */
-	struct AdvRDNSS *rdnss = iface->AdvRDNSSList;
-	while (rdnss) {
-		struct nd_opt_rdnss_info_local rdnssinfo;
-
-		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
-
-		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
-		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
-		rdnssinfo.nd_opt_rdnssi_pref_flag_reserved = 0;
-
-		if (iface->cease_adv && rdnss->FlushRDNSSFlag) {
-			rdnssinfo.nd_opt_rdnssi_lifetime = 0;
+		if (iface->cease_adv) {
+			radvert.nd_ra_router_lifetime = 0;
 		} else {
-			rdnssinfo.nd_opt_rdnssi_lifetime = htonl(rdnss->AdvRDNSSLifetime);
+			/* if forwarding is disabled, send zero router lifetime */
+			radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
 		}
+		radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
 
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
+		radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
+		radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
 
-		safe_buffer_append(&safe_buffer, &rdnssinfo, sizeof(rdnssinfo));
-
-		rdnss = rdnss->next;
+		safe_buffer_append(&safe_buffer, &radvert, sizeof(radvert));
 	}
 
-	/*
-	 *      add dnssl options
-	 */
+	add_prefix(&safe_buffer, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
+	add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
+	add_rdnss(&safe_buffer, iface->AdvRDNSSList, iface->cease_adv);
 	add_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
 
 	/*
