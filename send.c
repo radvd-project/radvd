@@ -452,14 +452,14 @@ static void add_sllao(struct safe_buffer * sb, struct Interface const *iface)
 	/* *INDENT-ON* */
 
 	/* +2 for the ND_OPT_SOURCE_LINKADDR and the length (each occupy one byte) */
-	size_t const sllao_bytes = (iface->if_hwaddr_len / 8) + 2;
+	size_t const sllao_bytes = (iface->sllao.if_hwaddr_len / 8) + 2;
 	size_t const sllao_len = (sllao_bytes + 7) / 8;
 
 	uint8_t sllao[2] = {ND_OPT_SOURCE_LINKADDR, (uint8_t)sllao_len};
 	safe_buffer_append(sb, &sllao, sizeof(sllao));
 
 	/* if_hwaddr_len is in bits, so divide by 8 to get the byte count. */
-	safe_buffer_append(sb, iface->if_hwaddr, iface->if_hwaddr_len / 8);
+	safe_buffer_append(sb, iface->sllao.if_hwaddr, iface->sllao.if_hwaddr_len / 8);
 	safe_buffer_pad(sb, sllao_len * 8 - sllao_bytes);
 }
 
@@ -584,7 +584,7 @@ static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 		add_mtu(sb, iface->AdvLinkMTU);
 	}
 
-	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
+	if (iface->AdvSourceLLAddress && iface->sllao.if_hwaddr_len > 0) {
 		add_sllao(sb, iface);
 	}
 

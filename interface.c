@@ -138,9 +138,9 @@ int check_iface(struct Interface *iface)
 
 	if ((iface->AdvLinkMTU != 0)
 	    && ((iface->AdvLinkMTU < MIN_AdvLinkMTU)
-		|| (iface->if_maxmtu != -1 && (iface->AdvLinkMTU > iface->if_maxmtu)))) {
+		|| (iface->sllao.if_maxmtu != -1 && (iface->AdvLinkMTU > iface->sllao.if_maxmtu)))) {
 		flog(LOG_ERR, "AdvLinkMTU for %s (%u) must be zero or between %u and %u", iface->Name, iface->AdvLinkMTU,
-		     MIN_AdvLinkMTU, iface->if_maxmtu);
+		     MIN_AdvLinkMTU, iface->sllao.if_maxmtu);
 		res = -1;
 	}
 

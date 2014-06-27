@@ -40,7 +40,7 @@ int update_device_info(int sock, struct Interface *iface)
 		return -1;
 	}
 
-	iface->if_maxmtu = ifr.ifr_mtu;
+	iface->sllao.if_maxmtu = ifr.ifr_mtu;
 	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
@@ -52,8 +52,8 @@ int update_device_info(int sock, struct Interface *iface)
 
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
-		iface->if_hwaddr_len = 48;
-		iface->if_prefix_len = 64;
+		iface->sllao.if_hwaddr_len = 48;
+		iface->sllao.if_prefix_len = 64;
 		/* *INDENT-OFF* */
 		char hwaddr[3 * 6];
 		sprintf(hwaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -68,51 +68,51 @@ int update_device_info(int sock, struct Interface *iface)
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
-		iface->if_hwaddr_len = 48;
-		iface->if_prefix_len = 64;
+		iface->sllao.if_hwaddr_len = 48;
+		iface->sllao.if_prefix_len = 64;
 		break;
 #endif				/* ARPHDR_FDDI */
 #ifdef ARPHRD_ARCNET
 	case ARPHRD_ARCNET:
-		iface->if_hwaddr_len = 8;
-		iface->if_prefix_len = -1;
-		iface->if_maxmtu = -1;
+		iface->sllao.if_hwaddr_len = 8;
+		iface->sllao.if_prefix_len = -1;
+		iface->sllao.if_maxmtu = -1;
 		break;
 #endif				/* ARPHDR_ARCNET */
 	case ARPHRD_IEEE802154:
-		iface->if_hwaddr_len = 64;
-		iface->if_prefix_len = 64;
+		iface->sllao.if_hwaddr_len = 64;
+		iface->sllao.if_prefix_len = 64;
 		break;
 	default:
-		iface->if_hwaddr_len = -1;
-		iface->if_prefix_len = -1;
-		iface->if_maxmtu = -1;
+		iface->sllao.if_hwaddr_len = -1;
+		iface->sllao.if_prefix_len = -1;
+		iface->sllao.if_maxmtu = -1;
 		break;
 	}
 
-	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->Name, iface->if_hwaddr_len);
+	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->Name, iface->sllao.if_hwaddr_len);
 
-	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->if_prefix_len);
+	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->sllao.if_prefix_len);
 
-	if (iface->if_hwaddr_len != -1) {
-		unsigned int if_hwaddr_len_bytes = (iface->if_hwaddr_len + 7) >> 3;
+	if (iface->sllao.if_hwaddr_len != -1) {
+		unsigned int if_hwaddr_len_bytes = (iface->sllao.if_hwaddr_len + 7) >> 3;
 
-		if (if_hwaddr_len_bytes > sizeof(iface->if_hwaddr)) {
+		if (if_hwaddr_len_bytes > sizeof(iface->sllao.if_hwaddr)) {
 			flog(LOG_ERR, "address length %d too big for %s", if_hwaddr_len_bytes, iface->Name);
 			return -2;
 		}
-		memcpy(iface->if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
+		memcpy(iface->sllao.if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
 
 		char zero[sizeof(iface->if_addr)];
 		memset(zero, 0, sizeof(zero));
-		if (!memcmp(iface->if_hwaddr, zero, if_hwaddr_len_bytes))
+		if (!memcmp(iface->sllao.if_hwaddr, zero, if_hwaddr_len_bytes))
 			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->Name);
 	}
 
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
-		if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != prefix->PrefixLen)) {
-			flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->Name);
+		if ((iface->sllao.if_prefix_len != -1) && (iface->sllao.if_prefix_len != prefix->PrefixLen)) {
+			flog(LOG_WARNING, "prefix length should be %d for %s", iface->sllao.if_prefix_len, iface->Name);
 		}
 
 		prefix = prefix->next;

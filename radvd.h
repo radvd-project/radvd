@@ -54,10 +54,12 @@ struct Interface {
 
 	uint8_t racount;	/* Initial RAs */
 
-	uint8_t if_hwaddr[HWADDR_MAX];
-	int if_hwaddr_len;
-	int if_prefix_len;
-	int if_maxmtu;
+	struct sllao {
+		uint8_t if_hwaddr[HWADDR_MAX];
+		int if_hwaddr_len;
+		int if_prefix_len;
+		int if_maxmtu;
+	} sllao;
 
 	int cease_adv;
 
