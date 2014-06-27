@@ -20,14 +20,16 @@
 static int ensure_iface_setup(int sock, struct Interface *iface);
 static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
 		size_t len);
-static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
-static size_t write_dnssl2(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
-static void write_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv);
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
 
+static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
+
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
+static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv);
+static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
+
 /*
  * Sends an advertisement for all specified clients of this interface
  * (or via broadcast, if there are no restrictions configured).
@@ -85,9 +87,8 @@ static int ensure_iface_setup(int sock, struct Interface *iface)
 	return (iface->ready ? 0 : -1);
 }
 
-static size_t write_dnssl2(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl)
+static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl)
 {
-	/* TODO: This probably doesn't work. */
 	size_t len = 0;
 
 	for (int i = 0; i < dnssl->AdvDNSSLNumber; i++) {
@@ -119,7 +120,7 @@ static size_t write_dnssl2(struct safe_buffer * safe_buffer, struct AdvDNSSL *dn
 	return len;
 }
 
-static void write_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv)
+static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv)
 {
 	while (dnssl) {
 
@@ -190,10 +191,8 @@ static void write_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl
 		 * 
 		 */
 
-		/* TODO: This probably doesn't work.  write_dnssl2 returns number of bytes.  This
-		 * value need to be convertted to the proper Length field in units of 8 octets. */
 		struct nd_opt_dnssl_info_local dnsslinfo;
-		size_t option_bytes = write_dnssl2(0, dnssl);
+		size_t option_bytes = serialize_dnssl(0, dnssl);
 		size_t bytes = sizeof(dnsslinfo) + option_bytes;
 		
 		memset(&dnsslinfo, 0, sizeof(dnsslinfo));
@@ -211,7 +210,7 @@ static void write_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl
 		size_t const padding = dnsslinfo.nd_opt_dnssli_len * 8 - bytes;
 
 		safe_buffer_append(safe_buffer, &dnsslinfo, sizeof(dnsslinfo));
-		write_dnssl2(safe_buffer, dnssl);
+		serialize_dnssl(safe_buffer, dnssl);
 		safe_buffer_pad(safe_buffer, padding);
 
 		dnssl = dnssl->next;
@@ -460,7 +459,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	/*
 	 *      add dnssl options
 	 */
-	write_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
+	add_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
 
 	/*
 	 *      add MTU option
