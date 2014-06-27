@@ -34,6 +34,7 @@ static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL *dnssl, int cease
 static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
 static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
 
@@ -316,6 +317,21 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
 	safe_buffer_append(sb, &a_ival, sizeof(a_ival));
 }
 
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface)
+{
+	struct HomeAgentInfo ha_info;
+
+	memset(&ha_info, 0, sizeof(ha_info));
+
+	ha_info.type = ND_OPT_HOME_AGENT_INFO;
+	ha_info.length = 1;
+	ha_info.flags_reserved = (iface->AdvMobRtrSupportFlag) ? ND_OPT_HAI_FLAG_SUPPORT_MR : 0;
+	ha_info.preference = htons(iface->HomeAgentPreference);
+	ha_info.lifetime = htons(iface->HomeAgentLifetime);
+
+	safe_buffer_append(sb, &ha_info, sizeof(ha_info));
+}
+
 /*
  * Add ABRO option
  */
@@ -579,14 +595,8 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	if (iface->AdvHomeAgentInfo
 	    && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0
 		|| iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
-		struct HomeAgentInfo ha_info;
-		ha_info.type = ND_OPT_HOME_AGENT_INFO;
-		ha_info.length = 1;
-		ha_info.flags_reserved = (iface->AdvMobRtrSupportFlag) ? ND_OPT_HAI_FLAG_SUPPORT_MR : 0;
-		ha_info.preference = htons(iface->HomeAgentPreference);
-		ha_info.lifetime = htons(iface->HomeAgentLifetime);
 
-		safe_buffer_append(&safe_buffer, &ha_info, sizeof(ha_info));
+		add_mipv6_home_agent_info(&safe_buffer, iface);
 	}
 
 	if (iface->AdvLowpanCoList) {
