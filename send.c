@@ -35,8 +35,8 @@ static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
 static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
 static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface * iface);
-static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
+static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
 
 /*
  * Sends an advertisement for all specified clients of this interface
@@ -333,25 +333,6 @@ static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface 
 }
 
 /*
- * Add ABRO option
- */
-static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
-{
-	struct nd_opt_abro abro;
-
-	memset(&abro, 0, sizeof(abro));
-
-	abro.nd_opt_abro_type = ND_OPT_ABRO;
-	abro.nd_opt_abro_len = 3;
-	abro.nd_opt_abro_ver_low = abroo->Version[1];
-	abro.nd_opt_abro_ver_high = abroo->Version[0];
-	abro.nd_opt_abro_valid_lifetime = abroo->ValidLifeTime;
-	abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
-
-	safe_buffer_append(sb, &abro, sizeof(abro));
-}
-
-/*
  * Add 6co option
  */
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
@@ -369,6 +350,25 @@ static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
 	co.nd_opt_6co_con_prefix = lowpanco->AdvContextPrefix;
 
 	safe_buffer_append(sb, &co, sizeof(co));
+}
+
+/*
+ * Add ABRO option
+ */
+static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
+{
+	struct nd_opt_abro abro;
+
+	memset(&abro, 0, sizeof(abro));
+
+	abro.nd_opt_abro_type = ND_OPT_ABRO;
+	abro.nd_opt_abro_len = 3;
+	abro.nd_opt_abro_ver_low = abroo->Version[1];
+	abro.nd_opt_abro_ver_high = abroo->Version[0];
+	abro.nd_opt_abro_valid_lifetime = abroo->ValidLifeTime;
+	abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
+
+	safe_buffer_append(sb, &abro, sizeof(abro));
 }
 
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
