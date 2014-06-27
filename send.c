@@ -27,6 +27,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
 
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
+static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv);
 static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv);
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
 
@@ -336,6 +337,33 @@ static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int ce
 	}
 }
 
+static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv)
+{
+	while (route) {
+		struct nd_opt_route_info_local rinfo;
+
+		memset(&rinfo, 0, sizeof(rinfo));
+
+		rinfo.nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
+		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
+		rinfo.nd_opt_ri_len = 3;
+		rinfo.nd_opt_ri_prefix_len = route->PrefixLen;
+
+		rinfo.nd_opt_ri_flags_reserved = (route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+		if (cease_adv && route->RemoveRouteFlag) {
+			rinfo.nd_opt_ri_lifetime = 0;
+		} else {
+			rinfo.nd_opt_ri_lifetime = htonl(route->AdvRouteLifetime);
+		}
+
+		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
+
+		safe_buffer_append(sb, &rinfo, sizeof(rinfo));
+
+		route = route->next;
+	}
+}
+
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
 	if (!iface->AdvSendAdvert) {
@@ -403,30 +431,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	/*
 	 *      add route options
 	 */
-	struct AdvRoute *route = iface->AdvRouteList;
-	while (route) {
-		struct nd_opt_route_info_local rinfo;
-
-		memset(&rinfo, 0, sizeof(rinfo));
-
-		rinfo.nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
-		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
-		rinfo.nd_opt_ri_len = 3;
-		rinfo.nd_opt_ri_prefix_len = route->PrefixLen;
-
-		rinfo.nd_opt_ri_flags_reserved = (route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-		if (iface->cease_adv && route->RemoveRouteFlag) {
-			rinfo.nd_opt_ri_lifetime = 0;
-		} else {
-			rinfo.nd_opt_ri_lifetime = htonl(route->AdvRouteLifetime);
-		}
-
-		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
-
-		safe_buffer_append(&safe_buffer, &rinfo, sizeof(rinfo));
-
-		route = route->next;
-	}
+	add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
 
 	/*
 	 *      add rdnss options
