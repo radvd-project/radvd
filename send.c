@@ -31,8 +31,9 @@ static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int ce
 static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv);
 static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv);
 static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL *dnssl, int cease_adv);
-static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
 static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
+static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
+static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
 
@@ -290,6 +291,32 @@ static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU)
 }
 
 /*
+ * Mobile IPv6 ext: Advertisement Interval Option to support
+ * movement detection of mobile nodes
+ */
+static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval)
+{
+	uint32_t ival = 1000;
+
+	if (MaxRtrAdvInterval < Cautious_MaxRtrAdvInterval) {
+		ival *= MaxRtrAdvInterval + Cautious_MaxRtrAdvInterval_Leeway;
+	} else {
+		ival *= MaxRtrAdvInterval;
+	}
+
+	struct AdvInterval a_ival;
+
+	memset(&a_ival, 0, sizeof(a_ival));
+
+	a_ival.type = ND_OPT_RTR_ADV_INTERVAL;
+	a_ival.length = 1;
+	a_ival.reserved = 0;
+	a_ival.adv_ival = htonl(ival);
+
+	safe_buffer_append(sb, &a_ival, sizeof(a_ival));
+}
+
+/*
  * Add ABRO option
  */
 static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
@@ -541,25 +568,8 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 		add_sllao(&safe_buffer, iface);
 	}
 
-	/*
-	 * Mobile IPv6 ext: Advertisement Interval Option to support
-	 * movement detection of mobile nodes
-	 */
 	if (iface->AdvIntervalOpt) {
-		uint32_t ival;
-		if (iface->MaxRtrAdvInterval < Cautious_MaxRtrAdvInterval) {
-			ival = ((iface->MaxRtrAdvInterval + Cautious_MaxRtrAdvInterval_Leeway) * 1000);
-
-		} else {
-			ival = (iface->MaxRtrAdvInterval * 1000);
-		}
-		struct AdvInterval a_ival;
-		a_ival.type = ND_OPT_RTR_ADV_INTERVAL;
-		a_ival.length = 1;
-		a_ival.reserved = 0;
-		a_ival.adv_ival = htonl(ival);
-
-		safe_buffer_append(&safe_buffer, &a_ival, sizeof(a_ival));
+		add_mipv6_rtr_adv_interval(&safe_buffer, iface->MaxRtrAdvInterval);
 	}
 
 	/*
