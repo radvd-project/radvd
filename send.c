@@ -26,11 +26,15 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 static size_t serialize_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl);
 
+static void add_ra_header(struct safe_buffer * sb, struct Interface * iface);
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
 static void add_route(struct safe_buffer * sb, struct AdvRoute *route, int cease_adv);
 static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS *rdnss, int cease_adv);
-static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, int cease_adv);
+static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL *dnssl, int cease_adv);
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface);
+static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
+static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo);
+static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco);
 
 /*
  * Sends an advertisement for all specified clients of this interface
@@ -221,6 +225,9 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL *dnssl, 
 
 }
 
+/*
+ * add Source Link-layer Address option
+ */
 static void add_sllao(struct safe_buffer * sb, struct Interface *iface)
 {
 	/* *INDENT-OFF* */
@@ -268,6 +275,59 @@ static void add_sllao(struct safe_buffer * sb, struct Interface *iface)
 	safe_buffer_pad(sb, sllao_len * 8 - sllao_bytes);
 }
 
+static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU)
+{
+	struct nd_opt_mtu mtu;
+
+	memset(&mtu, 0, sizeof(mtu));
+
+	mtu.nd_opt_mtu_type = ND_OPT_MTU;
+	mtu.nd_opt_mtu_len = 1;
+	mtu.nd_opt_mtu_reserved = 0;
+	mtu.nd_opt_mtu_mtu = htonl(AdvLinkMTU);
+
+	safe_buffer_append(sb, &mtu, sizeof(mtu));
+}
+
+/*
+ * Add ABRO option
+ */
+static void add_abro(struct safe_buffer * sb, struct AdvAbro *abroo)
+{
+	struct nd_opt_abro abro;
+
+	memset(&abro, 0, sizeof(abro));
+
+	abro.nd_opt_abro_type = ND_OPT_ABRO;
+	abro.nd_opt_abro_len = 3;
+	abro.nd_opt_abro_ver_low = abroo->Version[1];
+	abro.nd_opt_abro_ver_high = abroo->Version[0];
+	abro.nd_opt_abro_valid_lifetime = abroo->ValidLifeTime;
+	abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
+
+	safe_buffer_append(sb, &abro, sizeof(abro));
+}
+
+/*
+ * Add 6co option
+ */
+static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo *lowpanco)
+{
+	struct nd_opt_6co co;
+
+	memset(&co, 0, sizeof(co));
+
+	co.nd_opt_6co_type = ND_OPT_6CO;
+	co.nd_opt_6co_len = 3;
+	co.nd_opt_6co_context_len = lowpanco->ContextLength;
+	co.nd_opt_6co_c = lowpanco->ContextCompressionFlag;
+	co.nd_opt_6co_cid = lowpanco->AdvContextID;
+	co.nd_opt_6co_valid_lifetime = lowpanco->AdvLifeTime;
+	co.nd_opt_6co_con_prefix = lowpanco->AdvContextPrefix;
+
+	safe_buffer_append(sb, &co, sizeof(co));
+}
+
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 {
 
@@ -286,6 +346,35 @@ static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const i
 
 	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
 
+}
+
+static void add_ra_header(struct safe_buffer * sb, struct Interface * iface)
+{
+	struct nd_router_advert radvert;
+
+	memset(&radvert, 0, sizeof(radvert));
+
+	radvert.nd_ra_type = ND_ROUTER_ADVERT;
+	radvert.nd_ra_code = 0;
+	radvert.nd_ra_cksum = 0;
+	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
+	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
+	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
+	/* Mobile IPv6 ext */
+	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+
+	if (iface->cease_adv) {
+		radvert.nd_ra_router_lifetime = 0;
+	} else {
+		/* if forwarding is disabled, send zero router lifetime */
+		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
+	}
+	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+
+	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
+	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
+
+	safe_buffer_append(sb, &radvert, sizeof(radvert));
 }
 
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name)
@@ -425,57 +514,29 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	iface->last_ra_time = time_now;
 
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
-	{
-		/* TODO: split out this as a function */
-		struct nd_router_advert radvert;
 
-		radvert.nd_ra_type = ND_ROUTER_ADVERT;
-		radvert.nd_ra_code = 0;
-		radvert.nd_ra_cksum = 0;
-		radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
-		radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
-		radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
-		/* Mobile IPv6 ext */
-		radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+	add_ra_header(&safe_buffer, iface);
 
-		if (iface->cease_adv) {
-			radvert.nd_ra_router_lifetime = 0;
-		} else {
-			/* if forwarding is disabled, send zero router lifetime */
-			radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
-		}
-		radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-
-		radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
-		radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
-
-		safe_buffer_append(&safe_buffer, &radvert, sizeof(radvert));
+	if (iface->AdvPrefixList) {
+		add_prefix(&safe_buffer, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
 	}
 
-	add_prefix(&safe_buffer, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
-	add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
-	add_rdnss(&safe_buffer, iface->AdvRDNSSList, iface->cease_adv);
-	add_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
+	if (iface->AdvRouteList) {
+		add_route(&safe_buffer, iface->AdvRouteList, iface->cease_adv);
+	}
 
-	/*
-	 *      add MTU option
-	 */
+	if (iface->AdvRDNSSList) {
+		add_rdnss(&safe_buffer, iface->AdvRDNSSList, iface->cease_adv);
+	}
+
+	if (iface->AdvDNSSLList) {
+		add_dnssl(&safe_buffer, iface->AdvDNSSLList, iface->cease_adv);
+	}
+
 	if (iface->AdvLinkMTU != 0) {
-		struct nd_opt_mtu mtu;
-
-		memset(&mtu, 0, sizeof(mtu));
-
-		mtu.nd_opt_mtu_type = ND_OPT_MTU;
-		mtu.nd_opt_mtu_len = 1;
-		mtu.nd_opt_mtu_reserved = 0;
-		mtu.nd_opt_mtu_mtu = htonl(iface->AdvLinkMTU);
-
-		safe_buffer_append(&safe_buffer, &mtu, sizeof(mtu));
+		add_mtu(&safe_buffer, iface->AdvLinkMTU);
 	}
 
-	/*
-	 * add Source Link-layer Address option
-	 */
 	if (iface->AdvSourceLLAddress && iface->if_hwaddr_len > 0) {
 		add_sllao(&safe_buffer, iface);
 	}
@@ -518,43 +579,12 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 		safe_buffer_append(&safe_buffer, &ha_info, sizeof(ha_info));
 	}
 
-	/*
-	 * Add 6co option
-	 */
-	struct AdvLowpanCo *lowpanco = iface->AdvLowpanCoList;
-	if (lowpanco) {
-		struct nd_opt_6co co;
-
-		memset(&co, 0, sizeof(co));
-
-		co.nd_opt_6co_type = ND_OPT_6CO;
-		co.nd_opt_6co_len = 3;
-		co.nd_opt_6co_context_len = lowpanco->ContextLength;
-		co.nd_opt_6co_c = lowpanco->ContextCompressionFlag;
-		co.nd_opt_6co_cid = lowpanco->AdvContextID;
-		co.nd_opt_6co_valid_lifetime = lowpanco->AdvLifeTime;
-		co.nd_opt_6co_con_prefix = lowpanco->AdvContextPrefix;
-
-		safe_buffer_append(&safe_buffer, &co, sizeof(co));
+	if (iface->AdvLowpanCoList) {
+		add_lowpanco(&safe_buffer, iface->AdvLowpanCoList);
 	}
 
-	/*
-	 * Add ABRO option
-	 */
-	struct AdvAbro *abroo = iface->AdvAbroList;
-	if (abroo) {
-		struct nd_opt_abro abro;
-
-		memset(&abro, 0, sizeof(abro));
-
-		abro.nd_opt_abro_type = ND_OPT_ABRO;
-		abro.nd_opt_abro_len = 3;
-		abro.nd_opt_abro_ver_low = abroo->Version[1];
-		abro.nd_opt_abro_ver_high = abroo->Version[0];
-		abro.nd_opt_abro_valid_lifetime = abroo->ValidLifeTime;
-		abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
-
-		safe_buffer_append(&safe_buffer, &abro, sizeof(abro));
+	if (iface->AdvAbroList) {
+		add_abro(&safe_buffer, iface->AdvAbroList);
 	}
 
 	int err = really_send(sock, dest, iface->if_index, iface->if_addr, safe_buffer.buffer, safe_buffer.used);
