@@ -17,19 +17,20 @@
 #include "includes.h"
 #include "radvd.h"
 
-static int ensure_iface_setup(int sock, struct Interface *iface);
 static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
 		size_t len);
-static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
-static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
+static void build_ra(struct safe_buffer * sb, struct Interface const * iface);
 
-static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl);
+static int ensure_iface_setup(int sock, struct Interface *iface);
+static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
+static void update_iface_times(struct Interface * iface);
 
 static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface);
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix * prefix, int cease_adv, time_t secs_since_last_ra, char const * Name);
+static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const * prefix, int cease_adv);
 static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv);
 static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv);
+static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl);
 static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL const *dnssl, int cease_adv);
 static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
 static void add_sllao(struct safe_buffer * sb, struct Interface const *iface);
@@ -37,7 +38,6 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
 static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo const *lowpanco);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
-static void build_ra(struct safe_buffer * sb, struct Interface * iface, time_t secs_since_last_ra);
 
 /*
  * Sends an advertisement for all specified clients of this interface
@@ -94,16 +94,6 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 *       support functions                                                       *
 ********************************************************************************/
 
-static void cease_adv_pfx_msg(const char *if_name, struct in6_addr *pfx, const int pfx_len)
-{
-	char pfx_str[INET6_ADDRSTRLEN];
-
-	addrtostr(pfx, pfx_str, sizeof(pfx_str));
-
-	dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, pfx_len, if_name);
-
-}
-
 static int ensure_iface_setup(int sock, struct Interface *iface)
 {
 #ifndef HAVE_NETLINK
@@ -115,7 +105,6 @@ static int ensure_iface_setup(int sock, struct Interface *iface)
 
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 {
-
 	if (*lifetime > secs) {
 		*lifetime -= secs;
 	} else {
@@ -156,7 +145,40 @@ static void add_ra_header(struct safe_buffer * sb, struct Interface const * ifac
 	safe_buffer_append(sb, &radvert, sizeof(radvert));
 }
 
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int cease_adv, time_t secs_since_last_ra, char const * Name)
+static void update_iface_times(struct Interface * iface)
+{
+	struct timespec last_time = iface->last_ra_time;
+	clock_gettime(CLOCK_MONOTONIC, &iface->last_ra_time);
+	time_t secs_since_last_ra = timespecdiff(&iface->last_ra_time, &last_time);
+
+	if (secs_since_last_ra < 0) {
+		secs_since_last_ra = 0;
+		flog(LOG_WARNING, "clock_gettime(CLOCK_MONOTONIC) went backwards!");
+	}
+
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	while (prefix) {
+		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
+			if (!(iface->cease_adv && prefix->DeprecatePrefixFlag)) {
+				if (prefix->DecrementLifetimesFlag) {
+
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
+					decrement_lifetime(secs_since_last_ra, &prefix->curr_preferredlft);
+
+					if (prefix->curr_preferredlft == 0) {
+						char pfx_str[INET6_ADDRSTRLEN];
+						addrtostr(&prefix->Prefix, pfx_str, sizeof(pfx_str));
+						dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, prefix->PrefixLen, iface->Name);
+					}
+				}
+			}
+		}
+		prefix = prefix->next;
+	}
+}
+
+
+static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const *prefix, int cease_adv)
 {
 	while (prefix) {
 		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
@@ -178,26 +200,12 @@ static void add_prefix(struct safe_buffer * sb, struct AdvPrefix *prefix, int ce
 				pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
 				pinfo.nd_opt_pi_preferred_time = 0;
 			} else {
-				if (prefix->DecrementLifetimesFlag) {
-					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
-
-					decrement_lifetime(secs_since_last_ra, &prefix->curr_preferredlft);
-					if (prefix->curr_preferredlft == 0)
-						cease_adv_pfx_msg(Name, &prefix->Prefix, prefix->PrefixLen);
-				}
 				pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
 				pinfo.nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
-
 			}
 			pinfo.nd_opt_pi_reserved2 = 0;
 
 			memcpy(&pinfo.nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
-			char addr_str[INET6_ADDRSTRLEN];
-			addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 5,
-			     "adding prefix %s to advert for %s with %u seconds(s) valid lifetime and %u seconds(s) preferred time",
-			     addr_str, Name, ntohl(pinfo.nd_opt_pi_valid_time),
-			     ntohl(pinfo.nd_opt_pi_preferred_time));
 
 			safe_buffer_append(sb, &pinfo, sizeof(pinfo));
 		}
@@ -550,12 +558,12 @@ static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int
 }
 
 
-static void build_ra(struct safe_buffer * sb, struct Interface * iface, time_t secs_since_last_ra)
+static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 {
 	add_ra_header(sb, iface);
 
 	if (iface->AdvPrefixList) {
-		add_prefix(sb, iface->AdvPrefixList, iface->cease_adv, secs_since_last_ra, iface->Name);
+		add_prefix(sb, iface->AdvPrefixList, iface->cease_adv);
 	}
 
 	if (iface->AdvRouteList) {
@@ -617,22 +625,15 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 		clock_gettime(CLOCK_MONOTONIC, &iface->last_multicast);
 	}
 
+	update_iface_times(iface);
+
 	char address_text[INET6_ADDRSTRLEN] = { "" };
 	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
 	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->Name);
 
-	struct timespec time_now;
-	clock_gettime(CLOCK_MONOTONIC, &time_now);
-	time_t secs_since_last_ra = timespecdiff(&time_now, &iface->last_ra_time);
-	if (secs_since_last_ra < 0) {
-		secs_since_last_ra = 0;
-		flog(LOG_WARNING, "clock_gettime(CLOCK_MONOTONIC) went backwards!");
-	}
-	iface->last_ra_time = time_now;
-
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
 
-	build_ra(&safe_buffer, iface, secs_since_last_ra);
+	build_ra(&safe_buffer, iface);
 
 	int err = really_send(sock, dest, iface->if_index, iface->if_addr, safe_buffer.buffer, safe_buffer.used);
 
