@@ -112,39 +112,6 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 	}
 }
 
-/********************************************************************************
-*       add_ra_*                                                                *
-********************************************************************************/
-
-static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface)
-{
-	struct nd_router_advert radvert;
-
-	memset(&radvert, 0, sizeof(radvert));
-
-	radvert.nd_ra_type = ND_ROUTER_ADVERT;
-	radvert.nd_ra_code = 0;
-	radvert.nd_ra_cksum = 0;
-	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
-	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
-	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
-	/* Mobile IPv6 ext */
-	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
-
-	if (iface->cease_adv) {
-		radvert.nd_ra_router_lifetime = 0;
-	} else {
-		/* if forwarding is disabled, send zero router lifetime */
-		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
-	}
-	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-
-	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
-	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
-
-	safe_buffer_append(sb, &radvert, sizeof(radvert));
-}
-
 static void update_iface_times(struct Interface * iface)
 {
 	struct timespec last_time = iface->last_ra_time;
@@ -177,6 +144,39 @@ static void update_iface_times(struct Interface * iface)
 	}
 }
 
+
+/********************************************************************************
+*       add_ra_*                                                                *
+********************************************************************************/
+
+static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface)
+{
+	struct nd_router_advert radvert;
+
+	memset(&radvert, 0, sizeof(radvert));
+
+	radvert.nd_ra_type = ND_ROUTER_ADVERT;
+	radvert.nd_ra_code = 0;
+	radvert.nd_ra_cksum = 0;
+	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
+	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
+	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
+	/* Mobile IPv6 ext */
+	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+
+	if (iface->cease_adv) {
+		radvert.nd_ra_router_lifetime = 0;
+	} else {
+		/* if forwarding is disabled, send zero router lifetime */
+		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
+	}
+	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+
+	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
+	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
+
+	safe_buffer_append(sb, &radvert, sizeof(radvert));
+}
 
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const *prefix, int cease_adv)
 {
@@ -267,6 +267,60 @@ static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct Ad
 		}
 	}
 	return len;
+}
+
+static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv)
+{
+	while (route) {
+		struct nd_opt_route_info_local rinfo;
+
+		memset(&rinfo, 0, sizeof(rinfo));
+
+		rinfo.nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
+		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
+		rinfo.nd_opt_ri_len = 3;
+		rinfo.nd_opt_ri_prefix_len = route->PrefixLen;
+
+		rinfo.nd_opt_ri_flags_reserved = (route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+		if (cease_adv && route->RemoveRouteFlag) {
+			rinfo.nd_opt_ri_lifetime = 0;
+		} else {
+			rinfo.nd_opt_ri_lifetime = htonl(route->AdvRouteLifetime);
+		}
+
+		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
+
+		safe_buffer_append(sb, &rinfo, sizeof(rinfo));
+
+		route = route->next;
+	}
+}
+
+static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv)
+{
+	while (rdnss) {
+		struct nd_opt_rdnss_info_local rdnssinfo;
+
+		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
+
+		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
+		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
+		rdnssinfo.nd_opt_rdnssi_pref_flag_reserved = 0;
+
+		if (cease_adv && rdnss->FlushRDNSSFlag) {
+			rdnssinfo.nd_opt_rdnssi_lifetime = 0;
+		} else {
+			rdnssinfo.nd_opt_rdnssi_lifetime = htonl(rdnss->AdvRDNSSLifetime);
+		}
+
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1, sizeof(struct in6_addr));
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
+		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
+
+		safe_buffer_append(sb, &rdnssinfo, sizeof(rdnssinfo));
+
+		rdnss = rdnss->next;
+	}
 }
 
 static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl, int cease_adv)
@@ -363,6 +417,7 @@ static void add_dnssl(struct safe_buffer * safe_buffer, struct AdvDNSSL const *d
  */
 static void add_sllao(struct safe_buffer * sb, struct Interface const *iface)
 {
+	/* TODO: Can we remove Interface from this function? */
 	/* *INDENT-OFF* */
 	/*
 	4.6.1.  Source/Target Link-layer Address
@@ -454,6 +509,7 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
  */
 static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface)
 {
+	/* TODO: Can we remove Interface from this function? */
 	struct HomeAgentInfo ha_info;
 
 	memset(&ha_info, 0, sizeof(ha_info));
@@ -501,60 +557,6 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo)
 	abro.nd_opt_abro_6lbr_address = abroo->LBRaddress;
 
 	safe_buffer_append(sb, &abro, sizeof(abro));
-}
-
-static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv)
-{
-	while (route) {
-		struct nd_opt_route_info_local rinfo;
-
-		memset(&rinfo, 0, sizeof(rinfo));
-
-		rinfo.nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
-		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
-		rinfo.nd_opt_ri_len = 3;
-		rinfo.nd_opt_ri_prefix_len = route->PrefixLen;
-
-		rinfo.nd_opt_ri_flags_reserved = (route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
-		if (cease_adv && route->RemoveRouteFlag) {
-			rinfo.nd_opt_ri_lifetime = 0;
-		} else {
-			rinfo.nd_opt_ri_lifetime = htonl(route->AdvRouteLifetime);
-		}
-
-		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
-
-		safe_buffer_append(sb, &rinfo, sizeof(rinfo));
-
-		route = route->next;
-	}
-}
-
-static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv)
-{
-	while (rdnss) {
-		struct nd_opt_rdnss_info_local rdnssinfo;
-
-		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
-
-		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
-		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
-		rdnssinfo.nd_opt_rdnssi_pref_flag_reserved = 0;
-
-		if (cease_adv && rdnss->FlushRDNSSFlag) {
-			rdnssinfo.nd_opt_rdnssi_lifetime = 0;
-		} else {
-			rdnssinfo.nd_opt_rdnssi_lifetime = htonl(rdnss->AdvRDNSSLifetime);
-		}
-
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
-
-		safe_buffer_append(sb, &rdnssinfo, sizeof(rdnssinfo));
-
-		rdnss = rdnss->next;
-	}
 }
 
 
