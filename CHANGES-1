@@ -1,3 +1,6 @@
+2014/06/27	Add check in configure.ac for clock_gettime <Gustavo Zacarias>
+		release 1.14
+
 2014/06/13	Use clock_gettime and monotonic clock <Markus Pargmann>
 		release 1.13
 
