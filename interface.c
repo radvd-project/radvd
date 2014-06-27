@@ -32,17 +32,19 @@ void iface_init_defaults(struct Interface *iface)
 	iface->AdvRetransTimer = DFLT_AdvRetransTimer;
 	iface->AdvLinkMTU = DFLT_AdvLinkMTU;
 	iface->AdvCurHopLimit = DFLT_AdvCurHopLimit;
-	iface->AdvIntervalOpt = DFLT_AdvIntervalOpt;
-	iface->AdvHomeAgentInfo = DFLT_AdvHomeAgentInfo;
-	iface->AdvHomeAgentFlag = DFLT_AdvHomeAgentFlag;
-	iface->HomeAgentPreference = DFLT_HomeAgentPreference;
 	iface->MinDelayBetweenRAs = DFLT_MinDelayBetweenRAs;
-	iface->AdvMobRtrSupportFlag = DFLT_AdvMobRtrSupportFlag;
+
+	iface->mipv6.AdvIntervalOpt = DFLT_AdvIntervalOpt;
+	iface->mipv6.AdvHomeAgentInfo = DFLT_AdvHomeAgentInfo;
+	iface->mipv6.AdvHomeAgentFlag = DFLT_AdvHomeAgentFlag;
+	iface->mipv6.HomeAgentPreference = DFLT_HomeAgentPreference;
+	iface->mipv6.AdvMobRtrSupportFlag = DFLT_AdvMobRtrSupportFlag;
+	iface->mipv6.HomeAgentLifetime = -1;
 
 	iface->MinRtrAdvInterval = -1;
 	iface->AdvDefaultLifetime = -1;
 	iface->AdvDefaultPreference = DFLT_AdvDefaultPreference;
-	iface->HomeAgentLifetime = -1;
+
 }
 
 void prefix_init_defaults(struct AdvPrefix *prefix)
@@ -95,7 +97,7 @@ int check_iface(struct Interface *iface)
 	int MIPv6 = 0;
 
 	/* Check if we use Mobile IPv6 extensions */
-	if (iface->AdvHomeAgentFlag || iface->AdvHomeAgentInfo || iface->AdvIntervalOpt) {
+	if (iface->mipv6.AdvHomeAgentFlag || iface->mipv6.AdvHomeAgentInfo || iface->mipv6.AdvIntervalOpt) {
 		MIPv6 = 1;
 		flog(LOG_INFO, "using Mobile IPv6 extensions");
 	}
@@ -162,25 +164,25 @@ int check_iface(struct Interface *iface)
 	}
 
 	/* Mobile IPv6 ext */
-	if (iface->HomeAgentLifetime < 0)
-		iface->HomeAgentLifetime = DFLT_HomeAgentLifetime(iface);
+	if (iface->mipv6.HomeAgentLifetime < 0)
+		iface->mipv6.HomeAgentLifetime = DFLT_HomeAgentLifetime(iface);
 
 	/* Mobile IPv6 ext */
-	if (iface->AdvHomeAgentInfo) {
-		if ((iface->HomeAgentLifetime > MAX_HomeAgentLifetime) || (iface->HomeAgentLifetime < MIN_HomeAgentLifetime)) {
+	if (iface->mipv6.AdvHomeAgentInfo) {
+		if ((iface->mipv6.HomeAgentLifetime > MAX_HomeAgentLifetime) || (iface->mipv6.HomeAgentLifetime < MIN_HomeAgentLifetime)) {
 			flog(LOG_ERR,
 			     "HomeAgentLifetime for %s (%u) must be between %u and %u", iface->Name,
-			     iface->HomeAgentLifetime, MIN_HomeAgentLifetime, MAX_HomeAgentLifetime);
+			     iface->mipv6.HomeAgentLifetime, MIN_HomeAgentLifetime, MAX_HomeAgentLifetime);
 			res = -1;
 		}
 	}
 
 	/* Mobile IPv6 ext */
-	if (iface->AdvHomeAgentInfo && !(iface->AdvHomeAgentFlag)) {
+	if (iface->mipv6.AdvHomeAgentInfo && !(iface->mipv6.AdvHomeAgentFlag)) {
 		flog(LOG_ERR, "AdvHomeAgentFlag for %s must be set with HomeAgentInfo", iface->Name);
 		res = -1;
 	}
-	if (iface->AdvMobRtrSupportFlag && !(iface->AdvHomeAgentInfo)) {
+	if (iface->mipv6.AdvMobRtrSupportFlag && !(iface->mipv6.AdvHomeAgentInfo)) {
 		flog(LOG_ERR, "AdvHomeAgentInfo for %s must be set with AdvMobRtrSupportFlag", iface->Name);
 		res = -1;
 	}

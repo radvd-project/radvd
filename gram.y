@@ -308,23 +308,23 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		| T_AdvIntervalOpt SWITCH ';'
 		{
-			iface->AdvIntervalOpt = $2;
+			iface->mipv6.AdvIntervalOpt = $2;
 		}
 		| T_AdvHomeAgentInfo SWITCH ';'
 		{
-			iface->AdvHomeAgentInfo = $2;
+			iface->mipv6.AdvHomeAgentInfo = $2;
 		}
 		| T_AdvHomeAgentFlag SWITCH ';'
 		{
-			iface->AdvHomeAgentFlag = $2;
+			iface->mipv6.AdvHomeAgentFlag = $2;
 		}
 		| T_HomeAgentPreference NUMBER ';'
 		{
-			iface->HomeAgentPreference = $2;
+			iface->mipv6.HomeAgentPreference = $2;
 		}
 		| T_HomeAgentLifetime NUMBER ';'
 		{
-			iface->HomeAgentLifetime = $2;
+			iface->mipv6.HomeAgentLifetime = $2;
 		}
 		| T_UnicastOnly SWITCH ';'
 		{
@@ -332,7 +332,7 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		| T_AdvMobRtrSupportFlag SWITCH ';'
 		{
-			iface->AdvMobRtrSupportFlag = $2;
+			iface->mipv6.AdvMobRtrSupportFlag = $2;
 		}
 		;
 

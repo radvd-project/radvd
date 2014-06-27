@@ -81,15 +81,18 @@ struct Interface {
 	int AdvSourceLLAddress;
 	int UnicastOnly;
 
-	/* Mobile IPv6 extensions */
-	int AdvIntervalOpt;
-	int AdvHomeAgentInfo;
-	int AdvHomeAgentFlag;
-	uint16_t HomeAgentPreference;
-	int32_t HomeAgentLifetime;	/* XXX: really uint16_t but we need to use -1 */
+	struct mipv6 {
+		/* Mobile IPv6 extensions */
+		int AdvIntervalOpt;
+		int AdvHomeAgentInfo;
+		int AdvHomeAgentFlag;
 
-	/* NEMO extensions */
-	int AdvMobRtrSupportFlag;
+		uint16_t HomeAgentPreference;
+		int32_t HomeAgentLifetime;	/* XXX: really uint16_t but we need to use -1 */
+
+		/* NEMO extensions */
+		int AdvMobRtrSupportFlag;
+	} mipv6;
 
 	/* 6lowpan extension */
 	struct AdvLowpanCo *AdvLowpanCoList;

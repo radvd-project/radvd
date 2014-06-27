@@ -35,7 +35,7 @@ static void add_dnssl(struct safe_buffer * sb, struct AdvDNSSL const *dnssl, int
 static void add_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
 static void add_sllao(struct safe_buffer * sb, struct sllao const *sllao);
 static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
-static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface);
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct mipv6 const * mipv6);
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo const *lowpanco);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
 
@@ -162,7 +162,7 @@ static void add_ra_header(struct safe_buffer * sb, struct Interface const * ifac
 	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
 	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
 	/* Mobile IPv6 ext */
-	radvert.nd_ra_flags_reserved |= (iface->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+	radvert.nd_ra_flags_reserved |= (iface->mipv6.AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
 
 	if (iface->cease_adv) {
 		radvert.nd_ra_router_lifetime = 0;
@@ -506,18 +506,17 @@ static void add_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdv
  * Mobile IPv6 ext: Home Agent Information Option to support
  * Dynamic Home Agent Address Discovery
  */
-static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct Interface const * iface)
+static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct mipv6 const * mipv6)
 {
-	/* TODO: Can we remove Interface from this function? */
 	struct HomeAgentInfo ha_info;
 
 	memset(&ha_info, 0, sizeof(ha_info));
 
 	ha_info.type = ND_OPT_HOME_AGENT_INFO;
 	ha_info.length = 1;
-	ha_info.flags_reserved = (iface->AdvMobRtrSupportFlag) ? ND_OPT_HAI_FLAG_SUPPORT_MR : 0;
-	ha_info.preference = htons(iface->HomeAgentPreference);
-	ha_info.lifetime = htons(iface->HomeAgentLifetime);
+	ha_info.flags_reserved = (mipv6->AdvMobRtrSupportFlag) ? ND_OPT_HAI_FLAG_SUPPORT_MR : 0;
+	ha_info.preference = htons(mipv6->HomeAgentPreference);
+	ha_info.lifetime = htons(mipv6->HomeAgentLifetime);
 
 	safe_buffer_append(sb, &ha_info, sizeof(ha_info));
 }
@@ -587,15 +586,15 @@ static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 		add_sllao(sb, &iface->sllao);
 	}
 
-	if (iface->AdvIntervalOpt) {
+	if (iface->mipv6.AdvIntervalOpt) {
 		add_mipv6_rtr_adv_interval(sb, iface->MaxRtrAdvInterval);
 	}
 
-	if (iface->AdvHomeAgentInfo
-	    && (iface->AdvMobRtrSupportFlag || iface->HomeAgentPreference != 0
-		|| iface->HomeAgentLifetime != iface->AdvDefaultLifetime)) {
+	if (iface->mipv6.AdvHomeAgentInfo
+	    && (iface->mipv6.AdvMobRtrSupportFlag || iface->mipv6.HomeAgentPreference != 0
+		|| iface->mipv6.HomeAgentLifetime != iface->AdvDefaultLifetime)) {
 
-		add_mipv6_home_agent_info(sb, iface);
+		add_mipv6_home_agent_info(sb, &iface->mipv6);
 	}
 
 	if (iface->AdvLowpanCoList) {
