@@ -40,7 +40,7 @@ uint64_t next_time_msec(struct Interface const *iface)
 	struct timespec ts;
 	int64_t diff_ms;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	diff_ms = timespecdiff(&iface->next_multicast, &ts);
+	diff_ms = timespecdiff(&iface->times.next_multicast, &ts);
 	if (diff_ms <= 0)
 		return 0;
 	return (uint64_t)diff_ms;

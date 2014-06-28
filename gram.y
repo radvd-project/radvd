@@ -180,7 +180,7 @@ grammar		: grammar ifacedef
 
 ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 		{
-			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
+			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->props.name);
 
 			iface->next = IfaceList;
 			IfaceList = iface;
@@ -194,7 +194,7 @@ ifacehead	: T_INTERFACE name
 
 			while (iface)
 			{
-				if (!strcmp($2, iface->Name))
+				if (!strcmp($2, iface->props.name))
 				{
 					flog(LOG_ERR, "duplicate interface "
 						"definition for %s", $2);
@@ -211,8 +211,8 @@ ifacehead	: T_INTERFACE name
 			}
 
 			iface_init_defaults(iface);
-			strncpy(iface->Name, $2, IFNAMSIZ-1);
-			iface->Name[IFNAMSIZ-1] = '\0';
+			strncpy(iface->props.name, $2, IFNAMSIZ-1);
+			iface->props.name[IFNAMSIZ-1] = '\0';
 			iface->lineno = @1.first_line;
 		}
 		;
@@ -272,11 +272,11 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		| T_AdvManagedFlag SWITCH ';'
 		{
-			iface->AdvManagedFlag = $2;
+			iface->ra_header_info.AdvManagedFlag = $2;
 		}
 		| T_AdvOtherConfigFlag SWITCH ';'
 		{
-			iface->AdvOtherConfigFlag = $2;
+			iface->ra_header_info.AdvOtherConfigFlag = $2;
 		}
 		| T_AdvLinkMTU NUMBER ';'
 		{
@@ -284,23 +284,23 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		| T_AdvReachableTime NUMBER ';'
 		{
-			iface->AdvReachableTime = $2;
+			iface->ra_header_info.AdvReachableTime = $2;
 		}
 		| T_AdvRetransTimer NUMBER ';'
 		{
-			iface->AdvRetransTimer = $2;
+			iface->ra_header_info.AdvRetransTimer = $2;
 		}
 		| T_AdvDefaultLifetime NUMBER ';'
 		{
-			iface->AdvDefaultLifetime = $2;
+			iface->ra_header_info.AdvDefaultLifetime = $2;
 		}
 		| T_AdvDefaultPreference SIGNEDNUMBER ';'
 		{
-			iface->AdvDefaultPreference = $2;
+			iface->ra_header_info.AdvDefaultPreference = $2;
 		}
 		| T_AdvCurHopLimit NUMBER ';'
 		{
-			iface->AdvCurHopLimit = $2;
+			iface->ra_header_info.AdvCurHopLimit = $2;
 		}
 		| T_AdvSourceLLAddress SWITCH ';'
 		{
@@ -316,7 +316,7 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		| T_AdvHomeAgentFlag SWITCH ';'
 		{
-			iface->mipv6.AdvHomeAgentFlag = $2;
+			iface->ra_header_info.AdvHomeAgentFlag = $2;
 		}
 		| T_HomeAgentPreference NUMBER ';'
 		{
@@ -449,7 +449,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 							flog(LOG_ERR, "Error: (%s:%d) %s: inet_ntop failed!", filename, @1.first_line, ifa->ifa_name);
 						else
 							dlog(LOG_DEBUG, 3, "Info: (%s:%d) auto-selected prefix %s/%d on interface %s from interface %s",
-								filename, @1.first_line, buf, prefix->PrefixLen, iface->Name, ifa->ifa_name);
+								filename, @1.first_line, buf, prefix->PrefixLen, iface->props.name, ifa->ifa_name);
 
 						/* Taking only one prefix from the Base6Interface.  Taking more than one would require allocating new
 						   prefixes and building a list.  I'm not sure how to do that from here. So for now, break. */
@@ -498,7 +498,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 					struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
 					char buf[INET6_ADDRSTRLEN];
 
-					if (strncmp(ifa->ifa_name, iface->Name, IFNAMSIZ))
+					if (strncmp(ifa->ifa_name, iface->props.name, IFNAMSIZ))
 						continue;
 
 					if (ifa->ifa_addr->sa_family != AF_INET6)
@@ -533,7 +533,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				}
 
 				if (!prefix) {
-					flog(LOG_WARNING, "Warning: (%s:%d) no auto-selected prefix on interface %s, disabling advertisements", filename, @1.first_line, iface->Name);
+					flog(LOG_WARNING, "Warning: (%s:%d) no auto-selected prefix on interface %s, disabling advertisements", filename, @1.first_line, iface->props.name);
 				}
 
 				if (ifap)
@@ -656,7 +656,7 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					flog(LOG_ERR, "Error: (%s:%d) automatically selecting the prefix and Base6Interface are mutually exclusive.", filename, @1.first_line);
 					ABORT;
 				} /* fallthrough */
-				dlog(LOG_DEBUG, 4, "Info: (%s:%d) using prefixes on interface %s for prefixes on interface %s.", filename, @1.first_line, $2, iface->Name);
+				dlog(LOG_DEBUG, 4, "Info: (%s:%d) using prefixes on interface %s for prefixes on interface %s.", filename, @1.first_line, $2, iface->props.name);
 				strncpy(prefix->if6, $2, IFNAMSIZ-1);
 				prefix->if6[IFNAMSIZ-1] = '\0';
 			}
@@ -669,7 +669,7 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 					flog(LOG_ERR, "Error: (%s:%d) automatically selecting the prefix and Base6to4Interface are mutually exclusive", filename, @1.first_line);
 					ABORT;
 				} /* fallthrough */
-				dlog(LOG_DEBUG, 4, "Info: (%s:%d) using interface %s for 6to4 prefixes on interface %s", filename, @1.first_line, $2, iface->Name);
+				dlog(LOG_DEBUG, 4, "Info: (%s:%d) using interface %s for 6to4 prefixes on interface %s", filename, @1.first_line, $2, iface->props.name);
 				strncpy(prefix->if6to4, $2, IFNAMSIZ-1);
 				prefix->if6to4[IFNAMSIZ-1] = '\0';
 			}

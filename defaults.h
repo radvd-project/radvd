@@ -217,7 +217,7 @@ struct nd_opt_dnssl_info_local {
 /* Configurable values */
 
 #define DFLT_HomeAgentPreference	0
-#define DFLT_HomeAgentLifetime(iface)	((iface)->AdvDefaultLifetime)
+#define DFLT_HomeAgentLifetime(iface)	((iface)->ra_header_info.AdvDefaultLifetime)
 
 /* Other */
 

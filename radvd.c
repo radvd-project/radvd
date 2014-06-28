@@ -359,7 +359,7 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 			ts.tv_nsec = (timeout - 1000 * ts.tv_sec) * 1000000;
 			tsp = &ts;
 			dlog(LOG_DEBUG, 1, "polling for %g seconds. Next iface is %s.", timeout / 1000.0,
-			     next_iface_to_expire->Name);
+			     next_iface_to_expire->props.name);
 		} else {
 			dlog(LOG_DEBUG, 1, "No iface is next. Polling indefinitely.");
 		}
@@ -485,10 +485,10 @@ static int write_pid_file(int pid_fd)
 
 static void timer_handler(int sock, struct Interface *iface)
 {
-	dlog(LOG_DEBUG, 1, "timer_handler called for %s", iface->Name);
+	dlog(LOG_DEBUG, 1, "timer_handler called for %s", iface->props.name);
 
 	if (send_ra_forall(sock, iface, NULL) != 0) {
-		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->Name);
+		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->props.name);
 	}
 
 	double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
@@ -499,31 +499,30 @@ static void timer_handler(int sock, struct Interface *iface)
 static void config_interface(struct Interface *iface)
 {
 	if (iface->AdvLinkMTU)
-		set_interface_linkmtu(iface->Name, iface->AdvLinkMTU);
-	if (iface->AdvCurHopLimit)
-		set_interface_curhlim(iface->Name, iface->AdvCurHopLimit);
-	if (iface->AdvReachableTime)
-		set_interface_reachtime(iface->Name, iface->AdvReachableTime);
-	if (iface->AdvRetransTimer)
-		set_interface_retranstimer(iface->Name, iface->AdvRetransTimer);
+		set_interface_linkmtu(iface->props.name, iface->AdvLinkMTU);
+	if (iface->ra_header_info.AdvCurHopLimit)
+		set_interface_curhlim(iface->props.name, iface->ra_header_info.AdvCurHopLimit);
+	if (iface->ra_header_info.AdvReachableTime)
+		set_interface_reachtime(iface->props.name, iface->ra_header_info.AdvReachableTime);
+	if (iface->ra_header_info.AdvRetransTimer)
+		set_interface_retranstimer(iface->props.name, iface->ra_header_info.AdvRetransTimer);
 }
 
+/*
+ *      send initial advertisement and set timers
+ */
 static void kickoff_adverts(int sock, struct Interface *iface)
 {
-	/*
-	 *      send initial advertisement and set timers
-	 */
-
-	clock_gettime(CLOCK_MONOTONIC, &iface->last_ra_time);
+	clock_gettime(CLOCK_MONOTONIC, &iface->times.last_ra_time);
 
 	if (iface->UnicastOnly)
 		return;
 
-	clock_gettime(CLOCK_MONOTONIC, &iface->last_multicast);
+	clock_gettime(CLOCK_MONOTONIC, &iface->times.last_multicast);
 
 	/* send an initial advertisement */
 	if (send_ra_forall(sock, iface, NULL) != 0) {
-		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->Name);
+		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->props.name);
 	}
 
 	double next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
@@ -534,8 +533,8 @@ static void stop_advert_foo(struct Interface *iface, void *data)
 {
 	if (!iface->UnicastOnly) {
 		/* send a final advertisement with zero Router Lifetime */
-		dlog(LOG_DEBUG, 4, "stopping all adverts on %s.", iface->Name);
-		iface->cease_adv = 1;
+		dlog(LOG_DEBUG, 4, "stopping all adverts on %s.", iface->props.name);
+		iface->state_info.cease_adv = 1;
 		int sock = *(int *)data;
 		send_ra_forall(sock, iface, NULL);
 	}
@@ -552,7 +551,7 @@ static void stop_adverts(int sock, struct Interface *ifaces)
 
 int setup_iface(int sock, struct Interface *iface)
 {
-	iface->ready = 0;
+	iface->state_info.ready = 0;
 
 	/* Check IFF_UP, IFF_RUNNING and IFF_MULTICAST */
 	if (check_device(sock, iface) < 0) {
@@ -576,7 +575,7 @@ int setup_iface(int sock, struct Interface *iface)
 
 	/* Make sure this is diabled.  We don't want this interface to autoconfig using its
 	 * own advert messages. */
-	if (disable_ipv6_autoconfig(iface->Name)) {
+	if (disable_ipv6_autoconfig(iface->props.name)) {
 		return -1;
 	}
 
@@ -590,9 +589,9 @@ int setup_iface(int sock, struct Interface *iface)
 		return -1;
 	}
 
-	iface->ready = 1;
+	iface->state_info.ready = 1;
 
-	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
+	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->props.name);
 
 	return 0;
 }
@@ -604,10 +603,10 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 	if (setup_iface(sock, iface) < 0) {
 		if (iface->IgnoreIfMissing) {
 			dlog(LOG_DEBUG, 4, "interface %s does not exist or is not set up properly, ignoring the interface",
-			     iface->Name);
+			     iface->props.name);
 			return;
 		} else {
-			flog(LOG_ERR, "interface %s does not exist or is not set up properly", iface->Name);
+			flog(LOG_ERR, "interface %s does not exist or is not set up properly", iface->props.name);
 			exit(1);
 		}
 	}
@@ -670,16 +669,16 @@ static void sigusr1_handler(int sig)
 
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data)
 {
-	flog(LOG_INFO, "Resetting prefix lifetimes on %s", iface->Name);
+	flog(LOG_INFO, "Resetting prefix lifetimes on %s", iface->props.name);
 
 	for (struct AdvPrefix * prefix = iface->AdvPrefixList; prefix; prefix = prefix->next) {
 		if (prefix->DecrementLifetimesFlag) {
 			char pfx_str[INET6_ADDRSTRLEN];
 			addrtostr(&prefix->Prefix, pfx_str, sizeof(pfx_str));
 			dlog(LOG_DEBUG, 4, "%s/%u%%%s plft reset from %u to %u secs", pfx_str, prefix->PrefixLen,
-			     iface->Name, prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
+			     iface->props.name, prefix->curr_preferredlft, prefix->AdvPreferredLifetime);
 			dlog(LOG_DEBUG, 4, "%s/%u%%%s vlft reset from %u to %u secs", pfx_str, prefix->PrefixLen,
-			     iface->Name, prefix->curr_validlft, prefix->AdvValidLifetime);
+			     iface->props.name, prefix->curr_validlft, prefix->AdvValidLifetime);
 			prefix->curr_validlft = prefix->AdvValidLifetime;
 			prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
 		}

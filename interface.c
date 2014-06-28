@@ -21,29 +21,30 @@ void iface_init_defaults(struct Interface *iface)
 {
 	memset(iface, 0, sizeof(struct Interface));
 
-	iface->cease_adv = 0;
+	iface->state_info.cease_adv = 0;
 
-	iface->ready = 0;
+	iface->state_info.ready = 0;
 	iface->IgnoreIfMissing = DFLT_IgnoreIfMissing;
 	iface->AdvSendAdvert = DFLT_AdvSendAdv;
 	iface->MaxRtrAdvInterval = DFLT_MaxRtrAdvInterval;
 	iface->AdvSourceLLAddress = DFLT_AdvSourceLLAddress;
-	iface->AdvReachableTime = DFLT_AdvReachableTime;
-	iface->AdvRetransTimer = DFLT_AdvRetransTimer;
-	iface->AdvLinkMTU = DFLT_AdvLinkMTU;
-	iface->AdvCurHopLimit = DFLT_AdvCurHopLimit;
 	iface->MinDelayBetweenRAs = DFLT_MinDelayBetweenRAs;
+	iface->MinRtrAdvInterval = -1;
+
+	iface->ra_header_info.AdvDefaultPreference = DFLT_AdvDefaultPreference;
+	iface->ra_header_info.AdvDefaultLifetime = -1;
+	iface->ra_header_info.AdvReachableTime = DFLT_AdvReachableTime;
+	iface->ra_header_info.AdvRetransTimer = DFLT_AdvRetransTimer;
+	iface->ra_header_info.AdvCurHopLimit = DFLT_AdvCurHopLimit;
+	iface->ra_header_info.AdvHomeAgentFlag = DFLT_AdvHomeAgentFlag;
 
 	iface->mipv6.AdvIntervalOpt = DFLT_AdvIntervalOpt;
 	iface->mipv6.AdvHomeAgentInfo = DFLT_AdvHomeAgentInfo;
-	iface->mipv6.AdvHomeAgentFlag = DFLT_AdvHomeAgentFlag;
 	iface->mipv6.HomeAgentPreference = DFLT_HomeAgentPreference;
 	iface->mipv6.AdvMobRtrSupportFlag = DFLT_AdvMobRtrSupportFlag;
 	iface->mipv6.HomeAgentLifetime = -1;
 
-	iface->MinRtrAdvInterval = -1;
-	iface->AdvDefaultLifetime = -1;
-	iface->AdvDefaultPreference = DFLT_AdvDefaultPreference;
+	iface->AdvLinkMTU = DFLT_AdvLinkMTU;
 
 }
 
@@ -97,7 +98,7 @@ int check_iface(struct Interface *iface)
 	int MIPv6 = 0;
 
 	/* Check if we use Mobile IPv6 extensions */
-	if (iface->mipv6.AdvHomeAgentFlag || iface->mipv6.AdvHomeAgentInfo || iface->mipv6.AdvIntervalOpt) {
+	if (iface->ra_header_info.AdvHomeAgentFlag || iface->mipv6.AdvHomeAgentInfo || iface->mipv6.AdvIntervalOpt) {
 		MIPv6 = 1;
 		flog(LOG_INFO, "using Mobile IPv6 extensions");
 	}
@@ -117,7 +118,7 @@ int check_iface(struct Interface *iface)
 	    || (iface->MinRtrAdvInterval > MAX_MinRtrAdvInterval(iface))) {
 		flog(LOG_ERR,
 		     "MinRtrAdvInterval for %s (%.2f) must be at least %.2f but no more than 3/4 of MaxRtrAdvInterval (%.2f)",
-		     iface->Name, iface->MinRtrAdvInterval, MIPv6 ? MIN_MinRtrAdvInterval_MIPv6 : (int)MIN_MinRtrAdvInterval,
+		     iface->props.name, iface->MinRtrAdvInterval, MIPv6 ? MIN_MinRtrAdvInterval_MIPv6 : (int)MIN_MinRtrAdvInterval,
 		     MAX_MinRtrAdvInterval(iface));
 		res = -1;
 	}
@@ -126,14 +127,14 @@ int check_iface(struct Interface *iface)
 	    || (iface->MaxRtrAdvInterval > MAX_MaxRtrAdvInterval)) {
 		flog(LOG_ERR,
 		     "MaxRtrAdvInterval for %s (%.2f) must be between %.2f and %d",
-		     iface->Name, iface->MaxRtrAdvInterval, MIPv6 ? MIN_MaxRtrAdvInterval_MIPv6 : (int)MIN_MaxRtrAdvInterval,
+		     iface->props.name, iface->MaxRtrAdvInterval, MIPv6 ? MIN_MaxRtrAdvInterval_MIPv6 : (int)MIN_MaxRtrAdvInterval,
 		     MAX_MaxRtrAdvInterval);
 		res = -1;
 	}
 
 	if (iface->MinDelayBetweenRAs < (MIPv6 ? MIN_DELAY_BETWEEN_RAS_MIPv6 : MIN_DELAY_BETWEEN_RAS)) {
 		flog(LOG_ERR,
-		     "MinDelayBetweenRAs for %s (%.2f) must be at least %.2f", iface->Name, iface->MinDelayBetweenRAs,
+		     "MinDelayBetweenRAs for %s (%.2f) must be at least %.2f", iface->props.name, iface->MinDelayBetweenRAs,
 		     MIPv6 ? MIN_DELAY_BETWEEN_RAS_MIPv6 : MIN_DELAY_BETWEEN_RAS);
 		res = -1;
 	}
@@ -141,25 +142,25 @@ int check_iface(struct Interface *iface)
 	if ((iface->AdvLinkMTU != 0)
 	    && ((iface->AdvLinkMTU < MIN_AdvLinkMTU)
 		|| (iface->sllao.if_maxmtu != -1 && (iface->AdvLinkMTU > iface->sllao.if_maxmtu)))) {
-		flog(LOG_ERR, "AdvLinkMTU for %s (%u) must be zero or between %u and %u", iface->Name, iface->AdvLinkMTU,
+		flog(LOG_ERR, "AdvLinkMTU for %s (%u) must be zero or between %u and %u", iface->props.name, iface->AdvLinkMTU,
 		     MIN_AdvLinkMTU, iface->sllao.if_maxmtu);
 		res = -1;
 	}
 
-	if (iface->AdvReachableTime > MAX_AdvReachableTime) {
-		flog(LOG_ERR, "AdvReachableTime for %s (%u) must not be greater than %u", iface->Name,
-		     iface->AdvReachableTime, MAX_AdvReachableTime);
+	if (iface->ra_header_info.AdvReachableTime > MAX_AdvReachableTime) {
+		flog(LOG_ERR, "AdvReachableTime for %s (%u) must not be greater than %u", iface->props.name,
+		     iface->ra_header_info.AdvReachableTime, MAX_AdvReachableTime);
 		res = -1;
 	}
 
-	if (iface->AdvDefaultLifetime < 0)
-		iface->AdvDefaultLifetime = DFLT_AdvDefaultLifetime(iface);
+	if (iface->ra_header_info.AdvDefaultLifetime < 0)
+		iface->ra_header_info.AdvDefaultLifetime = DFLT_AdvDefaultLifetime(iface);
 
-	if ((iface->AdvDefaultLifetime != 0)
-	    && ((iface->AdvDefaultLifetime > MAX_AdvDefaultLifetime)
-		|| (iface->AdvDefaultLifetime < MIN_AdvDefaultLifetime(iface)))) {
-		flog(LOG_ERR, "AdvDefaultLifetime for %s (%u) must be zero or between %u and %u", iface->Name,
-		     iface->AdvDefaultLifetime, (int)MIN_AdvDefaultLifetime(iface), MAX_AdvDefaultLifetime);
+	if ((iface->ra_header_info.AdvDefaultLifetime != 0)
+	    && ((iface->ra_header_info.AdvDefaultLifetime > MAX_AdvDefaultLifetime)
+		|| (iface->ra_header_info.AdvDefaultLifetime < MIN_AdvDefaultLifetime(iface)))) {
+		flog(LOG_ERR, "AdvDefaultLifetime for %s (%u) must be zero or between %u and %u", iface->props.name,
+		     iface->ra_header_info.AdvDefaultLifetime, (int)MIN_AdvDefaultLifetime(iface), MAX_AdvDefaultLifetime);
 		res = -1;
 	}
 
@@ -171,19 +172,19 @@ int check_iface(struct Interface *iface)
 	if (iface->mipv6.AdvHomeAgentInfo) {
 		if ((iface->mipv6.HomeAgentLifetime > MAX_HomeAgentLifetime) || (iface->mipv6.HomeAgentLifetime < MIN_HomeAgentLifetime)) {
 			flog(LOG_ERR,
-			     "HomeAgentLifetime for %s (%u) must be between %u and %u", iface->Name,
+			     "HomeAgentLifetime for %s (%u) must be between %u and %u", iface->props.name,
 			     iface->mipv6.HomeAgentLifetime, MIN_HomeAgentLifetime, MAX_HomeAgentLifetime);
 			res = -1;
 		}
 	}
 
 	/* Mobile IPv6 ext */
-	if (iface->mipv6.AdvHomeAgentInfo && !(iface->mipv6.AdvHomeAgentFlag)) {
-		flog(LOG_ERR, "AdvHomeAgentFlag for %s must be set with HomeAgentInfo", iface->Name);
+	if (iface->mipv6.AdvHomeAgentInfo && !(iface->ra_header_info.AdvHomeAgentFlag)) {
+		flog(LOG_ERR, "AdvHomeAgentFlag for %s must be set with HomeAgentInfo", iface->props.name);
 		res = -1;
 	}
 	if (iface->mipv6.AdvMobRtrSupportFlag && !(iface->mipv6.AdvHomeAgentInfo)) {
-		flog(LOG_ERR, "AdvHomeAgentInfo for %s must be set with AdvMobRtrSupportFlag", iface->Name);
+		flog(LOG_ERR, "AdvHomeAgentInfo for %s must be set with AdvMobRtrSupportFlag", iface->props.name);
 		res = -1;
 	}
 
@@ -191,13 +192,13 @@ int check_iface(struct Interface *iface)
 
 	while (prefix) {
 		if (prefix->PrefixLen > MAX_PrefixLen) {
-			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->PrefixLen, iface->Name);
+			flog(LOG_ERR, "invalid prefix length (%u) for %s", prefix->PrefixLen, iface->props.name);
 			res = -1;
 		}
 
 		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime) {
 			flog(LOG_ERR, "AdvValidLifetime for %s (%u) must be " "greater than AdvPreferredLifetime for",
-			     iface->Name, prefix->AdvValidLifetime);
+			     iface->props.name, prefix->AdvValidLifetime);
 			res = -1;
 		}
 
@@ -207,7 +208,7 @@ int check_iface(struct Interface *iface)
 	struct AdvRoute *route = iface->AdvRouteList;
 	while (route) {
 		if (route->PrefixLen > MAX_PrefixLen) {
-			flog(LOG_ERR, "invalid route prefix length (%u) for %s", route->PrefixLen, iface->Name);
+			flog(LOG_ERR, "invalid route prefix length (%u) for %s", route->PrefixLen, iface->props.name);
 			res = -1;
 		}
 
@@ -220,7 +221,7 @@ int check_iface(struct Interface *iface)
 struct Interface *find_iface_by_index(struct Interface *iface, int index)
 {
 	for (; iface; iface = iface->next) {
-		if (iface->if_index == index) {
+		if (iface->props.if_index == index) {
 			return iface;
 		}
 	}
@@ -250,11 +251,11 @@ struct Interface *find_iface_by_time(struct Interface *iface)
 
 void reschedule_iface(struct Interface *iface, double next)
 {
-	if (iface->racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
+	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
 	}
 
-	iface->next_multicast = next_timespec(next);
+	iface->times.next_multicast = next_timespec(next);
 }
 
 void for_each_iface(struct Interface *ifaces, void (*foo) (struct Interface *, void *), void *data)
@@ -269,7 +270,7 @@ static void free_iface_list(struct Interface *iface)
 	while (iface) {
 		struct Interface *next_iface = iface->next;
 
-		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->Name);
+		dlog(LOG_DEBUG, 4, "freeing interface %s", iface->props.name);
 
 		struct AdvPrefix *prefix = iface->AdvPrefixList;
 		while (prefix) {

@@ -17,8 +17,7 @@
 #include "includes.h"
 #include "radvd.h"
 
-static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
-		size_t len);
+static int really_send(int sock, struct in6_addr const *dest, struct properties const *props, struct safe_buffer const *sb);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
 static void build_ra(struct safe_buffer * sb, struct Interface const * iface);
 
@@ -26,7 +25,7 @@ static int ensure_iface_setup(int sock, struct Interface *iface);
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void update_iface_times(struct Interface * iface);
 
-static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface);
+static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const * ra_header_info, int cease_adv);
 static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const * prefix, int cease_adv);
 static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv);
 static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv);
@@ -49,8 +48,8 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
  */
 int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
-	if (iface->racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
-		iface->racount++;
+	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
+		iface->state_info.racount++;
 
 	/* If no list of clients was specified for this interface, we broadcast */
 	if (iface->ClientList == NULL) {
@@ -100,7 +99,7 @@ static int ensure_iface_setup(int sock, struct Interface *iface)
 	setup_iface(sock, iface);
 #endif
 
-	return (iface->ready ? 0 : -1);
+	return (iface->state_info.ready ? 0 : -1);
 }
 
 static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
@@ -114,9 +113,9 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime)
 
 static void update_iface_times(struct Interface * iface)
 {
-	struct timespec last_time = iface->last_ra_time;
-	clock_gettime(CLOCK_MONOTONIC, &iface->last_ra_time);
-	time_t secs_since_last_ra = timespecdiff(&iface->last_ra_time, &last_time);
+	struct timespec last_time = iface->times.last_ra_time;
+	clock_gettime(CLOCK_MONOTONIC, &iface->times.last_ra_time);
+	time_t secs_since_last_ra = timespecdiff(&iface->times.last_ra_time, &last_time);
 
 	if (secs_since_last_ra < 0) {
 		secs_since_last_ra = 0;
@@ -126,7 +125,7 @@ static void update_iface_times(struct Interface * iface)
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
 		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
-			if (!(iface->cease_adv && prefix->DeprecatePrefixFlag)) {
+			if (!(iface->state_info.cease_adv && prefix->DeprecatePrefixFlag)) {
 				if (prefix->DecrementLifetimesFlag) {
 
 					decrement_lifetime(secs_since_last_ra, &prefix->curr_validlft);
@@ -135,7 +134,7 @@ static void update_iface_times(struct Interface * iface)
 					if (prefix->curr_preferredlft == 0) {
 						char pfx_str[INET6_ADDRSTRLEN];
 						addrtostr(&prefix->Prefix, pfx_str, sizeof(pfx_str));
-						dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, prefix->PrefixLen, iface->Name);
+						dlog(LOG_DEBUG, 3, "Will cease advertising %s/%u%%%s, preferred lifetime is 0", pfx_str, prefix->PrefixLen, iface->props.name);
 					}
 				}
 			}
@@ -149,7 +148,7 @@ static void update_iface_times(struct Interface * iface)
 *       add_ra_*                                                                *
 ********************************************************************************/
 
-static void add_ra_header(struct safe_buffer * sb, struct Interface const * iface)
+static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const * ra_header_info, int cease_adv)
 {
 	struct nd_router_advert radvert;
 
@@ -158,22 +157,22 @@ static void add_ra_header(struct safe_buffer * sb, struct Interface const * ifac
 	radvert.nd_ra_type = ND_ROUTER_ADVERT;
 	radvert.nd_ra_code = 0;
 	radvert.nd_ra_cksum = 0;
-	radvert.nd_ra_curhoplimit = iface->AdvCurHopLimit;
-	radvert.nd_ra_flags_reserved = (iface->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
-	radvert.nd_ra_flags_reserved |= (iface->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
+	radvert.nd_ra_curhoplimit = ra_header_info->AdvCurHopLimit;
+	radvert.nd_ra_flags_reserved = (ra_header_info->AdvManagedFlag) ? ND_RA_FLAG_MANAGED : 0;
+	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
 	/* Mobile IPv6 ext */
-	radvert.nd_ra_flags_reserved |= (iface->mipv6.AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
 
-	if (iface->cease_adv) {
+	if (cease_adv) {
 		radvert.nd_ra_router_lifetime = 0;
 	} else {
 		/* if forwarding is disabled, send zero router lifetime */
-		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(iface->AdvDefaultLifetime) : 0;
+		radvert.nd_ra_router_lifetime = !check_ip6_forwarding()? htons(ra_header_info->AdvDefaultLifetime) : 0;
 	}
-	radvert.nd_ra_flags_reserved |= (iface->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
+	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
 
-	radvert.nd_ra_reachable = htonl(iface->AdvReachableTime);
-	radvert.nd_ra_retransmit = htonl(iface->AdvRetransTimer);
+	radvert.nd_ra_reachable = htonl(ra_header_info->AdvReachableTime);
+	radvert.nd_ra_retransmit = htonl(ra_header_info->AdvRetransTimer);
 
 	safe_buffer_append(sb, &radvert, sizeof(radvert));
 }
@@ -560,22 +559,22 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo)
 
 static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 {
-	add_ra_header(sb, iface);
+	add_ra_header(sb, &iface->ra_header_info, iface->state_info.cease_adv);
 
 	if (iface->AdvPrefixList) {
-		add_prefix(sb, iface->AdvPrefixList, iface->cease_adv);
+		add_prefix(sb, iface->AdvPrefixList, iface->state_info.cease_adv);
 	}
 
 	if (iface->AdvRouteList) {
-		add_route(sb, iface->AdvRouteList, iface->cease_adv);
+		add_route(sb, iface->AdvRouteList, iface->state_info.cease_adv);
 	}
 
 	if (iface->AdvRDNSSList) {
-		add_rdnss(sb, iface->AdvRDNSSList, iface->cease_adv);
+		add_rdnss(sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
 	}
 
 	if (iface->AdvDNSSLList) {
-		add_dnssl(sb, iface->AdvDNSSLList, iface->cease_adv);
+		add_dnssl(sb, iface->AdvDNSSLList, iface->state_info.cease_adv);
 	}
 
 	if (iface->AdvLinkMTU != 0) {
@@ -592,7 +591,7 @@ static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 
 	if (iface->mipv6.AdvHomeAgentInfo
 	    && (iface->mipv6.AdvMobRtrSupportFlag || iface->mipv6.HomeAgentPreference != 0
-		|| iface->mipv6.HomeAgentLifetime != iface->AdvDefaultLifetime)) {
+		|| iface->mipv6.HomeAgentLifetime != iface->ra_header_info.AdvDefaultLifetime)) {
 
 		add_mipv6_home_agent_info(sb, &iface->mipv6);
 	}
@@ -609,33 +608,33 @@ static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest)
 {
 	if (!iface->AdvSendAdvert) {
-		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->Name);
+		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->props.name);
 		return 0;
 	}
 
 	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
 	if (ensure_iface_setup(sock, iface) < 0) {
-		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->Name);
+		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->props.name);
 		return 0;
 	}
 
 	if (dest == NULL) {
 		static uint8_t const all_hosts_addr[] = { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 		dest = (struct in6_addr const *)all_hosts_addr;
-		clock_gettime(CLOCK_MONOTONIC, &iface->last_multicast);
+		clock_gettime(CLOCK_MONOTONIC, &iface->times.last_multicast);
 	}
 
 	update_iface_times(iface);
 
 	char address_text[INET6_ADDRSTRLEN] = { "" };
 	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
-	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->Name);
+	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->props.name);
 
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
 
 	build_ra(&safe_buffer, iface);
 
-	int err = really_send(sock, dest, iface->if_index, iface->if_addr, safe_buffer.buffer, safe_buffer.used);
+	int err = really_send(sock, dest, &iface->props, &safe_buffer);
 
 	safe_buffer_free(&safe_buffer);
 
@@ -650,8 +649,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	return 0;
 }
 
-static int really_send(int sock, struct in6_addr const *dest, unsigned int if_index, struct in6_addr if_addr, unsigned char *buff,
-		size_t len)
+static int really_send(int sock, struct in6_addr const *dest, struct properties const *props, struct safe_buffer const *sb)
 {
 	struct sockaddr_in6 addr;
 	memset((void *)&addr, 0, sizeof(addr));
@@ -660,8 +658,8 @@ static int really_send(int sock, struct in6_addr const *dest, unsigned int if_in
 	memcpy(&addr.sin6_addr, dest, sizeof(struct in6_addr));
 
 	struct iovec iov;
-	iov.iov_len = len;
-	iov.iov_base = (caddr_t) buff;
+	iov.iov_len = sb->used;
+	iov.iov_base = (caddr_t)sb->buffer;
 
 	char __attribute__ ((aligned(8))) chdr[CMSG_SPACE(sizeof(struct in6_pktinfo))];
 	memset(chdr, 0, sizeof(chdr));
@@ -672,12 +670,12 @@ static int really_send(int sock, struct in6_addr const *dest, unsigned int if_in
 	cmsg->cmsg_type = IPV6_PKTINFO;
 
 	struct in6_pktinfo *pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
-	pkt_info->ipi6_ifindex = if_index;
-	memcpy(&pkt_info->ipi6_addr, &if_addr, sizeof(struct in6_addr));
+	pkt_info->ipi6_ifindex = props->if_index;
+	memcpy(&pkt_info->ipi6_addr, &props->if_addr, sizeof(struct in6_addr));
 
 #ifdef HAVE_SIN6_SCOPE_ID
 	if (IN6_IS_ADDR_LINKLOCAL(&addr.sin6_addr) || IN6_IS_ADDR_MC_LINKLOCAL(&addr.sin6_addr))
-		addr.sin6_scope_id = if_index;
+		addr.sin6_scope_id = props->if_index;
 #endif
 
 	struct msghdr mhdr;

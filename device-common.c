@@ -22,34 +22,34 @@ int check_device(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", iface->Name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	} else {
-		dlog(LOG_ERR, 5, "ioctl(SIOCGIFFLAGS) succeeded for %s", iface->Name);
+		dlog(LOG_ERR, 5, "ioctl(SIOCGIFFLAGS) succeeded for %s", iface->props.name);
 	}
 
 	if (!(ifr.ifr_flags & IFF_UP)) {
-		flog(LOG_ERR, "interface %s is not up", iface->Name);
+		flog(LOG_ERR, "interface %s is not up", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s is up", iface->Name);
+		dlog(LOG_ERR, 3, "interface %s is up", iface->props.name);
 	}
 
 	if (!(ifr.ifr_flags & IFF_RUNNING)) {
-		flog(LOG_ERR, "interface %s is not running", iface->Name);
+		flog(LOG_ERR, "interface %s is not running", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s is running", iface->Name);
+		dlog(LOG_ERR, 3, "interface %s is running", iface->props.name);
 	}
 
 	if (!iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST)) {
-		flog(LOG_INFO, "interface %s does not support multicast, forcing UnicastOnly", iface->Name);
+		flog(LOG_INFO, "interface %s does not support multicast, forcing UnicastOnly", iface->props.name);
 		iface->UnicastOnly = 1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s supports multicast", iface->Name);
+		dlog(LOG_ERR, 3, "interface %s supports multicast", iface->props.name);
 	}
 
 	return 0;
@@ -114,16 +114,16 @@ int setup_linklocal_addr(struct Interface *iface)
 				continue;
 
 			/* Skip if it is not the interface we're looking for. */
-			if (strcmp(ifa->ifa_name, iface->Name) != 0)
+			if (strcmp(ifa->ifa_name, iface->props.name) != 0)
 				continue;
 
-			memcpy(&iface->if_addr, &(a6->sin6_addr), sizeof(struct in6_addr));
+			memcpy(&iface->props.if_addr, &(a6->sin6_addr), sizeof(struct in6_addr));
 
 			freeifaddrs(addresses);
 
 			char addr_str[INET6_ADDRSTRLEN];
-			addrtostr(&iface->if_addr, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 4, "linklocal address for %s is %s", iface->Name, addr_str);
+			addrtostr(&iface->props.if_addr, addr_str, sizeof(addr_str));
+			dlog(LOG_DEBUG, 4, "linklocal address for %s is %s", iface->props.name, addr_str);
 
 			return 0;
 		}
@@ -133,25 +133,28 @@ int setup_linklocal_addr(struct Interface *iface)
 		freeifaddrs(addresses);
 
 	if (iface->IgnoreIfMissing)
-		dlog(LOG_DEBUG, 4, "no linklocal address configured for %s", iface->Name);
+		dlog(LOG_DEBUG, 4, "no linklocal address configured for %s", iface->props.name);
 	else
-		flog(LOG_ERR, "no linklocal address configured for %s", iface->Name);
+		flog(LOG_ERR, "no linklocal address configured for %s", iface->props.name);
 
 	return -1;
 }
 
 int update_device_index(struct Interface *iface)
 {
-	int index = if_nametoindex(iface->Name);
+	int index = if_nametoindex(iface->props.name);
+
 	if (0 == index) {
 		/* Yes, if_nametoindex returns zero on failure.  2014/01/16 */
-		flog(LOG_ERR, "%s not found: %s", iface->Name, strerror(errno));
+		flog(LOG_ERR, "%s not found: %s", iface->props.name, strerror(errno));
 		return -1;
 	}
-	if (iface->if_index != index) {
-		dlog(LOG_DEBUG, 4, "%s if_index changed from %d to %d", iface->Name, iface->if_index, index);
-		iface->if_index = index;
+
+	if (iface->props.if_index != index) {
+		dlog(LOG_DEBUG, 4, "%s if_index changed from %d to %d", iface->props.name, iface->props.if_index, index);
+		iface->props.if_index = index;
 	}
+
 	return 0;
 }
 

@@ -33,22 +33,22 @@ int update_device_info(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
 
 	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->Name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	}
 
 	iface->sllao.if_maxmtu = ifr.ifr_mtu;
-	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
+	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->props.name, ifr.ifr_mtu);
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s", iface->Name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	}
 
-	dlog(LOG_DEBUG, 3, "hardware type for %s is %s", iface->Name, hwstr(ifr.ifr_hwaddr.sa_family));
+	dlog(LOG_DEBUG, 3, "hardware type for %s is %s", iface->props.name, hwstr(ifr.ifr_hwaddr.sa_family));
 
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
@@ -90,29 +90,29 @@ int update_device_info(int sock, struct Interface *iface)
 		break;
 	}
 
-	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->Name, iface->sllao.if_hwaddr_len);
+	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->props.name, iface->sllao.if_hwaddr_len);
 
-	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->sllao.if_prefix_len);
+	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->props.name, iface->sllao.if_prefix_len);
 
 	if (iface->sllao.if_hwaddr_len != -1) {
 		unsigned int if_hwaddr_len_bytes = (iface->sllao.if_hwaddr_len + 7) >> 3;
 
 		if (if_hwaddr_len_bytes > sizeof(iface->sllao.if_hwaddr)) {
-			flog(LOG_ERR, "address length %d too big for %s", if_hwaddr_len_bytes, iface->Name);
+			flog(LOG_ERR, "address length %d too big for %s", if_hwaddr_len_bytes, iface->props.name);
 			return -2;
 		}
 		memcpy(iface->sllao.if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
 
-		char zero[sizeof(iface->if_addr)];
+		char zero[sizeof(iface->props.if_addr)];
 		memset(zero, 0, sizeof(zero));
 		if (!memcmp(iface->sllao.if_hwaddr, zero, if_hwaddr_len_bytes))
-			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->Name);
+			flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->props.name);
 	}
 
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
 		if ((iface->sllao.if_prefix_len != -1) && (iface->sllao.if_prefix_len != prefix->PrefixLen)) {
-			flog(LOG_WARNING, "prefix length should be %d for %s", iface->sllao.if_prefix_len, iface->Name);
+			flog(LOG_WARNING, "prefix length should be %d for %s", iface->sllao.if_prefix_len, iface->props.name);
 		}
 
 		prefix = prefix->next;
@@ -126,7 +126,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	struct ipv6_mreq mreq;
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.ipv6mr_interface = iface->if_index;
+	mreq.ipv6mr_interface = iface->props.if_index;
 
 	/* ipv6-allrouters: ff02::2 */
 	mreq.ipv6mr_multiaddr.s6_addr32[0] = htonl(0xFF020000);
@@ -135,7 +135,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	if (setsockopt(sock, SOL_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 		/* linux-2.6.12-bk4 returns error with HUP signal but keep listening */
 		if (errno != EADDRINUSE) {
-			flog(LOG_ERR, "can't join ipv6-allrouters on %s", iface->Name);
+			flog(LOG_ERR, "can't join ipv6-allrouters on %s", iface->props.name);
 			return -1;
 		}
 	}

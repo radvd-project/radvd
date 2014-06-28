@@ -93,9 +93,9 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 		return;
 	}
 
-	if (!iface->ready && (0 != setup_iface(sock, iface))) {
-		flog(LOG_WARNING, "received RS or RA on %s but %s is not ready and setup_iface failed", iface->Name,
-		     iface->Name);
+	if (!iface->state_info.ready && (0 != setup_iface(sock, iface))) {
+		flog(LOG_WARNING, "received RS or RA on %s but %s is not ready and setup_iface failed", iface->props.name,
+		     iface->props.name);
 		return;
 	}
 
@@ -153,13 +153,13 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 
 	if (iface->UnicastOnly) {
 		send_ra_forall(sock, iface, &addr->sin6_addr);
-	} else if (timespecdiff(&ts, &iface->last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
+	} else if (timespecdiff(&ts, &iface->times.last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
 		double next =
-		    iface->MinDelayBetweenRAs - (ts.tv_sec + ts.tv_nsec / 1000000000.0) + (iface->last_multicast.tv_sec +
-											iface->last_multicast.tv_nsec /
+		    iface->MinDelayBetweenRAs - (ts.tv_sec + ts.tv_nsec / 1000000000.0) + (iface->times.last_multicast.tv_sec +
+											iface->times.last_multicast.tv_nsec /
 											1000000000.0) + delay / 1000.0;
-		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->Name, next);
+		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->props.name, next);
 		reschedule_iface(iface, next);
 	} else {
 		/* no RA sent in a while, send a multicast reply */
@@ -167,7 +167,7 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 		reschedule_iface(iface, next);
 	}
-	dlog(LOG_DEBUG, 2, "processed RS on %s", iface->Name);
+	dlog(LOG_DEBUG, 2, "processed RS on %s", iface->props.name);
 }
 
 /*
@@ -180,28 +180,28 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 
 	struct nd_router_advert *radvert = (struct nd_router_advert *)msg;
 
-	if ((radvert->nd_ra_curhoplimit && iface->AdvCurHopLimit) && (radvert->nd_ra_curhoplimit != iface->AdvCurHopLimit)) {
-		flog(LOG_WARNING, "our AdvCurHopLimit on %s doesn't agree with %s", iface->Name, addr_str);
+	if ((radvert->nd_ra_curhoplimit && iface->ra_header_info.AdvCurHopLimit) && (radvert->nd_ra_curhoplimit != iface->ra_header_info.AdvCurHopLimit)) {
+		flog(LOG_WARNING, "our AdvCurHopLimit on %s doesn't agree with %s", iface->props.name, addr_str);
 	}
 
-	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_MANAGED) && !iface->AdvManagedFlag) {
-		flog(LOG_WARNING, "our AdvManagedFlag on %s doesn't agree with %s", iface->Name, addr_str);
+	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_MANAGED) && !iface->ra_header_info.AdvManagedFlag) {
+		flog(LOG_WARNING, "our AdvManagedFlag on %s doesn't agree with %s", iface->props.name, addr_str);
 	}
 
-	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_OTHER) && !iface->AdvOtherConfigFlag) {
-		flog(LOG_WARNING, "our AdvOtherConfigFlag on %s doesn't agree with %s", iface->Name, addr_str);
+	if ((radvert->nd_ra_flags_reserved & ND_RA_FLAG_OTHER) && !iface->ra_header_info.AdvOtherConfigFlag) {
+		flog(LOG_WARNING, "our AdvOtherConfigFlag on %s doesn't agree with %s", iface->props.name, addr_str);
 	}
 
 	/* note: we don't check the default router preference here, because they're likely different */
 
-	if ((radvert->nd_ra_reachable && iface->AdvReachableTime)
-	    && (ntohl(radvert->nd_ra_reachable) != iface->AdvReachableTime)) {
-		flog(LOG_WARNING, "our AdvReachableTime on %s doesn't agree with %s", iface->Name, addr_str);
+	if ((radvert->nd_ra_reachable && iface->ra_header_info.AdvReachableTime)
+	    && (ntohl(radvert->nd_ra_reachable) != iface->ra_header_info.AdvReachableTime)) {
+		flog(LOG_WARNING, "our AdvReachableTime on %s doesn't agree with %s", iface->props.name, addr_str);
 	}
 
-	if ((radvert->nd_ra_retransmit && iface->AdvRetransTimer)
-	    && (ntohl(radvert->nd_ra_retransmit) != iface->AdvRetransTimer)) {
-		flog(LOG_WARNING, "our AdvRetransTimer on %s doesn't agree with %s", iface->Name, addr_str);
+	if ((radvert->nd_ra_retransmit && iface->ra_header_info.AdvRetransTimer)
+	    && (ntohl(radvert->nd_ra_retransmit) != iface->ra_header_info.AdvRetransTimer)) {
+		flog(LOG_WARNING, "our AdvRetransTimer on %s doesn't agree with %s", iface->props.name, addr_str);
 	}
 
 	len -= sizeof(struct nd_router_advert);
@@ -214,18 +214,18 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 	while (len > 0) {
 
 		if (len < 2) {
-			flog(LOG_ERR, "trailing garbage in RA on %s from %s", iface->Name, addr_str);
+			flog(LOG_ERR, "trailing garbage in RA on %s from %s", iface->props.name, addr_str);
 			break;
 		}
 
 		int optlen = (opt_str[1] << 3);
 
 		if (optlen == 0) {
-			flog(LOG_ERR, "zero length option in RA on %s from %s", iface->Name, addr_str);
+			flog(LOG_ERR, "zero length option in RA on %s from %s", iface->props.name, addr_str);
 			break;
 		} else if (optlen > len) {
 			flog(LOG_ERR, "option length (%d) greater than total" " length (%d) in RA on %s from %s", optlen,
-			     len, iface->Name, addr_str);
+			     len, iface->props.name, addr_str);
 			break;
 		}
 
@@ -236,7 +236,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 					return;
 
 				if (iface->AdvLinkMTU && (ntohl(mtu->nd_opt_mtu_mtu) != iface->AdvLinkMTU)) {
-					flog(LOG_WARNING, "our AdvLinkMTU on %s doesn't agree with %s", iface->Name,
+					flog(LOG_WARNING, "our AdvLinkMTU on %s doesn't agree with %s", iface->props.name,
 					     addr_str);
 				}
 				break;
@@ -258,13 +258,13 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 						if (!prefix->DecrementLifetimesFlag && valid != prefix->AdvValidLifetime) {
 							flog(LOG_WARNING,
 							     "our AdvValidLifetime on" " %s for %s doesn't agree with %s",
-							     iface->Name, prefix_str, addr_str);
+							     iface->props.name, prefix_str, addr_str);
 						}
 						if (!prefix->DecrementLifetimesFlag
 						    && preferred != prefix->AdvPreferredLifetime) {
 							flog(LOG_WARNING,
 							     "our AdvPreferredLifetime on"
-							     " %s for %s doesn't agree with %s", iface->Name, prefix_str,
+							     " %s for %s doesn't agree with %s", iface->props.name, prefix_str,
 							     addr_str);
 						}
 					}
@@ -281,7 +281,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			break;
 		case ND_OPT_TARGET_LINKADDR:
 		case ND_OPT_REDIRECTED_HEADER:
-			flog(LOG_ERR, "invalid option %d in RA on %s from %s", (int)*opt_str, iface->Name, addr_str);
+			flog(LOG_ERR, "invalid option %d in RA on %s from %s", (int)*opt_str, iface->props.name, addr_str);
 			break;
 			/* Mobile IPv6 extensions */
 		case ND_OPT_RTR_ADV_INTERVAL:
@@ -305,7 +305,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 						addrtostr(&rdnssinfo->nd_opt_rdnssi_addr3, rdnss_str, sizeof(rdnss_str));
 						flog(LOG_WARNING,
 						     "RDNSS address %s received on %s from %s is not advertised by us",
-						     rdnss_str, iface->Name, addr_str);
+						     rdnss_str, iface->props.name, addr_str);
 					}
 					/* FALLTHROUGH */
 				case 5:
@@ -315,7 +315,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 						addrtostr(&rdnssinfo->nd_opt_rdnssi_addr2, rdnss_str, sizeof(rdnss_str));
 						flog(LOG_WARNING,
 						     "RDNSS address %s received on %s from %s is not advertised by us",
-						     rdnss_str, iface->Name, addr_str);
+						     rdnss_str, iface->props.name, addr_str);
 					}
 					/* FALLTHROUGH */
 				case 3:
@@ -325,12 +325,12 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 						addrtostr(&rdnssinfo->nd_opt_rdnssi_addr1, rdnss_str, sizeof(rdnss_str));
 						flog(LOG_WARNING,
 						     "RDNSS address %s received on %s from %s is not advertised by us",
-						     rdnss_str, iface->Name, addr_str);
+						     rdnss_str, iface->props.name, addr_str);
 					}
 
 					break;
 				default:
-					flog(LOG_ERR, "invalid len %i in RDNSS option on %s from %s", count, iface->Name,
+					flog(LOG_ERR, "invalid len %i in RDNSS option on %s from %s", count, iface->props.name,
 					     addr_str);
 				}
 
@@ -358,7 +358,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 						if (!check_dnssl_presence(iface->AdvDNSSLList, suffix)) {
 							flog(LOG_WARNING,
 							     "DNSSL suffix %s received on %s from %s is not advertised by us",
-							     suffix, iface->Name, addr_str);
+							     suffix, iface->props.name, addr_str);
 						}
 
 						suffix[0] = '\0';
@@ -373,7 +373,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 					    label_len > label_len + 2
 					    || &dnsslinfo->nd_opt_dnssli_suffixes[offset + label_len] - opt_str >= len
 					    || offset + label_len < offset) {
-						flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s", iface->Name,
+						flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s", iface->props.name,
 						     addr_str);
 						break;
 					}
@@ -386,14 +386,14 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 				break;
 			}
 		default:
-			dlog(LOG_DEBUG, 1, "unknown option %d in RA on %s from %s", (int)*opt_str, iface->Name, addr_str);
+			dlog(LOG_DEBUG, 1, "unknown option %d in RA on %s from %s", (int)*opt_str, iface->props.name, addr_str);
 			break;
 		}
 
 		len -= optlen;
 		opt_str += optlen;
 	}
-	dlog(LOG_DEBUG, 2, "processed RA on %s", iface->Name);
+	dlog(LOG_DEBUG, 2, "processed RA on %s", iface->props.name);
 }
 
 static int addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)

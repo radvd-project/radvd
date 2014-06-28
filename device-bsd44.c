@@ -29,15 +29,15 @@ int update_device_info(int sock, struct Interface *iface)
 	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->Name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->props.name, strerror(errno));
 		goto ret;
 	}
 
-	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->Name, ifr.ifr_mtu);
+	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->props.name, ifr.ifr_mtu);
 	iface->if_maxmtu = ifr.ifr_mtu;
 
 	if (getifaddrs(&addresses) != 0) {
@@ -46,7 +46,7 @@ int update_device_info(int sock, struct Interface *iface)
 	}
 
 	for (struct ifaddrs * ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
-		if (strcmp(ifa->ifa_name, iface->Name) != 0)
+		if (strcmp(ifa->ifa_name, iface->props.name) != 0)
 			continue;
 
 		if (ifa->ifa_addr == NULL)
@@ -58,7 +58,7 @@ int update_device_info(int sock, struct Interface *iface)
 		struct sockaddr_dl *dl = (struct sockaddr_dl *)ifa->ifa_addr;
 
 		if (dl->sdl_alen > sizeof(iface->if_addr)) {
-			flog(LOG_ERR, "address length %d too big for %s", dl->sdl_alen, iface->Name);
+			flog(LOG_ERR, "address length %d too big for %s", dl->sdl_alen, iface->props.name);
 			goto ret;
 		}
 
@@ -79,21 +79,21 @@ int update_device_info(int sock, struct Interface *iface)
 			break;
 		}
 
-		dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->Name, iface->if_hwaddr_len);
+		dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->props.name, iface->if_hwaddr_len);
 
-		dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->Name, iface->if_prefix_len);
+		dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->props.name, iface->if_prefix_len);
 
 		if (iface->if_prefix_len != -1) {
 			char zero[sizeof(iface->if_addr)];
 			memset(zero, 0, dl->sdl_alen);
 			if (!memcmp(iface->if_hwaddr, zero, dl->sdl_alen))
-				flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->Name);
+				flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->props.name);
 		}
 
 		struct AdvPrefix *prefix = iface->AdvPrefixList;
 		while (prefix) {
 			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != prefix->PrefixLen)) {
-				flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->Name);
+				flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->props.name);
 			}
 
 			prefix = prefix->next;

@@ -45,14 +45,52 @@ struct safe_buffer {
 
 
 struct Interface {
-	char Name[IFNAMSIZ];	/* interface name */
-	int lineno;
+	struct Interface *next;
 
-	struct in6_addr if_addr;
-	unsigned int if_index;
-	unsigned int *flags;
+	int IgnoreIfMissing;
+	int AdvSendAdvert;
+	double MaxRtrAdvInterval;
+	double MinRtrAdvInterval;
+	double MinDelayBetweenRAs;
+	int AdvSourceLLAddress;
+	int UnicastOnly;
+	struct Clients *ClientList;
 
-	uint8_t racount;	/* Initial RAs */
+	struct state_info {
+		uint32_t racount;
+		int ready;	/* Info whether this interface has been initialized successfully */
+		int cease_adv;
+	} state_info;
+
+	struct properties {
+		char name[IFNAMSIZ];	/* interface name */
+		struct in6_addr if_addr;
+		unsigned int if_index;
+	} props;
+
+	struct ra_header_info {
+		int AdvManagedFlag;
+		int AdvOtherConfigFlag;
+		uint8_t AdvCurHopLimit;
+		int AdvHomeAgentFlag;
+		int32_t AdvDefaultLifetime;	/* XXX: really uint16_t but we need to use -1 */
+		int AdvDefaultPreference;
+		uint32_t AdvReachableTime;
+		uint32_t AdvRetransTimer;
+	} ra_header_info;
+
+	struct times {
+		struct timespec last_multicast;
+		struct timespec next_multicast;
+		struct timespec last_ra_time;
+	} times;
+
+	struct AdvPrefix *AdvPrefixList;
+	struct AdvRoute *AdvRouteList;
+	struct AdvRDNSS *AdvRDNSSList;
+	struct AdvDNSSL *AdvDNSSLList;
+
+	uint32_t AdvLinkMTU;
 
 	struct sllao {
 		uint8_t if_hwaddr[HWADDR_MAX];
@@ -61,31 +99,10 @@ struct Interface {
 		int if_maxmtu;
 	} sllao;
 
-	int cease_adv;
-
-	struct timespec last_ra_time;
-
-	int IgnoreIfMissing;
-	int AdvSendAdvert;
-	double MaxRtrAdvInterval;
-	double MinRtrAdvInterval;
-	double MinDelayBetweenRAs;
-	int AdvManagedFlag;
-	int AdvOtherConfigFlag;
-	uint32_t AdvLinkMTU;
-	uint32_t AdvReachableTime;
-	uint32_t AdvRetransTimer;
-	uint8_t AdvCurHopLimit;
-	int32_t AdvDefaultLifetime;	/* XXX: really uint16_t but we need to use -1 */
-	int AdvDefaultPreference;
-	int AdvSourceLLAddress;
-	int UnicastOnly;
-
 	struct mipv6 {
 		/* Mobile IPv6 extensions */
 		int AdvIntervalOpt;
 		int AdvHomeAgentInfo;
-		int AdvHomeAgentFlag;
 
 		uint16_t HomeAgentPreference;
 		int32_t HomeAgentLifetime;	/* XXX: really uint16_t but we need to use -1 */
@@ -94,22 +111,10 @@ struct Interface {
 		int AdvMobRtrSupportFlag;
 	} mipv6;
 
-	/* 6lowpan extension */
 	struct AdvLowpanCo *AdvLowpanCoList;
 	struct AdvAbro *AdvAbroList;
 
-	struct AdvPrefix *AdvPrefixList;
-	struct AdvRoute *AdvRouteList;
-	struct AdvRDNSS *AdvRDNSSList;
-	struct AdvDNSSL *AdvDNSSLList;
-	struct Clients *ClientList;
-	struct timespec last_multicast;
-	struct timespec next_multicast;
-
-	/* Info whether this interface has been initialized successfully */
-	int ready;
-
-	struct Interface *next;
+	int lineno; /* On what line in the config file was this iface defined? */
 };
 
 struct Clients {
