@@ -1,3 +1,8 @@
+2014/06/28	Add check in configure.ac for clock_gettime <Gustavo Zacarias>
+		split send_ra into smaller function
+		orgainize struct Interface with nested structures
+		release v2.0-rc4
+
 2014/06/16	Makefile.am: Fix out of tree builds
 		Makefile.am: disable struct-overflow warning
 		time: Use clock_gettime and monotonic clock <Markus Pargmann>
