@@ -454,7 +454,7 @@ static void add_sllao(struct safe_buffer * sb, struct sllao const *sllao)
 	size_t const sllao_len = (sllao_bytes + 7) / 8;
 
 	uint8_t buff[2] = {ND_OPT_SOURCE_LINKADDR, (uint8_t)sllao_len};
-	safe_buffer_append(sb, buff, sizeof(sllao));
+	safe_buffer_append(sb, buff, sizeof(buff));
 
 	/* if_hwaddr_len is in bits, so divide by 8 to get the byte count. */
 	safe_buffer_append(sb, sllao->if_hwaddr, sllao->if_hwaddr_len / 8);
