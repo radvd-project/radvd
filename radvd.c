@@ -67,10 +67,10 @@ static char usage_str[] = {
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 
 };
+/* *INDENT-ON* */
 
 #endif
 
-/* *INDENT-ON* */
 static volatile int sighup_received = 0;
 static volatile int sigterm_received = 0;
 static volatile int sigint_received = 0;

@@ -232,3 +232,33 @@ scanner.c: scanner.l
 radvd-gram.o gram.o: gram.c scanner.h
 radvd-scanner.o scanner.o: scanner.c gram.h
 
+### make check ###
+
+TESTS = check_all
+
+check_PROGRAMS = check_all
+
+EXTRA_check_all_SOURCES = \
+	device-bsd44.c \
+	device-linux.c \
+	netlink.c \
+	netlink.h \
+	privsep-linux.c
+
+check_all_SOURCES = \
+	test/print_safe_buffer.h \
+	test/print_safe_buffer.c \
+	check_all.c \
+	interface.c \
+	log.c \
+	send.c \
+	timer.c \
+	util.c
+
+check_all_CFLAGS = \
+	@CHECK_CFLAGS@ \
+	-DUNIT_TEST
+
+check_all_LDADD = \
+	@CHECK_LIBS@ \
+	@CONDITIONAL_SOURCES@

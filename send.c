@@ -38,6 +38,111 @@ static void add_mipv6_home_agent_info(struct safe_buffer * sb, struct mipv6 cons
 static void add_lowpanco(struct safe_buffer * sb, struct AdvLowpanCo const *lowpanco);
 static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
 
+#ifdef UNIT_TEST
+
+#include <check.h>
+#include "test/print_safe_buffer.h"
+
+/*
+ * http://check.sourceforge.net/doc/check_html/check_3.html
+ *
+ * http://entrenchant.blogspot.com/2010/08/unit-testing-in-c.html
+ */
+
+START_TEST (test_decrement_lifetime)
+{
+	uint32_t lifetime = 10;
+	decrement_lifetime(7, &lifetime);
+	ck_assert_int_eq(lifetime, 3);
+	decrement_lifetime(7, &lifetime);
+	ck_assert_int_eq(lifetime, 0);
+}
+END_TEST
+
+START_TEST (test_add_mtu)
+{
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+
+	add_mtu(&sb, 1234);
+
+	unsigned char expected[8] = {
+		0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2,
+	};
+
+	ck_assert_int_eq(sb.used, sizeof(expected));
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sizeof(expected)));
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+START_TEST (test_add_sllao_48)
+{
+	struct sllao sllao = {
+		{1, 2, 3, 4, 5, 6, 7, 8},
+		48,
+		64,
+		1500,
+	};
+	
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	add_sllao(&sb, &sllao);
+
+	unsigned char expected[] = {
+		0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(sb.buffer, expected, sizeof(expected)));
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+START_TEST (test_add_sllao_64)
+{
+	struct sllao sllao = {
+		{1, 2, 3, 4, 5, 6, 7, 8},
+		64,
+		64,
+		1500,
+	};
+	
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	add_sllao(&sb, &sllao);
+
+	unsigned char expected[] = {
+		0x01, 0x02, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+		0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(sb.buffer, expected, sizeof(expected)));
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+Suite * send_suite(void)
+{
+	TCase * tc_update = tcase_create("update");
+	tcase_add_test(tc_update, test_decrement_lifetime);
+
+	TCase * tc_build = tcase_create("build");
+	tcase_add_test(tc_build, test_add_mtu);
+	tcase_add_test(tc_build, test_add_sllao_48);
+	tcase_add_test(tc_build, test_add_sllao_64);
+
+	Suite *s = suite_create("send");
+	suite_add_tcase(s, tc_update);
+	suite_add_tcase(s, tc_build);
+
+	return s;	
+}
+
+#endif /* UNIT_TEST */
+
+
 /*
  * Sends an advertisement for all specified clients of this interface
  * (or via broadcast, if there are no restrictions configured).
