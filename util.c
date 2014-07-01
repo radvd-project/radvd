@@ -101,28 +101,23 @@ int check_rdnss_presence(struct AdvRDNSS *rdnss, struct in6_addr *addr)
 		if (!memcmp(&rdnss->AdvRDNSSAddr1, addr, sizeof(struct in6_addr))
 		    || !memcmp(&rdnss->AdvRDNSSAddr2, addr, sizeof(struct in6_addr))
 		    || !memcmp(&rdnss->AdvRDNSSAddr3, addr, sizeof(struct in6_addr)))
-			break;	/* rdnss address found in the list */
-		else
-			rdnss = rdnss->next;	/* no match */
+			return 1;	/* rdnss address found in the list */
+		rdnss = rdnss->next;
 	}
-	return (rdnss != NULL);
+	return 0;
 }
 
 /* Check if a suffix exists in the dnssl list */
 int check_dnssl_presence(struct AdvDNSSL *dnssl, const char *suffix)
 {
-	int i;
 	while (dnssl) {
-		for (i = 0; i < dnssl->AdvDNSSLNumber; i++) {
-			if (strcmp(dnssl->AdvDNSSLSuffixes[i], suffix) == 0)
-				break;	/* suffix found in the list */
+		for (int i = 0; i < dnssl->AdvDNSSLNumber; ++i) {
+			if (0 == strcmp(dnssl->AdvDNSSLSuffixes[i], suffix))
+				return 1;	/* suffix found in the list */
 		}
-		if (i != dnssl->AdvDNSSLNumber)
-			break;
-
-		dnssl = dnssl->next;	/* no match */
+		dnssl = dnssl->next;
 	}
-	return (dnssl != NULL);
+	return 0;
 }
 
 /* Like read(), but retries in case of partial read */
