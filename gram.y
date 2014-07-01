@@ -1059,17 +1059,25 @@ static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr 
 
 static void cleanup(void)
 {
-	if (iface)
-		free(iface);
+	if (iface) {
+		free_ifaces(iface);
+		iface = 0;
+	}
 
-	if (prefix)
+	if (prefix) {
 		free(prefix);
+		prefix = 0;
+	}
 
-	if (route)
+	if (route) {
 		free(route);
+		route = 0;
+	}
 
-	if (rdnss)
+	if (rdnss) {
 		free(rdnss);
+		rdnss = 0;
+	}
 
 	if (dnssl) {
 		int i;
@@ -1077,13 +1085,18 @@ static void cleanup(void)
 			free(dnssl->AdvDNSSLSuffixes[i]);
 		free(dnssl->AdvDNSSLSuffixes);
 		free(dnssl);
+		dnssl = 0;
 	}
 
-	if (lowpanco)
+	if (lowpanco) {
 		free(lowpanco);
+		lowpanco = 0;
+	}
 
-	if (abro)
+	if (abro) {
 		free(abro);
+		abro = 0;
+	}
 }
 
 struct Interface * readin_config(char const *path)
@@ -1098,7 +1111,7 @@ struct Interface * readin_config(char const *path)
 		yycolumn = 1;
 		yylineno = 1;
 		if (yyparse() != 0) {
-			free(iface);
+			free_ifaces(iface);
 			iface = 0;
 		} else {
 			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok.", path);
