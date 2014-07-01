@@ -249,6 +249,7 @@ check_all_SOURCES = \
 	test/print_safe_buffer.h \
 	test/print_safe_buffer.c \
 	check_all.c \
+	device-common.c \
 	interface.c \
 	log.c \
 	send.c \
@@ -261,4 +262,5 @@ check_all_CFLAGS = \
 
 check_all_LDADD = \
 	@CHECK_LIBS@ \
-	@CONDITIONAL_SOURCES@
+	@CONDITIONAL_SOURCES@ \
+	libradvd-parser.a
