@@ -620,9 +620,10 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 						p = p->next;
 					} while (p && p->AutoSelected);
 				}
-				else
+				else {
 					prefix->AdvValidLifetime = $2;
 					prefix->curr_validlft = $2;
+				}
 			}
 		}
 		| T_AdvPreferredLifetime number_or_infinity ';'
@@ -636,9 +637,10 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 						p = p->next;
 					} while (p && p->AutoSelected);
 				}
-				else
+				else {
 					prefix->AdvPreferredLifetime = $2;
 					prefix->curr_preferredlft = $2;
+				}
 			}
 		}
 		| T_DeprecatePrefix SWITCH ';'
