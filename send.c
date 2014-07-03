@@ -59,13 +59,28 @@ START_TEST (test_decrement_lifetime)
 }
 END_TEST
 
+static struct Interface * iface = 0;
+
+static void iface_setup(void)
+{
+	ck_assert_ptr_eq(0, iface);
+	iface = readin_config("test/test1.conf");
+	ck_assert_ptr_ne(0, iface);
+}
+
+static void iface_teardown(void)
+{
+	ck_assert_ptr_ne(0, iface);
+	free_ifaces(iface);
+	iface = 0;
+}
+
 START_TEST (test_add_ra_header)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_ra_header(&sb, &ifaces->ra_header_info, ifaces->state_info.cease_adv);
+	add_ra_header(&sb, &iface->ra_header_info, iface->state_info.cease_adv);
+
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -84,13 +99,10 @@ END_TEST
 
 START_TEST (test_add_prefix)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_prefix(&sb, ifaces->AdvPrefixList, ifaces->state_info.cease_adv);
-
-	free_ifaces(ifaces);
+	add_prefix(&sb, iface->AdvPrefixList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
@@ -120,13 +132,11 @@ END_TEST
 
 START_TEST (test_add_route)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_route(&sb, ifaces->AdvRouteList, ifaces->state_info.cease_adv);
+	add_route(&sb, iface->AdvRouteList, iface->state_info.cease_adv);
 
-	free_ifaces(ifaces);
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -152,13 +162,11 @@ END_TEST
 
 START_TEST (test_add_rdnss)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_rdnss(&sb, ifaces->AdvRDNSSList, ifaces->state_info.cease_adv);
+	add_rdnss(&sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
 
-	free_ifaces(ifaces);
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -182,13 +190,11 @@ END_TEST
 
 START_TEST (test_add_dnssl)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_dnssl(&sb, ifaces->AdvDNSSLList, ifaces->state_info.cease_adv);
+	add_dnssl(&sb, iface->AdvDNSSLList, iface->state_info.cease_adv);
 
-	free_ifaces(ifaces);
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -232,13 +238,11 @@ END_TEST
 
 START_TEST (test_add_mtu)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_mtu(&sb, ifaces->AdvLinkMTU);
+	add_mtu(&sb, iface->AdvLinkMTU);
 
-	free_ifaces(ifaces);
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -265,6 +269,7 @@ START_TEST (test_add_sllao)
 	
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
 	add_sllao(&sb, &sllao48);
+
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -287,6 +292,7 @@ START_TEST (test_add_sllao)
 	
 	sb = SAFE_BUFFER_INIT;
 	add_sllao(&sb, &sllao64);
+
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -305,13 +311,11 @@ END_TEST
 
 START_TEST (test_add_abro)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
+	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_abro(&sb, ifaces->AdvAbroList);
+	add_abro(&sb, iface->AdvAbroList);
 
-	free_ifaces(ifaces);
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);
 #else
@@ -336,6 +340,7 @@ Suite * send_suite(void)
 	tcase_add_test(tc_update, test_decrement_lifetime);
 
 	TCase * tc_build = tcase_create("build");
+	tcase_add_unchecked_fixture(tc_build, iface_setup, iface_teardown);
 	tcase_add_test(tc_build, test_add_ra_header);
 	tcase_add_test(tc_build, test_add_prefix);
 	tcase_add_test(tc_build, test_add_route);
