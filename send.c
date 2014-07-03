@@ -309,6 +309,31 @@ START_TEST (test_add_sllao)
 }
 END_TEST
 
+START_TEST (test_add_lowpanco)
+{
+	ck_assert_ptr_ne(0, iface);
+
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	add_lowpanco(&sb, iface->AdvLowpanCoList);
+
+#ifdef PRINT_SAFE_BUFFER
+	print_safe_buffer(&sb);
+#else
+	unsigned char expected[] = {
+		0x22, 0x03, 0x32, 0x48, 0x00, 0x00, 0xe8, 0x03,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sb.used, sizeof(expected));
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sizeof(expected)));
+#endif
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+
 START_TEST (test_add_abro)
 {
 	ck_assert_ptr_ne(0, iface);
@@ -348,6 +373,7 @@ Suite * send_suite(void)
 	tcase_add_test(tc_build, test_add_dnssl);
 	tcase_add_test(tc_build, test_add_mtu);
 	tcase_add_test(tc_build, test_add_sllao);
+	tcase_add_test(tc_build, test_add_lowpanco);
 	tcase_add_test(tc_build, test_add_abro);
 
 	Suite *s = suite_create("send");
