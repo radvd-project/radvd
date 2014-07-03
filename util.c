@@ -160,51 +160,57 @@ START_TEST (test_writen)
 }
 END_TEST
 
+static struct Interface * iface = 0;
+
+static void iface_setup(void)
+{
+	ck_assert_ptr_eq(0, iface);
+	iface = readin_config("test/test1.conf");
+	ck_assert_ptr_ne(0, iface);
+}
+
+static void iface_teardown(void)
+{
+	ck_assert_ptr_ne(0, iface);
+	free_ifaces(iface);
+	iface = 0;
+}
+
 START_TEST (test_check_dnssl_presence)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
-
-	int rc = check_dnssl_presence(ifaces->AdvDNSSLList, "example.com");
+	int rc = check_dnssl_presence(iface->AdvDNSSLList, "example.com");
 	ck_assert_int_ne(0, rc);
 
-	rc = check_dnssl_presence(ifaces->AdvDNSSLList, "office.branch.example.net");
+	rc = check_dnssl_presence(iface->AdvDNSSLList, "office.branch.example.net");
 	ck_assert_int_ne(0, rc);
 
-	rc = check_dnssl_presence(ifaces->AdvDNSSLList, "example.au");
+	rc = check_dnssl_presence(iface->AdvDNSSLList, "example.au");
 	ck_assert_int_eq(0, rc);
-
-	free_ifaces(ifaces);
 }
 END_TEST
 
 START_TEST (test_check_rdnss_presence)
 {
-	struct Interface * ifaces = readin_config("test/test1.conf");
-	ck_assert_ptr_ne(0, ifaces);
-
 	struct in6_addr addr;
 	int rc;
 
 	/* The next three should be found */
 	addr = (struct in6_addr){ 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-	rc = check_rdnss_presence(ifaces->AdvRDNSSList, &addr);
+	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
 	addr = (struct in6_addr){ 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 };
-	rc = check_rdnss_presence(ifaces->AdvRDNSSList, &addr);
+	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
 	addr = (struct in6_addr){ 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 };
-	rc = check_rdnss_presence(ifaces->AdvRDNSSList, &addr);
+	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
 	/* The next one should *not* be found */
 	addr = (struct in6_addr){ 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6 };
-	rc = check_rdnss_presence(ifaces->AdvRDNSSList, &addr);
+	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_eq(0, rc);
-
-	free_ifaces(ifaces);
 }
 END_TEST
 
@@ -252,15 +258,19 @@ Suite * util_suite(void)
 	tcase_add_test(tc_ion, test_readn);
 	tcase_add_test(tc_ion, test_writen);
 
+	TCase * tc_presence = tcase_create("presence");
+	tcase_add_unchecked_fixture(tc_presence, iface_setup, iface_teardown);
+	tcase_add_test(tc_presence, test_check_dnssl_presence);
+	tcase_add_test(tc_presence, test_check_rdnss_presence);
+
 	TCase * tc_misc = tcase_create("misc");
 	tcase_add_test(tc_misc, test_rand_between);
-	tcase_add_test(tc_misc, test_check_dnssl_presence);
-	tcase_add_test(tc_misc, test_check_rdnss_presence);
 
 	Suite *s = suite_create("util");
 	suite_add_tcase(s, tc_safe_buffer);
 	suite_add_tcase(s, tc_str);
 	suite_add_tcase(s, tc_ion);
+	suite_add_tcase(s, tc_presence);
 	suite_add_tcase(s, tc_misc);
 
 	return s;	
