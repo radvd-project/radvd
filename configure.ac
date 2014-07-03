@@ -49,6 +49,7 @@ esac
 dnl Determine CC and preset CFLAGS
 AC_PROG_CC_C99
 AC_PROG_RANLIB
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)

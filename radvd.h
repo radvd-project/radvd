@@ -90,7 +90,7 @@ struct Interface {
 	struct AdvRDNSS *AdvRDNSSList;
 	struct AdvDNSSL *AdvDNSSLList;
 
-	uint32_t AdvLinkMTU;
+	uint32_t AdvLinkMTU; /* XXX: sllao also has an if_maxmtu value...Why? */
 
 	struct sllao {
 		uint8_t if_hwaddr[HWADDR_MAX];
@@ -309,6 +309,7 @@ int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
 int check_dnssl_presence(struct AdvDNSSL *, const char *);
 ssize_t readn(int fd, void *buf, size_t count);
 ssize_t writen(int fd, const void *buf, size_t count);
+struct safe_buffer * new_safe_buffer(void);
 void safe_buffer_free(struct safe_buffer * sb);
 size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 size_t safe_buffer_append(struct safe_buffer * sb, void const * m, size_t count);
