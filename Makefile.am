@@ -248,7 +248,7 @@ EXTRA_check_all_SOURCES = \
 check_all_SOURCES = \
 	test/print_safe_buffer.h \
 	test/print_safe_buffer.c \
-	check_all.c \
+	test/check.c \
 	device-common.c \
 	interface.c \
 	log.c \
