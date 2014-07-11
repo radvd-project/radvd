@@ -23,15 +23,17 @@ Suite * send_suite();
 static char usage_str[] = {
 "\n"
 "  -h, --help                Print the help and quit.\n"
-"  -s, --suite=suites        Comma separated list of suites.\n"
-"  -u, --unit=unit_tests     Comma separated list of unit tests.\n"
+"  -m, --mode                The print mode (CK_SILENT, ..., CK_VERBOSE)\n"
+"  -s, --suite=suite         The suites to run.\n"
+"  -u, --unit=test           The unit tests to run.\n"
 "  -v, --version             Print the version and quit.\n"
 };
 
 static struct option prog_opt[] = {
 	{"help", 0, 0, 'h'},
-	{"suite", 1, 0, 't'},
-	{"unit", 1, 0, 'u'},
+	{"mode", 0, 0, 'm'},
+	{"suite", 1, 0, 's'},
+	{"test", 1, 0, 't'},
 	{"version", 0, 0, 'v'},
 	{NULL, 0, 0, 0}
 };
@@ -39,19 +41,28 @@ static struct option prog_opt[] = {
 #else
 
 static char usage_str[] = {
-"[-hv] [-s suite1,2,...,N] [-u unit_test1,2,...,N]"
+"[-hv] [-m mode] [-s suite] [-t test]"
 };
 /* *INDENT-ON* */
 
 #endif
 
-static void process_command_line_args(int argc, char * argv[])
+struct options {
+	char * suite;
+	char * test;
+	int mode;
+};
+
+static void process_command_line_args(int argc, char * argv[], struct options * options)
 {
 	char const *pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
 	int c;
+	char * suite = 0;
+	char * test = 0;
+	int mode = CK_VERBOSE;
 	
 	/* parse args */
-#define OPTIONS_STR "s:u:vh"
+#define OPTIONS_STR "s:t:m:vh"
 #ifdef HAVE_GETOPT_LONG
 	int opt_idx;
 	while ((c = getopt_long(argc, argv, OPTIONS_STR, prog_opt, &opt_idx)) > 0)
@@ -60,11 +71,36 @@ static void process_command_line_args(int argc, char * argv[])
 #endif
 	{
 		switch (c) {
-		case 't':
-			strdup(optarg);
+		case 'm':
+			if (0 == strcmp(optarg, "SILENT")){
+				mode = CK_SILENT;
+			}
+			else if (0 == strcmp(optarg, "MINIMAL")){
+				mode = CK_MINIMAL;
+			}
+			else if (0 == strcmp(optarg, "NORMAL")){
+				mode = CK_NORMAL;
+			}
+			else if (0 == strcmp(optarg, "VERBOSE")){
+				mode = CK_VERBOSE;
+			}
+			else if (0 == strcmp(optarg, "ENV")){
+				mode = CK_ENV;
+			}
+			else {
+				fprintf(stderr, "%s: mode, \"%s\", unknown.\n", pname, optarg);
+				exit(1);
+			}
 			break;
-		case 'u':
-			strdup(optarg);
+		case 's':
+			if (suite)
+				free(suite);
+			suite = strdup(optarg);
+			break;
+		case 't':
+			if (test)
+				free(test);
+			test = strdup(optarg);
 			break;
 		case 'v':
 			version();
@@ -80,6 +116,12 @@ static void process_command_line_args(int argc, char * argv[])
 			exit(1);
 		}
 	}
+
+	if (options) {
+		options->suite = suite;
+		options->test = test;
+		options->mode = mode;
+	}
 }
 
 
@@ -87,11 +129,12 @@ int main(int argc, char * argv[])
 {
 	srand((unsigned int)time(NULL));
 
-	process_command_line_args(argc, argv);
+	struct options options = {0, 0, 0};
+	process_command_line_args(argc, argv, &options);
 
 	SRunner * sr = srunner_create(util_suite());
 	srunner_add_suite(sr, send_suite());
-	srunner_run_all(sr, CK_VERBOSE);
+	srunner_run(sr, options.suite, options.test, options.mode);
 	int number_failed = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
