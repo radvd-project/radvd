@@ -224,7 +224,7 @@ END_TEST
 
 Suite * util_suite(void)
 {
-	TCase * tc_safe_buffer = tcase_create("safe buffer");
+	TCase * tc_safe_buffer = tcase_create("safe_buffer");
 	tcase_add_test(tc_safe_buffer, test_safe_buffer);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append2);
