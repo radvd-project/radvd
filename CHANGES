@@ -1,3 +1,6 @@
+2014/07/12	Add command line option parsing to the check unit test application
+		release v2.0
+
 2014/07/10	Add make check target based on the check unit testing framework
 		release v2.0-rc5
 
