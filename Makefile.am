@@ -150,7 +150,13 @@ EXTRA_DIST = \
 	redhat/radvd.init \
 	redhat/radvd.spec \
 	redhat/radvd.sysconfig \
-	redhat/radvd-tmpfs.conf
+	redhat/radvd-tmpfs.conf \
+	test/check.c \
+	test/print_safe_buffer.c \
+	test/print_safe_buffer.h \
+	test/send.c \
+	test/test1.conf \
+	test/util.c
 
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
 HASHES = md5 sha1 sha256
