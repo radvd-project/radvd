@@ -104,7 +104,7 @@ AdvMobRtrSupportFlag	{ return T_AdvMobRtrSupportFlag; }
 AdvContextLength	{ return T_AdvContextLength; }
 AdvContextCompressionFlag { return T_AdvContextCompressionFlag; }
 AdvContextID		{ return T_AdvContextID; }
-AdvLifeTIme		{ return T_AdvLifeTime; }
+AdvLifeTime		{ return T_AdvLifeTime; }
 AdvContextPrefix	{ return T_AdvContextPrefix; }
 
 AdvVersionLow		{ return T_AdvVersionLow; }
