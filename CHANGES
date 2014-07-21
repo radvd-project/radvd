@@ -1,3 +1,7 @@
+2014/07/20	Revert bison locations in order to support byacc
+		Amend DIST_EXTRA with the make check files
+		release v2.1
+
 2014/07/12	Add command line option parsing to the check unit test application
 		release v2.0
 
