@@ -13,11 +13,7 @@
  *
  */
 
-%option noyywrap
-%option nounput
-%option noinput
-
-%option yylineno
+%option nounput noinput noyywrap yylineno
 
 %{
 #include "config.h"
@@ -25,9 +21,7 @@
 #include "log.h"
 #include "gram.h"
 
-int yycolumn = 1;
-#define YY_USER_ACTION user_action(&yylloc, yylineno, yyleng, &yycolumn);
-static void user_action(YYLTYPE * p, int lineno, int leng, int * column);
+int num_lines;
 
 %}
 
@@ -45,7 +39,7 @@ string		[a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]+
 %%
 
 #.*$			{/* ignore comments */}
-\n			{yycolumn = 1;}
+\n			{num_lines++;}
 {whitespace}		{}
 
 interface		{ return T_INTERFACE; }
@@ -168,13 +162,3 @@ high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 .		{ return T_BAD_TOKEN; }
 %%
-
-static void user_action(YYLTYPE * loc, int lineno, int leng, int * column)
-{
-	loc->first_line = loc->last_line = lineno;
-	loc->first_column = *column;
-	loc->last_column = *column +leng -1;
-	*column += leng;
-}
-
-
