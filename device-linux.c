@@ -267,7 +267,7 @@ int check_ip6_forwarding(void)
 	/* Linux allows the forwarding value to be either 1 or 2.
 	 * https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/networking/ip-sysctl.txt?id=ae8abfa00efb8ec550f772cbd1e1854977d06212#n1078
 	 *
-	 * The value 2 indicates forwarding is enabled and that *AS* *WELL* router solicitions are being done.
+	 * The value 2 indicates forwarding is enabled and that *AS* *WELL* router solicitations are being done.
 	 *
 	 * Which is sometimes used on routers performing RS on their WAN (ppp, etc.) links
 	 */
