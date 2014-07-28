@@ -79,9 +79,7 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 			/* Reinit the interfaces which needs it. */
 			struct Interface *iface = find_iface_by_index(ifaces, ifinfo->ifi_index);
 			if (iface) {
-				iface->state_info.ready = 0;
-				iface->state_info.racount = 0;
-				reschedule_iface(iface, 0);
+				touch_iface(iface);
 			}
 
 		} else if (nh->nlmsg_type == RTM_NEWADDR || nh->nlmsg_type == RTM_DELADDR) {
@@ -107,9 +105,7 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 
 			struct Interface *iface = find_iface_by_index(ifaces, ifaddr->ifa_index);
 			if (iface) {
-				iface->state_info.ready = 0;
-				iface->state_info.racount = 0;
-				reschedule_iface(iface, 0);
+				touch_iface(iface);
 			}
 		}
 	}

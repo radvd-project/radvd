@@ -106,8 +106,12 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 
 static int ensure_iface_setup(int sock, struct Interface *iface)
 {
-	if (!iface->state_info.ready)
+#ifdef HAVE_NETLINK
+	if (iface->state_info.changed)
 		setup_iface(sock, iface);
+#else
+	setup_iface(sock, iface);
+#endif
 
 	return (iface->state_info.ready ? 0 : -1);
 }

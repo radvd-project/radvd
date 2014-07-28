@@ -57,9 +57,10 @@ struct Interface {
 	struct Clients *ClientList;
 
 	struct state_info {
-		uint32_t racount;
 		int ready;	/* Info whether this interface has been initialized successfully */
+		int changed;	/* Info whether this interface's settings have changed */
 		int cease_adv;
+		uint32_t racount;
 	} state_info;
 
 	struct properties {
@@ -282,6 +283,7 @@ void route_init_defaults(struct AdvRoute *, struct Interface *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 int check_iface(struct Interface *);
+void touch_iface(struct Interface * iface);
 int setup_iface(int sock, struct Interface *iface);
 void free_ifaces(struct Interface *ifaces);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);

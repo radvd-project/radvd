@@ -21,9 +21,8 @@ void iface_init_defaults(struct Interface *iface)
 {
 	memset(iface, 0, sizeof(struct Interface));
 
-	iface->state_info.cease_adv = 0;
+	iface->state_info.changed = 1;
 
-	iface->state_info.ready = 0;
 	iface->IgnoreIfMissing = DFLT_IgnoreIfMissing;
 	iface->AdvSendAdvert = DFLT_AdvSendAdv;
 	iface->MaxRtrAdvInterval = DFLT_MaxRtrAdvInterval;
@@ -48,8 +47,18 @@ void iface_init_defaults(struct Interface *iface)
 
 }
 
+
+void touch_iface(struct Interface * iface)
+{
+	iface->state_info.changed = 1;
+	iface->state_info.ready = 0;
+	iface->state_info.racount = 0;
+	reschedule_iface(iface, 0);
+}
+
 int setup_iface(int sock, struct Interface *iface)
 {
+	iface->state_info.changed = 0;
 	iface->state_info.ready = 0;
 
 	/* The device index must be setup first so we can search it later */
