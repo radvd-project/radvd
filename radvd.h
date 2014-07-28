@@ -254,7 +254,6 @@ struct Interface *readin_config(char const *fname);
 
 /* radvd.c */
 int disable_ipv6_autoconfig(char const *iface);
-int setup_iface(int sock, struct Interface *iface);
 
 /* timer.c */
 struct timespec next_timespec(double next);
@@ -283,6 +282,7 @@ void route_init_defaults(struct AdvRoute *, struct Interface *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 int check_iface(struct Interface *);
+int setup_iface(int sock, struct Interface *iface);
 void free_ifaces(struct Interface *ifaces);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_time(struct Interface *iface_list);

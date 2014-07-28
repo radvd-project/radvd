@@ -549,53 +549,6 @@ static void stop_adverts(int sock, struct Interface *ifaces)
 	for_each_iface(ifaces, stop_advert_foo, &sock);
 }
 
-int setup_iface(int sock, struct Interface *iface)
-{
-	iface->state_info.ready = 0;
-
-	/* Check IFF_UP, IFF_RUNNING and IFF_MULTICAST */
-	if (check_device(sock, iface) < 0) {
-		return -1;
-	}
-
-	if (update_device_index(iface) < 0) {
-		return -1;
-	}
-
-	/* Set iface->if_index, iface->max_mtu and iface hardware address */
-	if (update_device_info(sock, iface) < 0) {
-		return -1;
-	}
-
-	/* Make sure the settings in the config file for this interface are ok (this depends
-	 * on iface->max_mtu already being set). */
-	if (check_iface(iface) < 0) {
-		return -1;
-	}
-
-	/* Make sure this is diabled.  We don't want this interface to autoconfig using its
-	 * own advert messages. */
-	if (disable_ipv6_autoconfig(iface->props.name)) {
-		return -1;
-	}
-
-	/* Save the first link local address seen on the specified interface to iface->if_addr */
-	if (setup_linklocal_addr(iface) < 0) {
-		return -1;
-	}
-
-	/* join the allrouters multicast group so we get the solicitations */
-	if (setup_allrouters_membership(sock, iface) < 0) {
-		return -1;
-	}
-
-	iface->state_info.ready = 1;
-
-	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->props.name);
-
-	return 0;
-}
-
 static void setup_iface_foo(struct Interface *iface, void *data)
 {
 	int sock = *(int *)data;

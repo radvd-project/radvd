@@ -53,6 +53,12 @@ static void add_abro(struct safe_buffer * sb, struct AdvAbro const *abroo);
  */
 int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
+	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
+	if (ensure_iface_setup(sock, iface) < 0) {
+		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->props.name);
+		return 0;
+	}
+
 	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
 		iface->state_info.racount++;
 
@@ -100,9 +106,8 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 
 static int ensure_iface_setup(int sock, struct Interface *iface)
 {
-#ifndef HAVE_NETLINK
-	setup_iface(sock, iface);
-#endif
+	if (!iface->state_info.ready)
+		setup_iface(sock, iface);
 
 	return (iface->state_info.ready ? 0 : -1);
 }
@@ -612,12 +617,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 {
 	if (!iface->AdvSendAdvert) {
 		dlog(LOG_DEBUG, 2, "AdvSendAdvert is off for %s", iface->props.name);
-		return 0;
-	}
-
-	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
-	if (ensure_iface_setup(sock, iface) < 0) {
-		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->props.name);
 		return 0;
 	}
 
