@@ -32,24 +32,24 @@ int check_device(int sock, struct Interface *iface)
 	}
 
 	if (!(ifr.ifr_flags & IFF_UP)) {
-		flog(LOG_ERR, "interface %s is not up", iface->props.name);
+		dlog(LOG_ERR, 4, "interface %s is not up", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s is up", iface->props.name);
+		dlog(LOG_ERR, 4, "interface %s is up", iface->props.name);
 	}
 
 	if (!(ifr.ifr_flags & IFF_RUNNING)) {
-		flog(LOG_ERR, "interface %s is not running", iface->props.name);
+		dlog(LOG_ERR, 4, "interface %s is not running", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s is running", iface->props.name);
+		dlog(LOG_ERR, 4, "interface %s is running", iface->props.name);
 	}
 
 	if (!iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST)) {
 		flog(LOG_INFO, "interface %s does not support multicast, forcing UnicastOnly", iface->props.name);
 		iface->UnicastOnly = 1;
 	} else {
-		dlog(LOG_ERR, 3, "interface %s supports multicast", iface->props.name);
+		dlog(LOG_ERR, 4, "interface %s supports multicast", iface->props.name);
 	}
 
 	return 0;
