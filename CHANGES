@@ -1,3 +1,6 @@
+2014/07/29	Netlink, setup_iface fix for down interface coming up <Lonnie>
+		release v2.2
+
 2014/07/20	Revert bison locations in order to support byacc
 		Amend DIST_EXTRA with the make check files
 		release v2.1
