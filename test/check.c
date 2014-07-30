@@ -25,7 +25,7 @@ static char usage_str[] = {
 "  -h, --help                Print the help and quit.\n"
 "  -m, --mode                The print mode (CK_SILENT, ..., CK_VERBOSE)\n"
 "  -s, --suite=suite         The suites to run.\n"
-"  -u, --unit=test           The unit tests to run.\n"
+"  -u, --test=test           The unit tests to run.\n"
 "  -v, --version             Print the version and quit.\n"
 };
 
