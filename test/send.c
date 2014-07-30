@@ -147,6 +147,35 @@ START_TEST (test_add_rdnss)
 }
 END_TEST
 
+
+START_TEST (test_add_rdnss2)
+{
+	static struct Interface * iface = 0;
+	iface = readin_config("test/test_rdnss.conf");
+	ck_assert_ptr_ne(0, iface);
+
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	add_rdnss(&sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
+	free_ifaces(iface);
+
+#ifdef PRINT_SAFE_BUFFER
+	print_safe_buffer(&sb);
+#else
+	unsigned char expected[] = {
+		0x19, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2d,
+		0x12, 0x34, 0x04, 0x23, 0xfe, 0xfe, 0x04, 0x93,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used));
+#endif
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+
 START_TEST (test_add_dnssl)
 {
 	ck_assert_ptr_ne(0, iface);
@@ -328,6 +357,7 @@ Suite * send_suite(void)
 	tcase_add_test(tc_build, test_add_prefix);
 	tcase_add_test(tc_build, test_add_route);
 	tcase_add_test(tc_build, test_add_rdnss);
+	tcase_add_test(tc_build, test_add_rdnss2);
 	tcase_add_test(tc_build, test_add_dnssl);
 	tcase_add_test(tc_build, test_add_mtu);
 	tcase_add_test(tc_build, test_add_sllao);
