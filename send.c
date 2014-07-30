@@ -329,7 +329,7 @@ static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int
 		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
 		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
 
-		safe_buffer_append(sb, &rdnssinfo, sizeof(rdnssinfo));
+		safe_buffer_append(sb, &rdnssinfo, sizeof(rdnssinfo) - (3 - rdnss->AdvRDNSSNumber) * sizeof(struct in6_addr));
 
 		rdnss = rdnss->next;
 	}
