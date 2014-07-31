@@ -204,10 +204,10 @@ html:
 
 packages:
 	@if [[ "$$(git diff | wc -l)" != "0" ]] ; then printf "\n\n\tYou have local changes in the working copy...\n\n\n" && git diff && false ; fi
-	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION))" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	$(MAKE) dist-gzip
 	tar zfx radvd-$(VERSION).tar.gz
 	cd radvd-$(VERSION) && ./configure && make check
+	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION))" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	$(MAKE) dist-bzip2
 	$(MAKE) dist-xz
 	$(MAKE) sign
