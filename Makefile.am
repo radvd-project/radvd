@@ -215,7 +215,7 @@ packages:
 	$(MAKE) sign
 	$(MAKE) verify
 	$(MAKE) html
-	printf "\n\n\tDont forget to push the v$(VERSION) tag and this branch to origin (git push origin v$(VERSION) master)\n\n\n"
+	@printf "\n\n\tDont forget to push the v$(VERSION) tag and this branch to origin (git push origin v$(VERSION) master)\n\n\n"
 
 
 dist-hook:
