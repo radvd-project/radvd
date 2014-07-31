@@ -1,3 +1,9 @@
+2014/07/30	Add test_rdnss.conf to DIST_EXTRA
+		Expand make packages rule to extract the tar.gz package
+			and do a make check on it to (hopefully) prevent
+			forgetting to update DIST_EXTRA in the future.
+		release v2.4
+
 2014/07/30	Fix length field in RDNSS
 		Fix --test option in check_all
 		release v2.3
