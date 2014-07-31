@@ -161,6 +161,7 @@ EXTRA_DIST = \
 	test/print_safe_buffer.h \
 	test/send.c \
 	test/test1.conf \
+	test/test_rdnss.conf \
 	test/util.c
 
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
