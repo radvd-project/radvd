@@ -1,3 +1,7 @@
+2014/07/30	Fix length field in RDNSS
+		Fix --test option in check_all
+		release v2.3
+
 2014/07/29	Netlink, setup_iface fix for down interface coming up <Lonnie>
 		release v2.2
 
