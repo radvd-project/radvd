@@ -205,6 +205,8 @@ packages:
 	$(MAKE) dist-bzip2
 	$(MAKE) dist-gzip
 	$(MAKE) dist-xz
+	tar zfx radvd-$(VERSION).tar.gz
+	cd radvd-$(VERSION) && ./configure && make check
 	$(MAKE) sign
 	$(MAKE) verify
 	$(MAKE) html
