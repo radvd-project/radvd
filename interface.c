@@ -84,7 +84,7 @@ int setup_iface(int sock, struct Interface *iface)
 
 	/* Make sure this is disabled.  We don't want this interface to autoconfig using its
 	 * own advert messages. */
-	if (disable_ipv6_autoconfig(iface->props.name)) {
+	if (set_interface_autoconfig(iface->props.name, 0)) {
 		return -1;
 	}
 
