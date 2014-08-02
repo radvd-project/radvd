@@ -294,6 +294,15 @@ int main(int argc, char *argv[])
 	unlink(daemon_pid_file_ident);
 	close(pid_fd);
 
+	if (ifaces)
+		free_ifaces(ifaces);
+
+	if (chrootdir)
+		free(chrootdir);
+
+	if (username)
+		free(username);
+
 	flog(LOG_INFO, "returning from radvd main");
 	log_close();
 

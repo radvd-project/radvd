@@ -365,6 +365,14 @@ static void free_iface_list(struct Interface *iface)
 			dnssl = next_dnssl;
 		}
 
+		struct Clients *clients = iface->ClientList;
+		while (clients) {
+			struct Clients *next_client = clients->next;
+
+			free(clients);
+			clients = next_client;
+		}
+
 		free(iface);
 		iface = next_iface;
 	}
