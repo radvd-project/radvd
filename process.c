@@ -27,15 +27,15 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	char if_namebuf[IF_NAMESIZE] = { "" };
 	char *if_name = if_indextoname(pkt_info->ipi6_ifindex, if_namebuf);
 	if (!if_name) {
-		if_name = "unknown";
+		if_name = "unknown interface";
 	}
-	dlog(LOG_DEBUG, 2, "received packet on interface: %d %s", pkt_info->ipi6_ifindex, if_name);
+	dlog(LOG_DEBUG, 4, "%s received a packet", if_name);
 
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&addr->sin6_addr, addr_str, sizeof(addr_str));
 
 	if (!pkt_info) {
-		flog(LOG_WARNING, "received packet with no pkt_info from %s!", addr_str);
+		flog(LOG_WARNING, "%s received packet with no pkt_info from %s!", if_name, addr_str);
 		return;
 	}
 
@@ -44,7 +44,7 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	 */
 
 	if (len < sizeof(struct icmp6_hdr)) {
-		flog(LOG_WARNING, "received icmpv6 packet with invalid length (%d) from %s", len, addr_str);
+		flog(LOG_WARNING, "%s received icmpv6 packet with invalid length (%d) from %s", if_name, len, addr_str);
 		return;
 	}
 
@@ -55,31 +55,31 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 		 *      We just want to listen to RSs and RAs
 		 */
 
-		flog(LOG_ERR, "icmpv6 filter failed");
+		flog(LOG_ERR, "%s icmpv6 filter failed", if_name);
 		return;
 	}
 
 	if (icmph->icmp6_type == ND_ROUTER_ADVERT) {
 		if (len < sizeof(struct nd_router_advert)) {
-			flog(LOG_WARNING, "received icmpv6 RA packet with invalid length (%d) from %s", len, addr_str);
+			flog(LOG_WARNING, "%s received icmpv6 RA packet with invalid length (%d) from %s", if_name, len, addr_str);
 			return;
 		}
 
 		if (!IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
-			flog(LOG_WARNING, "received icmpv6 RA packet with non-linklocal source address from %s", addr_str);
+			flog(LOG_WARNING, "%s received icmpv6 RA packet with non-linklocal source address from %s", if_name, addr_str);
 			return;
 		}
 	}
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT) {
 		if (len < sizeof(struct nd_router_solicit)) {
-			flog(LOG_WARNING, "received icmpv6 RS packet with invalid length (%d) from %s", len, addr_str);
+			flog(LOG_WARNING, "%s received icmpv6 RS packet with invalid length (%d) from %s", if_name, len, addr_str);
 			return;
 		}
 	}
 
 	if (icmph->icmp6_code != 0) {
-		flog(LOG_WARNING, "received icmpv6 RS/RA packet with invalid code (%d) from %s", icmph->icmp6_code,
+		flog(LOG_WARNING, "%s received icmpv6 RS/RA packet with invalid code (%d) from %s", if_name, icmph->icmp6_code,
 		     addr_str);
 		return;
 	}
@@ -88,27 +88,27 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 	struct Interface *iface = find_iface_by_index(interfaces, pkt_info->ipi6_ifindex);
 
 	if (iface == NULL) {
-		dlog(LOG_WARNING, 4, "received icmpv6 RS/RA packet on an unknown interface with index %d",
+		dlog(LOG_WARNING, 4, "%s received icmpv6 RS/RA packet on an unknown interface with index %d", if_name,
 		     pkt_info->ipi6_ifindex);
 		return;
 	}
 
 	if (!iface->state_info.ready && (0 != setup_iface(sock, iface))) {
-		flog(LOG_WARNING, "received RS or RA on %s but %s is not ready and setup_iface failed", iface->props.name,
+		flog(LOG_WARNING, "%s received RS or RA on %s but %s is not ready and setup_iface failed", if_name, iface->props.name,
 		     iface->props.name);
 		return;
 	}
 
 	if (hoplimit != 255) {
-		flog(LOG_WARNING, "received RS or RA with invalid hoplimit %d from %s", hoplimit, addr_str);
+		flog(LOG_WARNING, "%s received RS or RA with invalid hoplimit %d from %s", if_name, hoplimit, addr_str);
 		return;
 	}
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT) {
-		dlog(LOG_DEBUG, 4, "received RS from %s on %s", addr_str, if_name);
+		dlog(LOG_DEBUG, 3, "%s received RS from: %s", if_name, addr_str);
 		process_rs(sock, iface, msg, len, addr);
 	} else if (icmph->icmp6_type == ND_ROUTER_ADVERT) {
-		dlog(LOG_DEBUG, 4, "received RA from %s on %s", addr_str, if_name);
+		dlog(LOG_DEBUG, 3, "%s received RA from: %s", if_name, addr_str);
 		process_ra(iface, msg, len, addr);
 	}
 }
@@ -167,7 +167,7 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
 		reschedule_iface(iface, next);
 	}
-	dlog(LOG_DEBUG, 2, "processed RS on %s", iface->props.name);
+	dlog(LOG_DEBUG, 2, "%s processed an RS", iface->props.name);
 }
 
 /*

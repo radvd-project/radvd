@@ -84,7 +84,15 @@ int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct i
 		}
 	}
 
-	dlog(LOG_DEBUG, 4, "recvmsg len=%d", len);
+	char if_namebuf[IF_NAMESIZE] = { "" };
+	char *if_name = 0;
+	if (pkt_info && *pkt_info) {
+		if_name = if_indextoname((*pkt_info)->ipi6_ifindex, if_namebuf);
+	}
+	if (!if_name) {
+		if_name = "unknown interface";
+	}
+	dlog(LOG_DEBUG, 5, "%s recvmsg len=%d", if_name, len);
 
 	return len;
 }
