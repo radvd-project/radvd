@@ -158,14 +158,6 @@ int disable_ipv6_autoconfig(char const *iface)
 
 int check_ip6_forwarding(void)
 {
-	static int warned = 0;
-	int value = -1;;
-
-	if (!warned && value != 1 && value != 2) {
-		warned = 1;
-		flog(LOG_DEBUG, "IPv6 forwarding setting is: %u, should be 1 or 2", value);
-		return -1;
-	}
-
+	dlog(LOG_DEBUG, 4, "checking ipv6 forwarding on %s is not supported", iface);
 	return 0;
 }
