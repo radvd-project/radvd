@@ -25,31 +25,31 @@ int check_device(int sock, struct Interface *iface)
 	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed for %s: %s", iface->props.name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFFLAGS) failed on %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	} else {
-		dlog(LOG_ERR, 5, "ioctl(SIOCGIFFLAGS) succeeded for %s", iface->props.name);
+		dlog(LOG_ERR, 5, "ioctl(SIOCGIFFLAGS) succeeded on %s", iface->props.name);
 	}
 
 	if (!(ifr.ifr_flags & IFF_UP)) {
-		dlog(LOG_ERR, 4, "interface %s is not up", iface->props.name);
+		dlog(LOG_ERR, 4, "%s is not up", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 4, "interface %s is up", iface->props.name);
+		dlog(LOG_ERR, 4, "%s is up", iface->props.name);
 	}
 
 	if (!(ifr.ifr_flags & IFF_RUNNING)) {
-		dlog(LOG_ERR, 4, "interface %s is not running", iface->props.name);
+		dlog(LOG_ERR, 4, "%s is not running", iface->props.name);
 		return -1;
 	} else {
-		dlog(LOG_ERR, 4, "interface %s is running", iface->props.name);
+		dlog(LOG_ERR, 4, "%s is running", iface->props.name);
 	}
 
 	if (!iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST)) {
-		flog(LOG_INFO, "interface %s does not support multicast, forcing UnicastOnly", iface->props.name);
+		flog(LOG_INFO, "%s does not support multicast, forcing UnicastOnly", iface->props.name);
 		iface->UnicastOnly = 1;
 	} else {
-		dlog(LOG_ERR, 4, "interface %s supports multicast", iface->props.name);
+		dlog(LOG_ERR, 4, "%s supports multicast", iface->props.name);
 	}
 
 	return 0;
@@ -60,7 +60,7 @@ int get_v4addr(const char *ifn, unsigned int *dst)
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		flog(LOG_ERR, "create socket for IPv4 ioctl failed for %s: %s", ifn, strerror(errno));
+		flog(LOG_ERR, "create socket for IPv4 ioctl failed on %s: %s", ifn, strerror(errno));
 		return -1;
 	}
 
@@ -71,14 +71,14 @@ int get_v4addr(const char *ifn, unsigned int *dst)
 	ifr.ifr_addr.sa_family = AF_INET;
 
 	if (ioctl(fd, SIOCGIFADDR, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFADDR) failed for %s: %s", ifn, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFADDR) failed on %s: %s", ifn, strerror(errno));
 		close(fd);
 		return -1;
 	}
 
 	struct sockaddr_in *addr = (struct sockaddr_in *)(&ifr.ifr_addr);
 
-	dlog(LOG_DEBUG, 3, "IPv4 address for %s is %s", ifn, inet_ntoa(addr->sin_addr));
+	dlog(LOG_DEBUG, 3, "%s IPv4 address is: %s", ifn, inet_ntoa(addr->sin_addr));
 
 	*dst = addr->sin_addr.s_addr;
 
@@ -96,7 +96,7 @@ int setup_linklocal_addr(struct Interface *iface)
 	struct ifaddrs *addresses = 0;
 
 	if (getifaddrs(&addresses) != 0) {
-		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
+		flog(LOG_ERR, "getifaddrs failed on %s: %s", iface->props.name, strerror(errno));
 	} else {
 		for (struct ifaddrs * ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
 
@@ -123,7 +123,7 @@ int setup_linklocal_addr(struct Interface *iface)
 
 			char addr_str[INET6_ADDRSTRLEN];
 			addrtostr(&iface->props.if_addr, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 4, "linklocal address for %s is %s", iface->props.name, addr_str);
+			dlog(LOG_DEBUG, 4, "%s linklocal address: %s", iface->props.name, addr_str);
 
 			return 0;
 		}
@@ -133,9 +133,9 @@ int setup_linklocal_addr(struct Interface *iface)
 		freeifaddrs(addresses);
 
 	if (iface->IgnoreIfMissing)
-		dlog(LOG_DEBUG, 4, "no linklocal address configured for %s", iface->props.name);
+		dlog(LOG_DEBUG, 4, "no linklocal address configured on %s", iface->props.name);
 	else
-		flog(LOG_ERR, "no linklocal address configured for %s", iface->props.name);
+		flog(LOG_ERR, "no linklocal address configured on %s", iface->props.name);
 
 	return -1;
 }

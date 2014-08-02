@@ -174,7 +174,7 @@ grammar		: grammar ifacedef
 
 ifacedef	: ifacehead '{' ifaceparams  '}' ';'
 		{
-			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->props.name);
+			dlog(LOG_DEBUG, 4, "%s interface definition ok", iface->props.name);
 
 			iface->next = IfaceList;
 			IfaceList = iface;

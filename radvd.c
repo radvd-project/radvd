@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
 			flog(LOG_ERR, "unable to drop root privileges");
 			exit(1);
 		}
+		dlog(LOG_DEBUG, 3, "running as user: %s", username);
 	}
 
 	setup_ifaces(sock, ifaces);

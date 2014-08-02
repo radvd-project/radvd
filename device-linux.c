@@ -36,19 +36,19 @@ int update_device_info(int sock, struct Interface *iface)
 	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
 
 	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed for %s: %s", iface->props.name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed on %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	}
 
 	iface->sllao.if_maxmtu = ifr.ifr_mtu;
-	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->props.name, ifr.ifr_mtu);
+	dlog(LOG_DEBUG, 3, "%s mtu: %d", iface->props.name, ifr.ifr_mtu);
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
-		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed for %s: %s", iface->props.name, strerror(errno));
+		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed on %s: %s", iface->props.name, strerror(errno));
 		return -1;
 	}
 
-	dlog(LOG_DEBUG, 3, "hardware type for %s is %s", iface->props.name, hwstr(ifr.ifr_hwaddr.sa_family));
+	dlog(LOG_DEBUG, 3, "%s hardware type: %s", iface->props.name, hwstr(ifr.ifr_hwaddr.sa_family));
 
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
@@ -64,7 +64,7 @@ int update_device_info(int sock, struct Interface *iface)
 			(unsigned char)ifr.ifr_hwaddr.sa_data[4],
 			(unsigned char)ifr.ifr_hwaddr.sa_data[5]);
 		/* *INDENT-ON* */
-		dlog(LOG_DEBUG, 3, "hardware address is %s", hwaddr);
+		dlog(LOG_DEBUG, 3, "%s hardware address: %s", iface->props.name, hwaddr);
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
@@ -90,15 +90,15 @@ int update_device_info(int sock, struct Interface *iface)
 		break;
 	}
 
-	dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->props.name, iface->sllao.if_hwaddr_len);
+	dlog(LOG_DEBUG, 3, "%s link layer token length: %d", iface->props.name, iface->sllao.if_hwaddr_len);
 
-	dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->props.name, iface->sllao.if_prefix_len);
+	dlog(LOG_DEBUG, 3, "%s prefix length: %d", iface->props.name, iface->sllao.if_prefix_len);
 
 	if (iface->sllao.if_hwaddr_len != -1) {
 		unsigned int if_hwaddr_len_bytes = (iface->sllao.if_hwaddr_len + 7) >> 3;
 
 		if (if_hwaddr_len_bytes > sizeof(iface->sllao.if_hwaddr)) {
-			flog(LOG_ERR, "address length %d too big for %s", if_hwaddr_len_bytes, iface->props.name);
+			flog(LOG_ERR, "%s address length too big: %d", iface->props.name, if_hwaddr_len_bytes);
 			return -2;
 		}
 		memcpy(iface->sllao.if_hwaddr, ifr.ifr_hwaddr.sa_data, if_hwaddr_len_bytes);
@@ -112,7 +112,7 @@ int update_device_info(int sock, struct Interface *iface)
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
 		if ((iface->sllao.if_prefix_len != -1) && (iface->sllao.if_prefix_len != prefix->PrefixLen)) {
-			flog(LOG_WARNING, "prefix length should be %d for %s", iface->sllao.if_prefix_len, iface->props.name);
+			flog(LOG_WARNING, "%s prefix length should be: %d", iface->props.name, iface->sllao.if_prefix_len);
 		}
 
 		prefix = prefix->next;

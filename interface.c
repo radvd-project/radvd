@@ -100,7 +100,7 @@ int setup_iface(int sock, struct Interface *iface)
 
 	iface->state_info.ready = 1;
 
-	dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->props.name);
+	dlog(LOG_DEBUG, 4, "%s is ready", iface->props.name);
 
 	return 0;
 }
