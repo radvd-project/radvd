@@ -359,7 +359,7 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 			ts.tv_sec = timeout / 1000;
 			ts.tv_nsec = (timeout - 1000 * ts.tv_sec) * 1000000;
 			tsp = &ts;
-			dlog(LOG_DEBUG, 1, "polling for %g seconds. Next iface is %s.", timeout / 1000.0,
+			dlog(LOG_DEBUG, 1, "polling for %g second(s). Next iface is %s.", timeout / 1000.0,
 			     next_iface_to_expire->props.name);
 		} else {
 			dlog(LOG_DEBUG, 1, "No iface is next. Polling indefinitely.");

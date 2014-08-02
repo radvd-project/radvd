@@ -56,7 +56,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
 	if (ensure_iface_setup(sock, iface) < 0) {
 		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->props.name);
-		return 0;
+		return -1;
 	}
 
 	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS)

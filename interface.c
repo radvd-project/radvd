@@ -308,9 +308,17 @@ struct Interface *find_iface_by_time(struct Interface *iface)
 
 void reschedule_iface(struct Interface *iface, double next)
 {
+#ifdef HAVE_NETLINK
+	if (!iface->state_info.changed && !iface->state_info.ready) {
+		next = 10 * iface->MaxRtrAdvInterval;
+	}
+	else
+#endif
 	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
 	}
+
+	dlog(LOG_DEBUG, 5, "%s next scheduled RA in %g second(s)", iface->props.name, next);
 
 	iface->times.next_multicast = next_timespec(next);
 }
