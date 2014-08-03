@@ -302,7 +302,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest);
 void process(int sock, struct Interface *, unsigned char *, int, struct sockaddr_in6 *, struct in6_pktinfo *, int);
 
 /* recv.c */
-int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *, unsigned char*);
 
 /* util.c */
 char * strdupf(char const * format, ...) __attribute__ ((format(printf, 1, 2)));
@@ -318,7 +318,7 @@ size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 size_t safe_buffer_append(struct safe_buffer * sb, void const * m, size_t count);
 
 /* privsep.c */
-int privsep_init(void);
+int privsep_init(void*, void*);
 int privsep_interface_linkmtu(const char *iface, uint32_t mtu);
 int privsep_interface_curhlim(const char *iface, uint32_t hlim);
 int privsep_interface_reachtime(const char *iface, uint32_t rtime);

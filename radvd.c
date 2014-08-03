@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 		 * file, ensures we're not going to be wasting resources in the privsep
 		 * process. */
 		dlog(LOG_DEBUG, 3, "Initializing privsep");
-		if (privsep_init() < 0) {
+		if (privsep_init(username, chrootdir) < 0) {
 			flog(LOG_INFO, "Failed to initialize privsep.");
 			exit(1);
 		}
@@ -294,6 +294,15 @@ int main(int argc, char *argv[])
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
 	unlink(daemon_pid_file_ident);
 	close(pid_fd);
+
+	if (ifaces)
+		free_ifaces(ifaces);
+
+	if (chrootdir)
+		free(chrootdir);
+
+	if (username)
+		free(username);
 
 	flog(LOG_INFO, "returning from radvd main");
 	log_close();
@@ -383,8 +392,9 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 				struct sockaddr_in6 rcv_addr;
 				struct in6_pktinfo *pkt_info = NULL;
 				unsigned char msg[MSG_SIZE_RECV];
+				unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int))];
 
-				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit, chdr);
 				if (len > 0 && pkt_info) {
 					process(sock, ifaces, msg, len, &rcv_addr, pkt_info, hoplimit);
 				} else if (!pkt_info) {

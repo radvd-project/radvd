@@ -120,7 +120,7 @@ static void privsep_read_loop(void)
 }
 
 /* Fork to create privileged process connected by a pipe */
-int privsep_init(void)
+int privsep_init(void * username, void * chrootdir)
 {
 	int pipefds[2];
 
@@ -136,6 +136,15 @@ int privsep_init(void)
 	}
 
 	if (pid == 0) {
+
+		/* We want to see clean output from valgrind, so free username and chrootdir
+		 * in this process. */
+		if (username)
+			free(username);
+
+		if (chrootdir)
+			free(chrootdir);
+
 		/* This will be the privileged child */
 		close(pipefds[1]);
 		pfd = pipefds[0];

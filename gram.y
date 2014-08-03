@@ -1109,6 +1109,7 @@ struct Interface * readin_config(char const *path)
 		} else {
 			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok.", path);
 		}
+		yylex_destroy();
 		fclose(in);
 	}
 

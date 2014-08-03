@@ -17,19 +17,8 @@
 #include "includes.h"
 #include "radvd.h"
 
-int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct in6_pktinfo **pkt_info, int *hoplimit)
+int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct in6_pktinfo **pkt_info, int *hoplimit, unsigned char * chdr)
 {
-	static unsigned char *chdr = NULL;
-	static unsigned int chdrlen = 0;
-
-	if (!chdr) {
-		chdrlen = CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int));
-		if ((chdr = malloc(chdrlen)) == NULL) {
-			flog(LOG_ERR, "recv_rs_ra: malloc: %s", strerror(errno));
-			return -1;
-		}
-	}
-
 	struct iovec iov;
 	iov.iov_len = MSG_SIZE_RECV;
 	iov.iov_base = (caddr_t) msg;
@@ -41,7 +30,7 @@ int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct i
 	mhdr.msg_iov = &iov;
 	mhdr.msg_iovlen = 1;
 	mhdr.msg_control = (void *)chdr;
-	mhdr.msg_controllen = chdrlen;
+	mhdr.msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int));
 
 	int len = recvmsg(sock, &mhdr, 0);
 

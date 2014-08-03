@@ -94,7 +94,8 @@ int main(int argc, char *argv[])
 		int hoplimit = 0;
 		struct in6_pktinfo *pkt_info = NULL;
 		struct sockaddr_in6 rcv_addr;
-		int len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+		unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int))];
+		int len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit, chdr);
 		if (len > 0) {
 			struct icmp6_hdr *icmph;
 
