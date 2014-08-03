@@ -113,13 +113,12 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 
 int netlink_socket(void)
 {
-	unsigned int val = 1;
 	int sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
 	if (sock == -1) {
 		flog(LOG_ERR, "Unable to open netlink socket: %s", strerror(errno));
 	}
 #if defined SOL_NETLINK && defined NETLINK_NO_ENOBUFS
-	else if (setsockopt(sock, SOL_NETLINK, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0) {
+	else if (setsockopt(sock, SOL_NETLINK, NETLINK_NO_ENOBUFS, (int[]){1}, sizeof(int)) < 0) {
 		flog(LOG_ERR, "Unable to setsockopt NETLINK_NO_ENOBUFS: %s", strerror(errno));
 	}
 #endif
