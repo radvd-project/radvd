@@ -1,6 +1,7 @@
-2014/07/30	Limit non-ready interface to a much longer min timeout
+2014/08/02	Limit non-ready interface to a much longer min timeout
 		Move disable_ipv6_autoconfig to privsep
 		cleanup some logging
+		cleaned up some memory leaks
 
 2014/07/30	Add test_rdnss.conf to DIST_EXTRA
 		Expand make packages rule to extract the tar.gz package
