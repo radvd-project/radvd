@@ -301,7 +301,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest);
 void process(int sock, struct Interface *, unsigned char *, int, struct sockaddr_in6 *, struct in6_pktinfo *, int);
 
 /* recv.c */
-int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *, unsigned char*);
 
 /* util.c */
 char * strdupf(char const * format, ...) __attribute__ ((format(printf, 1, 2)));

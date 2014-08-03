@@ -391,8 +391,9 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 				struct sockaddr_in6 rcv_addr;
 				struct in6_pktinfo *pkt_info = NULL;
 				unsigned char msg[MSG_SIZE_RECV];
+				unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int))];
 
-				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit);
+				len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit, chdr);
 				if (len > 0 && pkt_info) {
 					process(sock, ifaces, msg, len, &rcv_addr, pkt_info, hoplimit);
 				} else if (!pkt_info) {
