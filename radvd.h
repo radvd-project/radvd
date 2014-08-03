@@ -317,7 +317,7 @@ size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 size_t safe_buffer_append(struct safe_buffer * sb, void const * m, size_t count);
 
 /* privsep.c */
-int privsep_init(void);
+int privsep_init(void*, void*);
 int privsep_enabled(void);
 int privsep_interface_linkmtu(const char *iface, uint32_t mtu);
 int privsep_interface_curhlim(const char *iface, uint32_t hlim);
