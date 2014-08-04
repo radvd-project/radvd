@@ -38,7 +38,7 @@ int update_device_info(int sock, struct Interface *iface)
 	}
 
 	dlog(LOG_DEBUG, 3, "mtu for %s is %d", iface->props.name, ifr.ifr_mtu);
-	iface->if_maxmtu = ifr.ifr_mtu;
+	iface->sllao.if_maxmtu = ifr.ifr_mtu;
 
 	if (getifaddrs(&addresses) != 0) {
 		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
@@ -57,43 +57,43 @@ int update_device_info(int sock, struct Interface *iface)
 
 		struct sockaddr_dl *dl = (struct sockaddr_dl *)ifa->ifa_addr;
 
-		if (dl->sdl_alen > sizeof(iface->if_addr)) {
+		if (dl->sdl_alen > sizeof(iface->props.if_addr)) {
 			flog(LOG_ERR, "address length %d too big for %s", dl->sdl_alen, iface->props.name);
 			goto ret;
 		}
 
-		memcpy(iface->if_hwaddr, LLADDR(dl), dl->sdl_alen);
-		iface->if_hwaddr_len = dl->sdl_alen << 3;
+		memcpy(iface->sllao.if_hwaddr, LLADDR(dl), dl->sdl_alen);
+		iface->sllao.if_hwaddr_len = dl->sdl_alen << 3;
 
 		switch (dl->sdl_type) {
 		case IFT_ETHER:
 		case IFT_ISO88023:
-			iface->if_prefix_len = 64;
+			iface->sllao.if_prefix_len = 64;
 			break;
 		case IFT_FDDI:
-			iface->if_prefix_len = 64;
+			iface->sllao.if_prefix_len = 64;
 			break;
 		default:
-			iface->if_prefix_len = -1;
-			iface->if_maxmtu = -1;
+			iface->sllao.if_prefix_len = -1;
+			iface->sllao.if_maxmtu = -1;
 			break;
 		}
 
-		dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->props.name, iface->if_hwaddr_len);
+		dlog(LOG_DEBUG, 3, "link layer token length for %s is %d", iface->props.name, iface->sllao.if_hwaddr_len);
 
-		dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->props.name, iface->if_prefix_len);
+		dlog(LOG_DEBUG, 3, "prefix length for %s is %d", iface->props.name, iface->sllao.if_prefix_len);
 
-		if (iface->if_prefix_len != -1) {
-			char zero[sizeof(iface->if_addr)];
+		if (iface->sllao.if_prefix_len != -1) {
+			char zero[sizeof(iface->props.if_addr)];
 			memset(zero, 0, dl->sdl_alen);
-			if (!memcmp(iface->if_hwaddr, zero, dl->sdl_alen))
+			if (!memcmp(iface->sllao.if_hwaddr, zero, dl->sdl_alen))
 				flog(LOG_WARNING, "WARNING, MAC address on %s is all zero!", iface->props.name);
 		}
 
 		struct AdvPrefix *prefix = iface->AdvPrefixList;
 		while (prefix) {
-			if ((iface->if_prefix_len != -1) && (iface->if_prefix_len != prefix->PrefixLen)) {
-				flog(LOG_WARNING, "prefix length should be %d for %s", iface->if_prefix_len, iface->props.name);
+			if ((iface->sllao.if_prefix_len != -1) && (iface->sllao.if_prefix_len != prefix->PrefixLen)) {
+				flog(LOG_WARNING, "prefix length should be %d for %s", iface->sllao.if_prefix_len, iface->props.name);
 			}
 
 			prefix = prefix->next;
@@ -104,9 +104,9 @@ int update_device_info(int sock, struct Interface *iface)
 	}
 
  ret:
-	iface->if_maxmtu = -1;
-	iface->if_hwaddr_len = -1;
-	iface->if_prefix_len = -1;
+	iface->sllao.if_maxmtu = -1;
+	iface->sllao.if_hwaddr_len = -1;
+	iface->sllao.if_prefix_len = -1;
 
 	if (addresses != 0)
 		freeifaddrs(addresses);
@@ -151,6 +151,6 @@ int set_interface_autoconfig(const char *iface, uint32_t autoconf)
 
 int check_ip6_forwarding(void)
 {
-	dlog(LOG_DEBUG, 4, "checking ipv6 forwarding on %s is not supported", iface);
+	dlog(LOG_DEBUG, 4, "checking ipv6 forwarding not supported");
 	return 0;
 }
