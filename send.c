@@ -693,7 +693,5 @@ static int really_send(int sock, struct in6_addr const *dest, struct properties 
 	mhdr.msg_control = (void *)cmsg;
 	mhdr.msg_controllen = sizeof(chdr);
 
-	int err = sendmsg(sock, &mhdr, 0);
-
-	return err;
+	return sendmsg(sock, &mhdr, 0);
 }
