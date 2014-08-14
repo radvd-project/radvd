@@ -49,7 +49,10 @@ esac
 dnl Determine CC and preset CFLAGS
 AC_PROG_CC_C99
 AC_PROG_RANLIB
+
+if test "$arch" = "linux" ; then
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+fi
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
@@ -179,6 +182,7 @@ AC_MSG_RESULT(no))
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
+AC_CHECK_FUNCS(ppoll)
 
 CONDITIONAL_SOURCES="device-${arch}.${OBJEXT} ${CONDITIONAL_SOURCES}"
 if test x${arch} = xlinux ; then

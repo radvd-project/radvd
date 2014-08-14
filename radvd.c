@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
 	if (!configtest) {
 		flog(LOG_INFO, "version %s started", VERSION);
-
+#ifdef __linux__
 		/* Calling privsep here, before opening the socket and reading the config
 		 * file, ensures we're not going to be wasting resources in the privsep
 		 * process. */
@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
 			flog(LOG_INFO, "Failed to initialize privsep.");
 			exit(1);
 		}
+#endif
 	}
 
 	/* check that 'other' cannot write the file
@@ -373,8 +374,11 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 		} else {
 			dlog(LOG_DEBUG, 1, "No iface is next. Polling indefinitely.");
 		}
-
+#ifdef HAVE_PPOLL
 		int rc = ppoll(fds, sizeof(fds) / sizeof(fds[0]), tsp, &sigempty);
+#else
+		int rc = poll(fds, sizeof(fds) / sizeof(fds[0]), 1000*tsp->tv_sec);
+#endif
 
 		if (rc > 0) {
 #ifdef HAVE_NETLINK

@@ -54,8 +54,8 @@ int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct i
 			    && (*(int *)CMSG_DATA(cmsg) < 256)) {
 				*hoplimit = *(int *)CMSG_DATA(cmsg);
 			} else {
-				flog(LOG_ERR, "received a bogus IPV6_HOPLIMIT from the kernel! len=%zu, data=%d",
-				     cmsg->cmsg_len, *(int *)CMSG_DATA(cmsg));
+				flog(LOG_ERR, "received a bogus IPV6_HOPLIMIT from the kernel! len=%d, data=%d",
+				     (int)cmsg->cmsg_len, *(int *)CMSG_DATA(cmsg));
 				return -1;
 			}
 			break;
@@ -65,8 +65,8 @@ int recv_rs_ra(int sock, unsigned char *msg, struct sockaddr_in6 *addr, struct i
 			    && ((struct in6_pktinfo *)CMSG_DATA(cmsg))->ipi6_ifindex) {
 				*pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 			} else {
-				flog(LOG_ERR, "received a bogus IPV6_PKTINFO from the kernel! len=%zu, index=%d",
-				     cmsg->cmsg_len, ((struct in6_pktinfo *)CMSG_DATA(cmsg))->ipi6_ifindex);
+				flog(LOG_ERR, "received a bogus IPV6_PKTINFO from the kernel! len=%d, index=%d",
+				     (int)cmsg->cmsg_len, ((struct in6_pktinfo *)CMSG_DATA(cmsg))->ipi6_ifindex);
 				return -1;
 			}
 			break;
