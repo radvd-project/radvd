@@ -96,9 +96,75 @@ static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void do_daemonize(int log_method);
+static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
 static void check_pid_file(char const * daemon_pid_file_ident);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
 static int write_pid_file(int pid_fd);
+
+/* daemonize and write pid file.  The pid of the daemon child process
+ * will be written to the pid file from the *parent* process.  This
+ * insures there is no race condition as described in redhat bug 664783. */
+static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
+{
+	int pipe_ends[2];
+
+	if (0 != pipe(pipe_ends)) {
+		flog(LOG_ERR, "unable to create pipe: %s", strerror(errno));
+		exit(-1);
+	}
+
+	pid_t pid = fork();
+
+	if (-1 == pid) {
+		flog(LOG_ERR, "unable to fork in daemonp.");
+		exit(-1);
+	} else if (0 == pid) {
+		/* Child process, detached.. */
+		pid = getpid();
+		close(pipe_ends[0]);
+		if (0 != write_pid_file(daemon_pid_file_ident, pid)) {
+			flog(LOG_ERR, "failure writing pid file");
+			exit(-1);
+		}
+		write(pipe_ends[1], &pid, sizeof(pid));
+
+		if (nochdir == 0) {
+			chdir("/");
+		}
+		if (noclose == 0) {
+			if (stdin != freopen("/dev/null", "r", stdin)) {
+				flog(LOG_ERR, "unable to redirect stdin to /dev/null.");
+				exit(-1);
+			}
+			if (stdout != freopen("/dev/null", "w", stdout)) {
+				flog(LOG_ERR, "unable to redirect stdout to /dev/null.");
+				exit(-1);
+			}
+			if (stdout != freopen("/dev/null", "w", stderr)) {
+				flog(LOG_ERR, "unable to redirect stderr to /dev/null.");
+				exit(-1);
+			}
+		}
+	} else {
+		/* Parent.  Make sure the pid file is written before exiting. */
+		close(pipe_ends[1]);
+		pid_t msg = -1;
+		ssize_t rc = read(pipe_ends[0], &msg, sizeof(msg));
+		if (rc != sizeof(msg)) {
+			flog(LOG_ERR, "child failed to signal pid file written: %s", strerror(errno));
+			exit(-1);
+		} else if (msg != pid) {
+			flog(LOG_ERR, "child wrote wrong pid to pid file: %d", msg);
+			exit(-1);
+		} else {
+			dlog(LOG_DEBUG, 5, "child signaled pid file written: %d", msg);
+		}
+		close(pipe_ends[0]);
+
+		exit(0);
+	}
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
