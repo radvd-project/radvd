@@ -96,6 +96,7 @@ static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void do_daemonize(int log_method);
+static void check_pid_file(char const * daemon_pid_file_ident);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
 static int write_pid_file(int pid_fd);
 
@@ -496,7 +497,31 @@ static int write_pid_file(int pid_fd)
 	}
 	return 0;
 
+static void check_pid_file(char const * daemon_pid_file_ident)
+{
+	FILE * pidfile = fopen(daemon_pid_file_ident, "r");
+
+	if (!pidfile) {
+		flog(LOG_ERR, "unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	}
+
+	pid_t pid = -1;
+
+	int rc = fscanf(pidfile, "%d", &pid);
+
+	if (rc != 1) {
+		flog(LOG_ERR, "unable to read pid from pid file: %s", daemon_pid_file_ident);
+		exit(-1);
+	}
+
+	if (pid != getpid()) {
+		flog(LOG_ERR, "pid in file, %s, doesn't match getpid(): %d != %d", daemon_pid_file_ident, pid, getpid());
+		exit(-1);
+	}
+	dlog(LOG_DEBUG, 4, "validated pid file, %s: %d", daemon_pid_file_ident, pid);
 }
+
 
 static void timer_handler(int sock, struct Interface *iface)
 {
