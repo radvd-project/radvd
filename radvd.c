@@ -24,6 +24,7 @@
 
 #include <poll.h>
 #include <sys/file.h>
+#include <libgen.h>
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -95,11 +96,11 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
-static void do_daemonize(int log_method);
+static void do_daemonize(int log_method, char const * daemon_pid_file_ident);
 static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
 static void check_pid_file(char const * daemon_pid_file_ident);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
-static int write_pid_file(int pid_fd);
+static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid);
 
 /* daemonize and write pid file.  The pid of the daemon child process
  * will be written to the pid file from the *parent* process.  This
@@ -331,20 +332,22 @@ int main(int argc, char *argv[])
 		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
-	int const pid_fd = open_and_lock_pid_file(daemon_pid_file_ident);
+	int const pidfd = open_and_lock_pid_file(daemon_pid_file_ident);
 
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
 	if (daemonize) {
-		do_daemonize(log_method);
+		do_daemonize(log_method, daemon_pid_file_ident);
+	} else {
+		if (0 != write_pid_file(daemon_pid_file_ident, getpid())) {
+			flog(LOG_ERR, "failure writing pid file detected");
+			exit(-1);
+		}
 	}
 
-	if (0 != write_pid_file(pid_fd)) {
-		flog(LOG_ERR, "Unable to write PID to %s", daemon_pid_file_ident);
-		exit(-1);
-	}
+	check_pid_file(daemon_pid_file_ident);
 
 	if (username) {
 		if (drop_root_privileges(username) < 0) {
@@ -361,7 +364,7 @@ int main(int argc, char *argv[])
 
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
 	unlink(daemon_pid_file_ident);
-	close(pid_fd);
+	close(pidfd);
 
 	if (ifaces)
 		free_ifaces(ifaces);
@@ -506,18 +509,18 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 	}
 }
 
-static void do_daemonize(int log_method)
+static void do_daemonize(int log_method, char const * daemon_pid_file_ident)
 {
 	int rc = -1;
 
 	if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
-		rc = daemon(1, 1);
+		rc = daemonp(1, 1, daemon_pid_file_ident);
 	} else {
-		rc = daemon(0, 0);
+		rc = daemonp(0, 0, daemon_pid_file_ident);
 	}
 
 	if (-1 == rc) {
-		flog(LOG_ERR, "Unable to daemonize: %s", strerror(errno));
+		flog(LOG_ERR, "unable to daemonize: %s", strerror(errno));
 		exit(-1);
 	}
 }
@@ -551,23 +554,46 @@ static int open_and_lock_pid_file(char const * daemon_pid_file_ident)
 	return pidfd;
 }
 
-static int write_pid_file(int pid_fd)
+static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid)
 {
+	int pidfd = open_pid_file(daemon_pid_file_ident);
 	char pid_str[20] = {""};
-	sprintf(pid_str, "%d", getpid());
+	sprintf(pid_str, "%d", pid);
 	dlog(LOG_DEBUG, 3, "radvd PID is %s", pid_str);
 	size_t len = strlen(pid_str);
-	int rc = write(pid_fd, pid_str, len);
+	int rc = write(pidfd, pid_str, len);
 	if (rc != (int)len) {
 		return -1;
 	}
 	char newline[] = {"\n"};
 	len = strlen(newline);
-	rc = write(pid_fd, newline, len);
+	rc = write(pidfd, newline, len);
 	if (rc != (int)len) {
 		return -1;
 	}
-	return 0;
+	rc = fsync(pidfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to fsync pid file: %s", daemon_pid_file_ident);
+	}
+	rc = close(pidfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to close pid file: %s", daemon_pid_file_ident);
+	}
+	char * dirstrcopy = strdup(daemon_pid_file_ident);
+	char * dirstr = dirname(dirstrcopy);
+	int dirfd = open(dirstr, O_RDONLY);
+	rc = fsync(dirfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to fsync pid dir: %s", dirstr);
+	}
+	rc = close(dirfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to close pid dir: %s", dirstr);
+	}
+	free(dirstrcopy);
+	dlog(LOG_DEBUG, 4, "wrote pid %d to pid file: %s", pid, daemon_pid_file_ident);
+	return rc;
+}
 
 static void check_pid_file(char const * daemon_pid_file_ident)
 {
