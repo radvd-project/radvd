@@ -522,27 +522,33 @@ static void do_daemonize(int log_method)
 	}
 }
 
+static int open_pid_file(char const * daemon_pid_file_ident)
+{
+	int pidfd = open(daemon_pid_file_ident, O_SYNC | O_CREAT | O_RDWR, 0644);
+	if (-1 == pidfd) {
+		flog(LOG_ERR, "unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	} else {
+		dlog(LOG_DEBUG, 5, "opened pid file %s", daemon_pid_file_ident);
+	}
+	return pidfd;
+}
+
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident)
 {
 	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
 
-	int pid_fd = open(daemon_pid_file_ident, O_CREAT | O_RDWR, 0644);
-	if (-1 == pid_fd) {
-		flog(LOG_ERR, "Unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
-		exit(-1);
-	} else {
-		dlog(LOG_DEBUG, 4, "opened pid file %s", daemon_pid_file_ident);
-	}
+	int pidfd = open_pid_file(daemon_pid_file_ident);
 
-	int lock = flock(pid_fd, LOCK_EX | LOCK_NB);
+	int lock = flock(pidfd, LOCK_EX | LOCK_NB);
 	if (0 != lock) {
-		flog(LOG_ERR, "Unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		flog(LOG_ERR, "unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
 		exit(-1);
 	} else {
 		dlog(LOG_DEBUG, 4, "locked pid file %s", daemon_pid_file_ident);
 	}
 
-	return pid_fd;
+	return pidfd;
 }
 
 static int write_pid_file(int pid_fd)
