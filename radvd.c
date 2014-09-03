@@ -24,6 +24,7 @@
 
 #include <poll.h>
 #include <sys/file.h>
+#include <libgen.h>
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -95,9 +96,76 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
-static void do_daemonize(int log_method);
+static void do_daemonize(int log_method, char const * daemon_pid_file_ident);
+static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
+static void check_pid_file(char const * daemon_pid_file_ident);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
-static int write_pid_file(int pid_fd);
+static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid);
+
+/* daemonize and write pid file.  The pid of the daemon child process
+ * will be written to the pid file from the *parent* process.  This
+ * insures there is no race condition as described in redhat bug 664783. */
+static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
+{
+	int pipe_ends[2];
+
+	if (0 != pipe(pipe_ends)) {
+		flog(LOG_ERR, "unable to create pipe: %s", strerror(errno));
+		exit(-1);
+	}
+
+	pid_t pid = fork();
+
+	if (-1 == pid) {
+		flog(LOG_ERR, "unable to fork in daemonp.");
+		exit(-1);
+	} else if (0 == pid) {
+		/* Child process, detached.. */
+		pid = getpid();
+		close(pipe_ends[0]);
+		if (0 != write_pid_file(daemon_pid_file_ident, pid)) {
+			flog(LOG_ERR, "failure writing pid file");
+			exit(-1);
+		}
+		write(pipe_ends[1], &pid, sizeof(pid));
+
+		if (nochdir == 0) {
+			chdir("/");
+		}
+		if (noclose == 0) {
+			if (stdin != freopen("/dev/null", "r", stdin)) {
+				flog(LOG_ERR, "unable to redirect stdin to /dev/null.");
+				exit(-1);
+			}
+			if (stdout != freopen("/dev/null", "w", stdout)) {
+				flog(LOG_ERR, "unable to redirect stdout to /dev/null.");
+				exit(-1);
+			}
+			if (stdout != freopen("/dev/null", "w", stderr)) {
+				flog(LOG_ERR, "unable to redirect stderr to /dev/null.");
+				exit(-1);
+			}
+		}
+	} else {
+		/* Parent.  Make sure the pid file is written before exiting. */
+		close(pipe_ends[1]);
+		pid_t msg = -1;
+		ssize_t rc = read(pipe_ends[0], &msg, sizeof(msg));
+		if (rc != sizeof(msg)) {
+			flog(LOG_ERR, "child failed to signal pid file written: %s", strerror(errno));
+			exit(-1);
+		} else if (msg != pid) {
+			flog(LOG_ERR, "child wrote wrong pid to pid file: %d", msg);
+			exit(-1);
+		} else {
+			dlog(LOG_DEBUG, 5, "child signaled pid file written: %d", msg);
+		}
+		close(pipe_ends[0]);
+
+		exit(0);
+	}
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -264,20 +332,22 @@ int main(int argc, char *argv[])
 		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
 	}
 
-	int const pid_fd = open_and_lock_pid_file(daemon_pid_file_ident);
+	int const pidfd = open_and_lock_pid_file(daemon_pid_file_ident);
 
 	/*
 	 * okay, config file is read in, socket and stuff is setup, so
 	 * lets fork now...
 	 */
 	if (daemonize) {
-		do_daemonize(log_method);
+		do_daemonize(log_method, daemon_pid_file_ident);
+	} else {
+		if (0 != write_pid_file(daemon_pid_file_ident, getpid())) {
+			flog(LOG_ERR, "failure writing pid file detected");
+			exit(-1);
+		}
 	}
 
-	if (0 != write_pid_file(pid_fd)) {
-		flog(LOG_ERR, "Unable to write PID to %s", daemon_pid_file_ident);
-		exit(-1);
-	}
+	check_pid_file(daemon_pid_file_ident);
 
 	if (username) {
 		if (drop_root_privileges(username) < 0) {
@@ -294,7 +364,7 @@ int main(int argc, char *argv[])
 
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
 	unlink(daemon_pid_file_ident);
-	close(pid_fd);
+	close(pidfd);
 
 	if (ifaces)
 		free_ifaces(ifaces);
@@ -439,64 +509,117 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 	}
 }
 
-static void do_daemonize(int log_method)
+static void do_daemonize(int log_method, char const * daemon_pid_file_ident)
 {
 	int rc = -1;
 
 	if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
-		rc = daemon(1, 1);
+		rc = daemonp(1, 1, daemon_pid_file_ident);
 	} else {
-		rc = daemon(0, 0);
+		rc = daemonp(0, 0, daemon_pid_file_ident);
 	}
 
 	if (-1 == rc) {
-		flog(LOG_ERR, "Unable to daemonize: %s", strerror(errno));
+		flog(LOG_ERR, "unable to daemonize: %s", strerror(errno));
 		exit(-1);
 	}
+}
+
+static int open_pid_file(char const * daemon_pid_file_ident)
+{
+	int pidfd = open(daemon_pid_file_ident, O_SYNC | O_CREAT | O_RDWR, 0644);
+	if (-1 == pidfd) {
+		flog(LOG_ERR, "unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	} else {
+		dlog(LOG_DEBUG, 5, "opened pid file %s", daemon_pid_file_ident);
+	}
+	return pidfd;
 }
 
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident)
 {
 	dlog(LOG_DEBUG, 3, "radvd startup PID is %d", getpid());
 
-	int pid_fd = open(daemon_pid_file_ident, O_CREAT | O_RDWR, 0644);
-	if (-1 == pid_fd) {
-		flog(LOG_ERR, "Unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
-		exit(-1);
-	} else {
-		dlog(LOG_DEBUG, 4, "opened pid file %s", daemon_pid_file_ident);
-	}
+	int pidfd = open_pid_file(daemon_pid_file_ident);
 
-	int lock = flock(pid_fd, LOCK_EX | LOCK_NB);
+	int lock = flock(pidfd, LOCK_EX | LOCK_NB);
 	if (0 != lock) {
-		flog(LOG_ERR, "Unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		flog(LOG_ERR, "unable to lock pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
 		exit(-1);
 	} else {
 		dlog(LOG_DEBUG, 4, "locked pid file %s", daemon_pid_file_ident);
 	}
 
-	return pid_fd;
+	return pidfd;
 }
 
-static int write_pid_file(int pid_fd)
+static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid)
 {
+	int pidfd = open_pid_file(daemon_pid_file_ident);
 	char pid_str[20] = {""};
-	sprintf(pid_str, "%d", getpid());
+	sprintf(pid_str, "%d", pid);
 	dlog(LOG_DEBUG, 3, "radvd PID is %s", pid_str);
 	size_t len = strlen(pid_str);
-	int rc = write(pid_fd, pid_str, len);
+	int rc = write(pidfd, pid_str, len);
 	if (rc != (int)len) {
 		return -1;
 	}
 	char newline[] = {"\n"};
 	len = strlen(newline);
-	rc = write(pid_fd, newline, len);
+	rc = write(pidfd, newline, len);
 	if (rc != (int)len) {
 		return -1;
 	}
-	return 0;
-
+	rc = fsync(pidfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to fsync pid file: %s", daemon_pid_file_ident);
+	}
+	rc = close(pidfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to close pid file: %s", daemon_pid_file_ident);
+	}
+	char * dirstrcopy = strdup(daemon_pid_file_ident);
+	char * dirstr = dirname(dirstrcopy);
+	int dirfd = open(dirstr, O_RDONLY);
+	rc = fsync(dirfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to fsync pid dir: %s", dirstr);
+	}
+	rc = close(dirfd);
+	if (rc != 0) {
+		dlog(LOG_DEBUG, 4, "failed to close pid dir: %s", dirstr);
+	}
+	free(dirstrcopy);
+	dlog(LOG_DEBUG, 4, "wrote pid %d to pid file: %s", pid, daemon_pid_file_ident);
+	return rc;
 }
+
+static void check_pid_file(char const * daemon_pid_file_ident)
+{
+	FILE * pidfile = fopen(daemon_pid_file_ident, "r");
+
+	if (!pidfile) {
+		flog(LOG_ERR, "unable to open pid file, %s: %s", daemon_pid_file_ident, strerror(errno));
+		exit(-1);
+	}
+
+	pid_t pid = -1;
+
+	int rc = fscanf(pidfile, "%d", &pid);
+
+	if (rc != 1) {
+		flog(LOG_ERR, "unable to read pid from pid file: %s", daemon_pid_file_ident);
+		exit(-1);
+	}
+
+	if (pid != getpid()) {
+		flog(LOG_ERR, "pid in file, %s, doesn't match getpid(): %d != %d", daemon_pid_file_ident, pid, getpid());
+		exit(-1);
+	}
+	dlog(LOG_DEBUG, 4, "validated pid file, %s: %d", daemon_pid_file_ident, pid);
+}
+
 
 static void timer_handler(int sock, struct Interface *iface)
 {
