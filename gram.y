@@ -376,7 +376,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				}
 
 				if ( prefix->if6[0] && prefix->if6to4[0]) {
-					flog(LOG_ERR, "Base6Interface and Base6to4Interface are mutually exclusive at this time.");
+					flog(LOG_ERR, "Base6Interface and Base6to4Interface are mutually exclusive at this time");
 					ABORT;
 				}
 
@@ -404,7 +404,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 					struct AdvPrefix *next = prefix->next;
 
 					if (prefix->PrefixLen != 64) {
-						flog(LOG_ERR, "Only /64 is allowed with Base6Interface.  %s:%d", filename, num_lines);
+						flog(LOG_ERR, "only /64 is allowed with Base6Interface.  %s:%d", filename, num_lines);
 						ABORT;
 					}
 
@@ -482,7 +482,7 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 				}
 				next = 0;
 
-				dlog(LOG_DEBUG, 5, "all-zeros prefix in %s, line %d, parsing..", filename, num_lines);
+				dlog(LOG_DEBUG, 5, "all-zeros prefix in %s, line %d", filename, num_lines);
 
 				if (getifaddrs(&ifap) != 0)
 					flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
@@ -766,7 +766,7 @@ rdnssaddr	: IPV6ADDR
 					rdnss->AdvRDNSSNumber++;
 					break;
 				default:
-					flog(LOG_CRIT, "Too many addresses in RDNSS section");
+					flog(LOG_CRIT, "too many addresses in RDNSS section");
 					ABORT;
 			}
 
@@ -776,7 +776,7 @@ rdnssaddr	: IPV6ADDR
 rdnsshead	: T_RDNSS rdnssaddrs
 		{
 			if (!rdnss) {
-				flog(LOG_CRIT, "No address specified in RDNSS section");
+				flog(LOG_CRIT, "no address specified in RDNSS section");
 				ABORT;
 			}
 		}
@@ -793,16 +793,16 @@ rdnssplist	: rdnssplist rdnssparms
 
 rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		{
-			flog(LOG_WARNING, "Ignoring deprecated RDNSS preference.");
+			flog(LOG_WARNING, "ignoring deprecated RDNSS preference");
 		}
 		| T_AdvRDNSSOpenFlag SWITCH ';'
 		{
-			flog(LOG_WARNING, "Ignoring deprecated RDNSS open flag.");
+			flog(LOG_WARNING, "ignoring deprecated RDNSS open flag");
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{
 			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "Warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
+				flog(LOG_WARNING, "warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
 			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
 				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
 				rdnss->AdvRDNSSLifetime = iface->MaxRtrAdvInterval;
@@ -810,7 +810,7 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 				rdnss->AdvRDNSSLifetime = $2;
 			}
 			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "Warning: (%s:%d) AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster", filename, num_lines);
+				flog(LOG_WARNING, "warning: (%s:%d) AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster", filename, num_lines);
 
 			rdnss->AdvRDNSSLifetime = $2;
 		}
@@ -844,7 +844,7 @@ dnsslsuffix	: STRING
 				if (*ch == '-' || *ch == '.')
 					continue;
 
-				flog(LOG_CRIT, "Invalid domain suffix specified");
+				flog(LOG_CRIT, "invalid domain suffix specified");
 				ABORT;
 			}
 
@@ -876,7 +876,7 @@ dnsslsuffix	: STRING
 dnsslhead	: T_DNSSL dnsslsuffixes
 		{
 			if (!dnssl) {
-				flog(LOG_CRIT, "No domain specified in DNSSL section");
+				flog(LOG_CRIT, "no domain specified in DNSSL section");
 				ABORT;
 			}
 		}
@@ -894,7 +894,7 @@ dnsslplist	: dnsslplist dnsslparms
 dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 		{
 			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "Warning: AdvDNSSLLifetime <= 2*MaxRtrAdvInterval would allow stale DNS suffixes to be deleted faster");
+				flog(LOG_WARNING, "warning: AdvDNSSLLifetime <= 2*MaxRtrAdvInterval would allow stale DNS suffixes to be deleted faster");
 			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
 				flog(LOG_ERR, "AdvDNSSLLifetime must be at least MaxRtrAdvInterval");
 				dnssl->AdvDNSSLLifetime = iface->MaxRtrAdvInterval;
@@ -1107,7 +1107,7 @@ struct Interface * readin_config(char const *path)
 			free_ifaces(iface);
 			iface = 0;
 		} else {
-			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok.", path);
+			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok", path);
 		}
 		yylex_destroy();
 		fclose(in);

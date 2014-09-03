@@ -55,7 +55,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 {
 	/* when netlink is not available (disabled or BSD), ensure_iface_setup is necessary. */
 	if (ensure_iface_setup(sock, iface) < 0) {
-		dlog(LOG_DEBUG, 3, "Not sending RA for %s, interface is not ready", iface->props.name);
+		dlog(LOG_DEBUG, 3, "not sending RA for %s, interface is not ready", iface->props.name);
 		return -1;
 	}
 
@@ -634,7 +634,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 	char address_text[INET6_ADDRSTRLEN] = { "" };
 	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
-	dlog(LOG_DEBUG, 5, "Sending RA to %s on %s", address_text, iface->props.name);
+	dlog(LOG_DEBUG, 5, "sending RA to %s on %s", address_text, iface->props.name);
 
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
 

@@ -117,7 +117,7 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 	pid_t pid = fork();
 
 	if (-1 == pid) {
-		flog(LOG_ERR, "unable to fork in daemonp.");
+		flog(LOG_ERR, "unable to fork in daemonp");
 		exit(-1);
 	} else if (0 == pid) {
 		/* Child process, detached.. */
@@ -134,15 +134,15 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 		}
 		if (noclose == 0) {
 			if (stdin != freopen("/dev/null", "r", stdin)) {
-				flog(LOG_ERR, "unable to redirect stdin to /dev/null.");
+				flog(LOG_ERR, "unable to redirect stdin to /dev/null");
 				exit(-1);
 			}
 			if (stdout != freopen("/dev/null", "w", stdout)) {
-				flog(LOG_ERR, "unable to redirect stdout to /dev/null.");
+				flog(LOG_ERR, "unable to redirect stdout to /dev/null");
 				exit(-1);
 			}
 			if (stdout != freopen("/dev/null", "w", stderr)) {
-				flog(LOG_ERR, "unable to redirect stderr to /dev/null.");
+				flog(LOG_ERR, "unable to redirect stderr to /dev/null");
 				exit(-1);
 			}
 		}
@@ -289,9 +289,9 @@ int main(int argc, char *argv[])
 		/* Calling privsep here, before opening the socket and reading the config
 		 * file, ensures we're not going to be wasting resources in the privsep
 		 * process. */
-		dlog(LOG_DEBUG, 3, "Initializing privsep");
+		dlog(LOG_DEBUG, 3, "initializing privsep");
 		if (privsep_init(username, chrootdir) < 0) {
-			flog(LOG_INFO, "Failed to initialize privsep.");
+			flog(LOG_INFO, "Failed to initialize privsep");
 			exit(1);
 		}
 #endif
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 	 */
 	if (check_conffile_perm(username, conf_path) != 0) {
 		if (get_debuglevel() == 0) {
-			flog(LOG_ERR, "Exiting, permissions on conf_file invalid.");
+			flog(LOG_ERR, "exiting, permissions on conf_file invalid");
 			exit(1);
 		} else
 			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
 	/* parse config file */
 	struct Interface *ifaces = NULL;
 	if ((ifaces = readin_config(conf_path)) == 0) {
-		flog(LOG_ERR, "Exiting, failed to read config file.");
+		flog(LOG_ERR, "exiting, failed to read config file");
 		exit(1);
 	}
 
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
 
 	/* if we know how to do it, check whether forwarding is enabled */
 	if (check_ip6_forwarding()) {
-		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway.");
+		flog(LOG_WARNING, "IPv6 forwarding seems to be disabled, but continuing anyway");
 	}
 
 	int const pidfd = open_and_lock_pid_file(daemon_pid_file_ident);
@@ -439,10 +439,10 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 			ts.tv_sec = timeout / 1000;
 			ts.tv_nsec = (timeout - 1000 * ts.tv_sec) * 1000000;
 			tsp = &ts;
-			dlog(LOG_DEBUG, 1, "polling for %g second(s). Next iface is %s.", timeout / 1000.0,
+			dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
 			     next_iface_to_expire->props.name);
 		} else {
-			dlog(LOG_DEBUG, 1, "No iface is next. Polling indefinitely.");
+			dlog(LOG_DEBUG, 1, "no iface is next. Polling indefinitely");
 		}
 #ifdef HAVE_PPOLL
 		int rc = ppoll(fds, sizeof(fds) / sizeof(fds[0]), tsp, &sigempty);
@@ -472,7 +472,7 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 				if (len > 0 && pkt_info) {
 					process(sock, ifaces, msg, len, &rcv_addr, pkt_info, hoplimit);
 				} else if (!pkt_info) {
-					dlog(LOG_INFO, 4, "recv_rs_ra returned null pkt_info.");
+					dlog(LOG_INFO, 4, "recv_rs_ra returned null pkt_info");
 				} else if (len <= 0) {
 					dlog(LOG_INFO, 4, "recv_rs_ra returned len <= 0: %d", len);
 				}
@@ -485,23 +485,23 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 		}
 
 		if (sigint_received) {
-			flog(LOG_WARNING, "Exiting, %d sigint(s) received.", sigint_received);
+			flog(LOG_WARNING, "exiting, %d sigint(s) received", sigint_received);
 			break;
 		}
 
 		if (sigterm_received) {
-			flog(LOG_WARNING, "Exiting, %d sigterm(s) received.", sigterm_received);
+			flog(LOG_WARNING, "exiting, %d sigterm(s) received", sigterm_received);
 			break;
 		}
 
 		if (sighup_received) {
-			dlog(LOG_INFO, 3, "sig hup received.");
+			dlog(LOG_INFO, 3, "sig hup received");
 			ifaces = reload_config(sock, ifaces, conf_path);
 			sighup_received = 0;
 		}
 
 		if (sigusr1_received) {
-			dlog(LOG_INFO, 3, "sig usr1 received.");
+			dlog(LOG_INFO, 3, "sig usr1 received");
 			reset_prefix_lifetimes(ifaces);
 			sigusr1_received = 0;
 		}
@@ -671,7 +671,7 @@ static void stop_advert_foo(struct Interface *iface, void *data)
 {
 	if (!iface->UnicastOnly) {
 		/* send a final advertisement with zero Router Lifetime */
-		dlog(LOG_DEBUG, 4, "stopping all adverts on %s.", iface->props.name);
+		dlog(LOG_DEBUG, 4, "stopping all adverts on %s", iface->props.name);
 		iface->state_info.cease_adv = 1;
 		int sock = *(int *)data;
 		send_ra_forall(sock, iface, NULL);
@@ -720,7 +720,7 @@ static struct Interface *reload_config(int sock, struct Interface *ifaces, char 
 	/* reread config file */
 	ifaces = readin_config(conf_path);
 	if (!ifaces) {
-		flog(LOG_ERR, "Exiting, failed to read config file.");
+		flog(LOG_ERR, "exiting, failed to read config file");
 		exit(1);
 	}
 	setup_ifaces(sock, ifaces);
