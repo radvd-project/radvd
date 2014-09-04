@@ -149,6 +149,13 @@ int privsep_init(void * username, void * chrootdir)
 		close(pipefds[1]);
 		pfd = pipefds[0];
 
+		umask(0);
+		if (-1 == setsid()) {
+			flog(LOG_ERR, "unable to become a session leader: %s", strerror(errno));
+			exit(-1);
+		}
+
+		chdir("/");
 		/* Detach from stdio */
 		int nullfd = open("/dev/null", O_RDONLY);
 		if (nullfd < 0) {
