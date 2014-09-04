@@ -157,17 +157,21 @@ int privsep_init(void * username, void * chrootdir)
 
 		chdir("/");
 		/* Detach from stdio */
-		int nullfd = open("/dev/null", O_RDONLY);
-		if (nullfd < 0) {
-			perror("/dev/null");
-			close(pfd);
-			_exit(1);
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+		if (open("/dev/null", O_RDONLY) == -1) {
+			flog(LOG_ERR, "unable to redirect stdin to /dev/null");
+			exit(-1);
 		}
-		dup2(nullfd, 0);
-		dup2(nullfd, 1);
-		/* XXX: we'll keep stderr open in debug mode for better logging */
-		if (get_debuglevel() == 0)
-			dup2(nullfd, 2);
+		if (open("/dev/null", O_WRONLY) == -1) {
+			flog(LOG_ERR, "unable to redirect stdout to /dev/null");
+			exit(-1);
+		}
+		if (open("/dev/null", O_RDWR) == -1) {
+			flog(LOG_ERR, "unable to redirect stderr to /dev/null");
+			exit(-1);
+		}
 
 		privsep_read_loop();
 		close(pfd);
