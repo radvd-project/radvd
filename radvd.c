@@ -129,6 +129,7 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 		}
 		write(pipe_ends[1], &pid, sizeof(pid));
 
+		umask(0);
 		if (-1 == setsid()) {
 			flog(LOG_ERR, "unable to become a session leader: %s", strerror(errno));
 			exit(-1);
