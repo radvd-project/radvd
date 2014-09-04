@@ -133,15 +133,18 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 			chdir("/");
 		}
 		if (noclose == 0) {
-			if (stdin != freopen("/dev/null", "r", stdin)) {
+			close(STDIN_FILENO);
+			close(STDOUT_FILENO);
+			close(STDERR_FILENO);
+			if (open("/dev/null", O_RDONLY) == -1) {
 				flog(LOG_ERR, "unable to redirect stdin to /dev/null");
 				exit(-1);
 			}
-			if (stdout != freopen("/dev/null", "w", stdout)) {
+			if (open("/dev/null", O_WRONLY) == -1) {
 				flog(LOG_ERR, "unable to redirect stdout to /dev/null");
 				exit(-1);
 			}
-			if (stdout != freopen("/dev/null", "w", stderr)) {
+			if (open("/dev/null", O_RDWR) == -1) {
 				flog(LOG_ERR, "unable to redirect stderr to /dev/null");
 				exit(-1);
 			}
