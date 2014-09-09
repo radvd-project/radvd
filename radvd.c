@@ -294,16 +294,6 @@ int main(int argc, char *argv[])
 
 	if (!configtest) {
 		flog(LOG_INFO, "version %s started", VERSION);
-#ifdef __linux__
-		/* Calling privsep here, before opening the socket and reading the config
-		 * file, ensures we're not going to be wasting resources in the privsep
-		 * process. */
-		dlog(LOG_DEBUG, 3, "initializing privsep");
-		if (privsep_init(username, chrootdir) < 0) {
-			flog(LOG_INFO, "Failed to initialize privsep");
-			exit(1);
-		}
-#endif
 	}
 
 	/* check that 'other' cannot write the file
@@ -357,6 +347,50 @@ int main(int argc, char *argv[])
 	}
 
 	check_pid_file(daemon_pid_file_ident);
+
+#ifdef __linux__
+	/* for privsep */ {
+		dlog(LOG_DEBUG, 3, "initializing privsep");
+
+		int pipefds[2];
+
+		if (pipe(pipefds) != 0) {
+			flog(LOG_ERR, "Couldn't create privsep pipe.");
+			return -1;
+		}
+
+		pid_t pid = fork();
+
+		if (pid == -1) {
+			flog(LOG_ERR, "Couldn't fork for privsep.");
+			return -1;
+		}
+
+		if (pid == 0) {
+			/* We want to see clean output from valgrind, so free username, chrootdir,
+			 * and ifaces in the child process. */
+			if (ifaces)
+				free_ifaces(ifaces);
+
+			if (username)
+				free(username);
+
+			if (chrootdir)
+				free(chrootdir);
+
+			close(pipefds[1]);
+
+			privsep_init(pipefds[0]);
+			_exit(0);
+		}
+
+		dlog(LOG_DEBUG, 3, "radvd privsep PID is %d", pid);
+
+		/* Continue execution (will drop privileges soon) */
+		close(pipefds[0]);
+		privsep_set_write_fd(pipefds[1]);
+	}
+#endif
 
 	if (username) {
 		if (drop_root_privileges(username) < 0) {

@@ -25,6 +25,11 @@ static void privsep_read_loop(void);
 /* For reading or writing, depending on process */
 static int pfd = -1;
 
+void privsep_set_write_fd(int fd)
+{
+	pfd = fd;
+}
+
 /* Command types */
 enum privsep_type {
 	SET_INTERFACE_LINKMTU,
@@ -119,73 +124,13 @@ static void privsep_read_loop(void)
 	}
 }
 
-/* Fork to create privileged process connected by a pipe */
-int privsep_init(void * username, void * chrootdir)
+void privsep_init(int fd)
 {
-	int pipefds[2];
-
-	if (pipe(pipefds) != 0) {
-		flog(LOG_ERR, "Couldn't create privsep pipe.");
-		return -1;
-	}
-
-	pid_t pid = fork();
-	if (pid == -1) {
-		flog(LOG_ERR, "Couldn't fork for privsep.");
-		return -1;
-	}
-
-	if (pid == 0) {
-
-		/* We want to see clean output from valgrind, so free username and chrootdir
-		 * in this process. */
-		if (username)
-			free(username);
-
-		if (chrootdir)
-			free(chrootdir);
-
-		/* This will be the privileged child */
-		close(pipefds[1]);
-		pfd = pipefds[0];
-
-		umask(0);
-		if (-1 == setsid()) {
-			flog(LOG_ERR, "unable to become a session leader: %s", strerror(errno));
-			exit(-1);
-		}
-
-		chdir("/");
-		/* Detach from stdio */
-		close(STDIN_FILENO);
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
-		if (open("/dev/null", O_RDONLY) == -1) {
-			flog(LOG_ERR, "unable to redirect stdin to /dev/null");
-			exit(-1);
-		}
-		if (open("/dev/null", O_WRONLY) == -1) {
-			flog(LOG_ERR, "unable to redirect stdout to /dev/null");
-			exit(-1);
-		}
-		if (open("/dev/null", O_RDWR) == -1) {
-			flog(LOG_ERR, "unable to redirect stderr to /dev/null");
-			exit(-1);
-		}
-
-		privsep_read_loop();
-		close(pfd);
-		flog(LOG_ERR, "Exiting, privsep_read_loop is complete.");
-		_exit(0);
-	}
-
-	dlog(LOG_DEBUG, 3, "radvd privsep PID is %d", pid);
-
-	/* Continue execution (will drop privileges soon) */
-	close(pipefds[0]);
-	pfd = pipefds[1];
-
-	return 0;
+	/* This will be the privileged child */
+	pfd = fd;
+	privsep_read_loop();
+	close(pfd);
+	flog(LOG_ERR, "Exiting, privsep_read_loop is complete.");
 }
 
 /* Interface calls for the unprivileged process */
