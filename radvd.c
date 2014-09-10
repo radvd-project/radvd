@@ -127,7 +127,9 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 			flog(LOG_ERR, "failure writing pid file");
 			exit(-1);
 		}
-		write(pipe_ends[1], &pid, sizeof(pid));
+		if (sizeof(pid) != write(pipe_ends[1], &pid, sizeof(pid))) {
+			flog(LOG_ERR, "failure piping pid to parent process");
+		}
 
 		umask(0);
 		if (-1 == setsid()) {
@@ -136,7 +138,10 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 		}
 
 		if (nochdir == 0) {
-			chdir("/");
+			if (chdir("/") == -1) {
+				perror("chdir");
+				exit(1);
+			}
 		}
 		if (noclose == 0) {
 			close(STDIN_FILENO);
