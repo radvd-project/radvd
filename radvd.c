@@ -650,6 +650,7 @@ static void check_pid_file(char const * daemon_pid_file_ident)
 	pid_t pid = -1;
 
 	int rc = fscanf(pidfile, "%d", &pid);
+	fclose(pidfile);
 
 	if (rc != 1) {
 		flog(LOG_ERR, "unable to read pid from pid file: %s", daemon_pid_file_ident);
