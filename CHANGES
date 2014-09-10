@@ -1,3 +1,7 @@
+2014/09/10	Move privsep after daemonp call to avoid doing the same
+			things deamonp does in privsep.
+		release v2.7
+
 2014/09/03	Write PID file from child, signal parent when complete
 		Normalize some logging to read like headlines
 		release v2.6
