@@ -96,8 +96,8 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
-static void do_daemonize(int log_method, char const * daemon_pid_file_ident);
-static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
+static pid_t do_daemonize(int log_method, char const * daemon_pid_file_ident);
+static pid_t daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
 static void check_pid_file(char const * daemon_pid_file_ident);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
 static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid);
@@ -105,7 +105,7 @@ static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid);
 /* daemonize and write pid file.  The pid of the daemon child process
  * will be written to the pid file from the *parent* process.  This
  * insures there is no race condition as described in redhat bug 664783. */
-static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
+static pid_t daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 {
 	int pipe_ends[2];
 
@@ -176,7 +176,7 @@ static int daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident)
 		}
 		close(pipe_ends[0]);
 
-		exit(0);
+		return pid;
 	}
 	return 0;
 }
@@ -343,7 +343,21 @@ int main(int argc, char *argv[])
 	 * lets fork now...
 	 */
 	if (daemonize) {
-		do_daemonize(log_method, daemon_pid_file_ident);
+		pid_t pid = do_daemonize(log_method, daemon_pid_file_ident);
+		if (pid != 0 && pid != -1) {
+			/* We want to see clean output from valgrind, so free username, chrootdir,
+			 * and ifaces in the child process. */
+			if (ifaces)
+				free_ifaces(ifaces);
+
+			if (username)
+				free(username);
+
+			if (chrootdir)
+				free(chrootdir);
+
+			exit(0);
+		}
 	} else {
 		if (0 != write_pid_file(daemon_pid_file_ident, getpid())) {
 			flog(LOG_ERR, "failure writing pid file detected");
@@ -557,20 +571,21 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 	}
 }
 
-static void do_daemonize(int log_method, char const * daemon_pid_file_ident)
+static pid_t do_daemonize(int log_method, char const * daemon_pid_file_ident)
 {
-	int rc = -1;
+	pid_t pid = -1;
 
 	if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
-		rc = daemonp(1, 1, daemon_pid_file_ident);
+		pid = daemonp(1, 1, daemon_pid_file_ident);
 	} else {
-		rc = daemonp(0, 0, daemon_pid_file_ident);
+		pid = daemonp(0, 0, daemon_pid_file_ident);
 	}
 
-	if (-1 == rc) {
+	if (-1 == pid) {
 		flog(LOG_ERR, "unable to daemonize: %s", strerror(errno));
 		exit(-1);
 	}
+	return pid;
 }
 
 static int open_pid_file(char const * daemon_pid_file_ident)
