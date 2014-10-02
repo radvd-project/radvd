@@ -82,11 +82,13 @@ int setup_iface(int sock, struct Interface *iface)
 		return -1;
 	}
 
+#if 0
 	/* Make sure this is disabled.  We don't want this interface to autoconfig using its
 	 * own advert messages. */
 	if (set_interface_autoconfig(iface->props.name, 0)) {
 		return -1;
 	}
+#endif
 
 	/* Save the first link local address seen on the specified interface to iface->if_addr */
 	if (setup_linklocal_addr(iface) < 0) {

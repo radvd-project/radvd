@@ -143,11 +143,13 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 	return -1;
 }
 
+#if 0
 int set_interface_autoconfig(const char *iface, uint32_t autoconf)
 {
 	dlog(LOG_DEBUG, 4, "setting Autoconfig (%u) for %s is not supported", autoconf, iface);
 	return -1;
 }
+#endif
 
 int check_ip6_forwarding(void)
 {

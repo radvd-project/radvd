@@ -36,7 +36,9 @@ enum privsep_type {
 	SET_INTERFACE_CURHLIM,
 	SET_INTERFACE_REACHTIME,
 	SET_INTERFACE_RETRANSTIMER,
+#if 0
 	SET_INTERFACE_AUTOCONFIG,
+#endif
 };
 
 /* Command sent over pipe is a fixed size binary structure. */
@@ -112,10 +114,11 @@ static void privsep_read_loop(void)
 				break;
 			set_interface_var(cmd.iface, PROC_SYS_IP6_RETRANSTIMER, "RetransTimer", cmd.val / 1000 * USER_HZ);	/* XXX user_hz */
 			break;
-
+#if 0
 		case SET_INTERFACE_AUTOCONFIG:
 			set_interface_var(cmd.iface, PROC_SYS_IP6_AUTOCONFIG, "Autoconfig", cmd.val);
 			break;
+#endif
 
 		default:
 			/* Bad command */
@@ -179,6 +182,7 @@ int privsep_interface_retranstimer(const char *iface, uint32_t rettimer)
 	return 0;
 }
 
+#if 0
 int privsep_interface_autoconfig(const char *iface, uint32_t newvalue)
 {
 	struct privsep_command cmd;
@@ -189,6 +193,7 @@ int privsep_interface_autoconfig(const char *iface, uint32_t newvalue)
 		return -1;
 	return 0;
 }
+#endif
 
 
 /* note: also called from the root context */
