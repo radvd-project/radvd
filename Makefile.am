@@ -209,12 +209,12 @@ packages:
 	tar zfx radvd-$(VERSION).tar.gz
 	cd radvd-$(VERSION) && ./configure && $(MAKE) check
 	rm -rf radvd-$(VERSION)
-	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION))" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	$(MAKE) dist-bzip2
 	$(MAKE) dist-xz
 	$(MAKE) sign
 	$(MAKE) verify
 	$(MAKE) html
+	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION))" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	@printf "\n\n\tDont forget to push the v$(VERSION) tag and this branch to origin (git push origin v$(VERSION) master)\n\n\n"
 
 
