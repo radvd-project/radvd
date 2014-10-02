@@ -254,7 +254,6 @@ struct nd_opt_6co {
 struct Interface *readin_config(char const *fname);
 
 /* radvd.c */
-int disable_ipv6_autoconfig(char const *iface);
 
 /* timer.c */
 struct timespec next_timespec(double next);
