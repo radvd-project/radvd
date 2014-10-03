@@ -163,13 +163,6 @@ int set_interface_retranstimer(const char *iface, uint32_t rettimer)
 	return privsep_interface_retranstimer(iface, rettimer);
 }
 
-#if 0
-int set_interface_autoconfig(const char *iface, uint32_t autoconf)
-{
-	return privsep_interface_autoconfig(iface, autoconf);
-}
-#endif
-
 int check_ip6_forwarding(void)
 {
 	int value;

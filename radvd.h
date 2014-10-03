@@ -273,9 +273,6 @@ int set_interface_linkmtu(const char *, uint32_t);
 int set_interface_curhlim(const char *, uint8_t);
 int set_interface_reachtime(const char *, uint32_t);
 int set_interface_retranstimer(const char *, uint32_t);
-#if 0
-int set_interface_autoconfig(const char *, uint32_t);
-#endif
 int check_ip6_forwarding(void);
 
 /* interface.c */
@@ -325,9 +322,6 @@ int privsep_interface_linkmtu(const char *iface, uint32_t mtu);
 int privsep_interface_curhlim(const char *iface, uint32_t hlim);
 int privsep_interface_reachtime(const char *iface, uint32_t rtime);
 int privsep_interface_retranstimer(const char *iface, uint32_t rettimer);
-#if 0
-int privsep_interface_autoconfig(const char *iface, uint32_t newvalue);
-#endif
 
 /*
  * compat hacks in case libc and kernel get out of sync:
