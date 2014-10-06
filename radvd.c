@@ -31,33 +31,33 @@
 /* *INDENT-OFF* */
 static char usage_str[] = {
 "\n"
+"  -C, --config=PATH       Set the config file.  Default is /etc/radvd.d.\n"
 "  -c, --configtest        Parse the config file and exit.\n"
-"  -C, --config=PATH       Sets the config file.  Default is /etc/radvd.d.\n"
-"  -d, --debug=NUM         Sets the debug level.  Values can be 1, 2, 3, 4 or 5.\n"
-"  -f, --facility=NUM      Sets the logging facility.\n"
+"  -d, --debug=NUM         Set the debug level.  Values can be 1, 2, 3, 4 or 5.\n"
+"  -f, --facility=NUM      Set the logging facility.\n"
 "  -h, --help              Show this help screen.\n"
-"  -l, --logfile=PATH      Sets the log file.\n"
-"  -m, --logmethod=X       Sets the log method to one of: syslog, stderr, stderr_syslog, logfile, or none.\n"
-"  -p, --pidfile=PATH      Sets the pid file.\n"
+"  -l, --logfile=PATH      Set the log file.\n"
+"  -m, --logmethod=X       Set method to: syslog, stderr, stderr_syslog, logfile, or none.\n"
+"  -n, --nodaemon          Prevent the daemonizing.\n"
+"  -p, --pidfile=PATH      Set the pid file.\n"
 "  -t, --chrootdir=PATH    Chroot to the specified path.\n"
 "  -u, --username=USER     Switch to the specified user.\n"
-"  -n, --nodaemon          Prevent the daemonizing.\n"
 "  -v, --version           Print the version and quit.\n"
 };
 
 static struct option prog_opt[] = {
-	{"debug", 1, 0, 'd'},
-	{"configtest", 0, 0, 'c'},
+	{"chrootdir", 1, 0, 't'},
 	{"config", 1, 0, 'C'},
-	{"pidfile", 1, 0, 'p'},
+	{"configtest", 0, 0, 'c'},
+	{"debug", 1, 0, 'd'},
+	{"facility", 1, 0, 'f'},
+	{"help", 0, 0, 'h'},
 	{"logfile", 1, 0, 'l'},
 	{"logmethod", 1, 0, 'm'},
-	{"facility", 1, 0, 'f'},
-	{"username", 1, 0, 'u'},
-	{"chrootdir", 1, 0, 't'},
-	{"version", 0, 0, 'v'},
-	{"help", 0, 0, 'h'},
 	{"nodaemon", 0, 0, 'n'},
+	{"pidfile", 1, 0, 'p'},
+	{"username", 1, 0, 'u'},
+	{"version", 0, 0, 'v'},
 	{NULL, 0, 0, 0}
 };
 
@@ -73,34 +73,34 @@ static char usage_str[] = {
 #endif
 
 static volatile int sighup_received = 0;
-static volatile int sigterm_received = 0;
 static volatile int sigint_received = 0;
+static volatile int sigterm_received = 0;
 static volatile int sigusr1_received = 0;
 
-static void sighup_handler(int sig);
-static void sigterm_handler(int sig);
-static void sigint_handler(int sig);
-static void sigusr1_handler(int sig);
-static void timer_handler(int sock, struct Interface *iface);
-static void config_interface(struct Interface *iface);
-static void kickoff_adverts(int sock, struct Interface *iface);
-static void stop_advert_foo(struct Interface *iface, void *data);
-static void stop_adverts(int sock, struct Interface *ifaces);
-static void version(void);
-static void usage(char const *pname);
-static int drop_root_privileges(const char *);
 static int check_conffile_perm(const char *, const char *);
-static void setup_iface_foo(struct Interface *iface, void *data);
-static void setup_ifaces(int sock, struct Interface *ifaces);
-static struct Interface * main_loop(int sock, struct Interface *ifaces, char const *conf_path);
-static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
-static void reset_prefix_lifetimes(struct Interface *ifaces);
-static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
-static pid_t do_daemonize(int log_method, char const * daemon_pid_file_ident);
-static pid_t daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
-static void check_pid_file(char const * daemon_pid_file_ident);
+static int drop_root_privileges(const char *);
 static int open_and_lock_pid_file(char const * daemon_pid_file_ident);
 static int write_pid_file(char const * daemon_pid_file_ident, pid_t pid);
+static pid_t daemonp(int nochdir, int noclose, char const * daemon_pid_file_ident);
+static pid_t do_daemonize(int log_method, char const * daemon_pid_file_ident);
+static struct Interface * main_loop(int sock, struct Interface *ifaces, char const *conf_path);
+static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
+static void check_pid_file(char const * daemon_pid_file_ident);
+static void config_interface(struct Interface *iface);
+static void kickoff_adverts(int sock, struct Interface *iface);
+static void reset_prefix_lifetimes(struct Interface *ifaces);
+static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
+static void setup_iface_foo(struct Interface *iface, void *data);
+static void setup_ifaces(int sock, struct Interface *ifaces);
+static void sighup_handler(int sig);
+static void sigint_handler(int sig);
+static void sigterm_handler(int sig);
+static void sigusr1_handler(int sig);
+static void stop_advert_foo(struct Interface *iface, void *data);
+static void stop_adverts(int sock, struct Interface *ifaces);
+static void timer_handler(int sock, struct Interface *iface);
+static void usage(char const *pname);
+static void version(void);
 
 /* daemonize and write pid file.  The pid of the daemon child process
  * will be written to the pid file from the *parent* process.  This
