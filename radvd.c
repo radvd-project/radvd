@@ -92,7 +92,7 @@ static int drop_root_privileges(const char *);
 static int check_conffile_perm(const char *, const char *);
 static void setup_iface_foo(struct Interface *iface, void *data);
 static void setup_ifaces(int sock, struct Interface *ifaces);
-static void main_loop(int sock, struct Interface *ifaces, char const *conf_path);
+static struct Interface * main_loop(int sock, struct Interface *ifaces, char const *conf_path);
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 	}
 
 	setup_ifaces(sock, ifaces);
-	main_loop(sock, ifaces, conf_path);
+	ifaces = main_loop(sock, ifaces, conf_path);
 	stop_adverts(sock, ifaces);
 
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
+static struct Interface * main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 {
 	struct pollfd fds[2];
 	sigset_t sigmask;
@@ -569,6 +569,8 @@ static void main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 		}
 
 	}
+
+	return ifaces;
 }
 
 static pid_t do_daemonize(int log_method, char const * daemon_pid_file_ident)
