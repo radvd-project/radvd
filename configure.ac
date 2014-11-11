@@ -42,7 +42,7 @@ case "$target" in
 		AC_MSG_ERROR(
 [currently only Linux and BSD 4.4 with NRLs IPv6 code are
 supported. If you have such a system and it is not guessed correctly 
-you must specifiy it with --target on the configure command line])
+you must specify it with --target on the configure command line])
         ;;
 esac
 
