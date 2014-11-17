@@ -149,23 +149,20 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	double delay = MAX_RA_DELAY_TIME * rand() / (RAND_MAX + 1.0);
+	double const delay = (MAX_RA_DELAY_SECONDS * rand() / (RAND_MAX + 1.0));
 
-	if (iface->UnicastOnly) {
-		send_ra_forall(sock, iface, &addr->sin6_addr);
-	} else if (timespecdiff(&ts, &iface->times.last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
+	if (timespecdiff(&ts, &iface->times.last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
 		double next =
 		    iface->MinDelayBetweenRAs - (ts.tv_sec + ts.tv_nsec / 1000000000.0) + (iface->times.last_multicast.tv_sec +
 											iface->times.last_multicast.tv_nsec /
-											1000000000.0) + delay / 1000.0;
-		dlog(LOG_DEBUG, 5, "rate limiting RA's on %s, rescheduling RA %f seconds from now", iface->props.name, next);
+											1000000000.0) + delay;
+		dlog(LOG_DEBUG, 5, "%s: rate limiting RA's, rescheduling RA %f seconds from now", iface->props.name, next);
 		reschedule_iface(iface, next);
 	} else {
 		/* no RA sent in a while, send a multicast reply */
-		send_ra_forall(sock, iface, NULL);
-		double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
-		reschedule_iface(iface, next);
+		dlog(LOG_DEBUG, 4, "%s: RA response to RS scheduled in %f seconds", iface->props.name, delay);
+		reschedule_iface(iface, delay);
 	}
 	dlog(LOG_DEBUG, 2, "%s processed an RS", iface->props.name);
 }
