@@ -152,7 +152,6 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 	double const delay = (MAX_RA_DELAY_SECONDS * rand() / (RAND_MAX + 1.0));
 
 	if (iface->UnicastOnly) {
-		usleep(1000000 * delay);
 		send_ra_forall(sock, iface, &addr->sin6_addr);
 	} else if (timespecdiff(&ts, &iface->times.last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
