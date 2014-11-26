@@ -72,7 +72,7 @@
 
 #include <arpa/inet.h>
 
-#ifdef HAVE_SYS_SYSCTL_H
+#ifdef HAVE_SYSCTL
 #include <sys/sysctl.h>
 #endif
 
