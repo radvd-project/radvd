@@ -183,7 +183,7 @@ int check_ip6_forwarding(void)
 		value = -1;
 	}
 
-#ifdef HAVE_SYS_SYSCTL_H
+#ifdef HAVE_SYSCTL
 	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
 	size_t size = sizeof(value);
 	if (!fp && sysctl(forw_sysctl, sizeof(forw_sysctl) / sizeof(forw_sysctl[0]), &value, &size, NULL, 0) < 0) {
