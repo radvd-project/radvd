@@ -23,7 +23,7 @@ Suite * send_suite();
 static char usage_str[] = {
 "\n"
 "  -h, --help                Print the help and quit.\n"
-"  -m, --mode                The print mode (CK_SILENT, ..., CK_VERBOSE)\n"
+"  -m, --mode                The print mode (SILENT, MINIMAL, NORMAL, VERBOSE)\n"
 "  -s, --suite=suite         The suites to run.\n"
 "  -u, --test=test           The unit tests to run.\n"
 "  -v, --version             Print the version and quit.\n"
@@ -31,7 +31,7 @@ static char usage_str[] = {
 
 static struct option prog_opt[] = {
 	{"help", 0, 0, 'h'},
-	{"mode", 0, 0, 'm'},
+	{"mode", 1, 0, 'm'},
 	{"suite", 1, 0, 's'},
 	{"test", 1, 0, 't'},
 	{"version", 0, 0, 'v'},
