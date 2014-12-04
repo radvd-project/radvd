@@ -160,6 +160,7 @@ AC_CHECK_HEADERS( \
 	net/if_types.h \
 	sys/param.h \
 	sys/sockio.h \
+	sys/sysctl.h \
 	sys/time.h \
 	time.h \
 )
@@ -182,7 +183,6 @@ AC_MSG_RESULT(no))
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
 AC_CHECK_FUNCS(ppoll)
-AC_CHECK_FUNCS(sysctl)
 
 CONDITIONAL_SOURCES="device-${arch}.${OBJEXT} ${CONDITIONAL_SOURCES}"
 if test x${arch} = xlinux ; then
