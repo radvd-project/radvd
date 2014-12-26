@@ -76,8 +76,16 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 				}
 			}
 
-			/* Reinit the interfaces which needs it. */
-			struct Interface *iface = find_iface_by_index(ifaces, ifinfo->ifi_index);
+			/* Reinit the interfaces which need it. */
+			struct Interface *iface;
+			switch (nh->nlmsg_type) {
+			case RTM_NEWLINK:
+				iface = find_iface_by_name(ifaces, ifname);
+				break;
+			default:
+				iface = find_iface_by_index(ifaces, ifinfo->ifi_index);
+				break;
+			}
 			if (iface) {
 				touch_iface(iface);
 			}

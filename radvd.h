@@ -279,6 +279,7 @@ int update_device_info(int sock, struct Interface *);
 int check_iface(struct Interface *);
 int setup_iface(int sock, struct Interface *iface);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);
+struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo) (struct Interface * iface, void *), void *data);

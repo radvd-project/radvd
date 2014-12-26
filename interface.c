@@ -17,6 +17,8 @@
 #include "radvd.h"
 #include "defaults.h"
 
+#define IFACE_SETUP_DELAY	1
+
 void iface_init_defaults(struct Interface *iface)
 {
 	memset(iface, 0, sizeof(struct Interface));
@@ -280,6 +282,21 @@ struct Interface *find_iface_by_index(struct Interface *iface, int index)
 	return 0;
 }
 
+struct Interface *find_iface_by_name(struct Interface *iface, const char *name)
+{
+	if (!name) {
+		return 0;
+	}
+
+	for (; iface; iface = iface->next) {
+		if (strcmp(iface->props.name, name) == 0) {
+			return iface;
+		}
+	}
+
+	return 0;
+}
+
 struct Interface *find_iface_by_time(struct Interface *iface)
 {
 	if (!iface) {
@@ -305,8 +322,9 @@ void reschedule_iface(struct Interface *iface, double next)
 #ifdef HAVE_NETLINK
 	if (!iface->state_info.changed && !iface->state_info.ready) {
 		next = 10 * iface->MaxRtrAdvInterval;
-	}
-	else
+	} else if (next == 0) {
+		next = IFACE_SETUP_DELAY;
+	} else
 #endif
 	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS) {
 		next = min(MAX_INITIAL_RTR_ADVERT_INTERVAL, iface->MaxRtrAdvInterval);
