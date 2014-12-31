@@ -1,3 +1,6 @@
+2014/12/31	Fix new interface coming up such that it is setup immediately.
+		This fixes a regression in the 2.x branch from 1.x <volker>
+
 2014/11/16	Fix missing random delay before sending RA.
 		Fix config file crash when no auto-select prefixes are found
 			debian-bug-716831
