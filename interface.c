@@ -73,7 +73,7 @@ int setup_iface(int sock, struct Interface *iface)
 		return -1;
 	}
 
-	/* Set iface->if_index, iface->max_mtu and iface hardware address */
+	/* Set iface->max_mtu and iface hardware address */
 	if (update_device_info(sock, iface) < 0) {
 		return -1;
 	}
