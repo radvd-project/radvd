@@ -1,3 +1,6 @@
+2015/01/22	Reverted random delay work because it broke detecting new
+			interfaces in a timely manor. <Lonnie>
+
 2014/12/31	Fix new interface coming up such that it is setup immediately.
 		This fixes a regression in the 2.x branch from 1.x <volker>
 
