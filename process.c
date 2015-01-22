@@ -163,8 +163,9 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 		reschedule_iface(iface, next);
 	} else {
 		/* no RA sent in a while, send a multicast reply */
-		dlog(LOG_DEBUG, 4, "%s: RA response to RS scheduled in %f seconds", iface->props.name, delay);
-		reschedule_iface(iface, delay);
+		send_ra_forall(sock, iface, NULL);
+		double next = rand_between(iface->MinRtrAdvInterval, iface->MaxRtrAdvInterval);
+		reschedule_iface(iface, next);
 	}
 	dlog(LOG_DEBUG, 2, "%s processed an RS", iface->props.name);
 }
