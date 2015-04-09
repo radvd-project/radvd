@@ -50,7 +50,7 @@ dnl Determine CC and preset CFLAGS
 AC_PROG_CC_C99
 AC_PROG_RANLIB
 
-AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=yes])
+AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=no])
 AS_IF([test "x$with_check" = "xyes"], [
     AS_IF([test "x$arch" = "xlinux"], [
         PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
