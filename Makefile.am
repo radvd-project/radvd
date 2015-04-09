@@ -207,7 +207,7 @@ packages:
 	$(MAKE) dist-gzip
 	rm -rf radvd-$(VERSION)
 	tar zfx radvd-$(VERSION).tar.gz
-	cd radvd-$(VERSION) && ./configure && $(MAKE) check
+	cd radvd-$(VERSION) && ./configure --with-check && $(MAKE) check
 	rm -rf radvd-$(VERSION)
 	$(MAKE) dist-xz
 	$(MAKE) sign
