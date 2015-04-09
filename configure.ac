@@ -50,9 +50,12 @@ dnl Determine CC and preset CFLAGS
 AC_PROG_CC_C99
 AC_PROG_RANLIB
 
-if test "$arch" = "linux" ; then
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
-fi
+AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=yes])
+AS_IF([test "x$with_check" = "xyes"], [
+    AS_IF([test "x$arch" = "xlinux"], [
+        PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+    ])
+])
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
