@@ -1,3 +1,6 @@
+2015/04/09	added --without-check option to configure <James Guthrie>
+		Release v2.11
+
 2015/01/22	Reverted random delay work because it broke detecting new
 			interfaces in a timely manor. <Lonnie>
 		Release v2.10
