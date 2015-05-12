@@ -129,7 +129,7 @@ static void update_iface_times(struct Interface * iface)
 {
 	struct timespec last_time = iface->times.last_ra_time;
 	clock_gettime(CLOCK_MONOTONIC, &iface->times.last_ra_time);
-	time_t secs_since_last_ra = timespecdiff(&iface->times.last_ra_time, &last_time);
+	time_t secs_since_last_ra = timespecdiff(&iface->times.last_ra_time, &last_time) / 1000;
 
 	if (secs_since_last_ra < 0) {
 		secs_since_last_ra = 0;
