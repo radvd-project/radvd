@@ -156,6 +156,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS( \
 	getopt.h \
 	ifaddrs.h \
+	linux/if_arp.h \
 	machine/limits.h \
 	machine/param.h \
 	net/if_arp.h \

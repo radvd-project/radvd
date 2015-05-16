@@ -79,10 +79,12 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->sllao.if_maxmtu = -1;
 		break;
 #endif				/* ARPHDR_ARCNET */
+#ifdef ARPHRD_IEEE802154
 	case ARPHRD_IEEE802154:
 		iface->sllao.if_hwaddr_len = 64;
 		iface->sllao.if_prefix_len = 64;
 		break;
+#endif
 	default:
 		iface->sllao.if_hwaddr_len = -1;
 		iface->sllao.if_prefix_len = -1;
@@ -371,9 +373,15 @@ static char const *hwstr(unsigned short sa_family)
 	case ARPHRD_IEEE802154:
 		rc = "ARPHRD_IEEE802154";
 		break;
+#if ARPHRD_IEEE802154_MONITOR
+	case ARPHRD_IEEE802154_MONITOR:
+		rc = "ARPHRD_IEEE802154_MONITOR";
+		break;
+#elif ARPHRD_IEEE802154_PHY
 	case ARPHRD_IEEE802154_PHY:
 		rc = "ARPHRD_IEEE802154_PHY";
 		break;
+#endif
 	case ARPHRD_VOID:
 		rc = "ARPHRD_VOID";
 		break;
