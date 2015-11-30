@@ -110,12 +110,10 @@ The definitions are of the form:
 ABRO (Authoritative Border Router Option) definitions are of the form:
 
 .nf
-.BR "abro " prefix / "length " {
+.BR "abro " "IPv6-address " {
         list of abro specific options
 .B };
 .fi
-
-Prefix can be network prefix or the address of the interface.
 
 .SH INTERFACE SPECIFIC OPTIONS
 
