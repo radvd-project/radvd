@@ -370,7 +370,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 					 * 2) last byte of dnssli_suffix must not overflow opt_str + len
 					 */
 					if ((sizeof(suffix) - strlen(suffix)) < (label_len + 2) ||
-					    label_len > label_len + 2
+					    label_len >= (INT_MAX-1)
 					    || &dnsslinfo->nd_opt_dnssli_suffixes[offset + label_len] - opt_str >= len
 					    || offset + label_len < offset) {
 						flog(LOG_ERR, "oversized suffix in DNSSL option on %s from %s", iface->props.name,
