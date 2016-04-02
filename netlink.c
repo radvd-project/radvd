@@ -108,8 +108,21 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 
 			struct Interface *iface = find_iface_by_index(ifaces, ifaddr->ifa_index);
 			if (iface) {
-				touch_iface(iface);
+				struct in6_addr *if_addrs = NULL;
+				int count = get_iface_addrs(iface->props.name, NULL, &if_addrs);
+
+				if (count != iface->props.addrs_count &&
+					0 != memcmp(if_addrs, iface->props.if_addrs, count * sizeof(struct in6_addr))) {
+					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are different",
+						ifname, ifaddr->ifa_index);
+					touch_iface(iface);
+				} else {
+					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are the same",
+						ifname, ifaddr->ifa_index);
+				}
+				free(if_addrs);
 			}
+
 		}
 	}
 }
