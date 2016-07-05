@@ -111,7 +111,7 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 				struct in6_addr *if_addrs = NULL;
 				int count = get_iface_addrs(iface->props.name, NULL, &if_addrs);
 
-				if (count != iface->props.addrs_count &&
+				if (count != iface->props.addrs_count ||
 					0 != memcmp(if_addrs, iface->props.if_addrs, count * sizeof(struct in6_addr))) {
 					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are different",
 						ifname, ifaddr->ifa_index);
