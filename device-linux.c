@@ -22,6 +22,17 @@
 #define IPV6_ADDR_LINKLOCAL   0x0020U
 #endif
 
+/* FIXME:
+ *	ARPHRD_6LOWPAN is defined in 'linux/if_arp.h' but not in 'net/if_arp.h'
+ *	under '/usr/include' of current linux kernel release, thus this define
+ *	is necessary as a work around.
+ *
+ *	2016-02-12 by <s@mlng.net>
+ */
+#ifndef ARPHRD_6LOWPAN
+#define ARPHRD_6LOWPAN 825 /* IPv6 over LoWPAN */
+#endif
+
 static char const *hwstr(unsigned short sa_family);
 
 /*
@@ -49,13 +60,13 @@ int update_device_info(int sock, struct Interface *iface)
 	}
 
 	dlog(LOG_DEBUG, 3, "%s hardware type: %s", iface->props.name, hwstr(ifr.ifr_hwaddr.sa_family));
-
+	char hwaddr[3*HWADDR_MAX];
 	switch (ifr.ifr_hwaddr.sa_family) {
 	case ARPHRD_ETHER:
 		iface->sllao.if_hwaddr_len = 48;
 		iface->sllao.if_prefix_len = 64;
 		/* *INDENT-OFF* */
-		char hwaddr[3 * 6];
+		memset(hwaddr,0,sizeof(hwaddr));
 		sprintf(hwaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
 			(unsigned char)ifr.ifr_hwaddr.sa_data[0],
 			(unsigned char)ifr.ifr_hwaddr.sa_data[1],
@@ -79,12 +90,28 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->sllao.if_maxmtu = -1;
 		break;
 #endif				/* ARPHDR_ARCNET */
-#ifdef ARPHRD_IEEE802154
+#if (defined ARPHRD_IEEE802154) || (defined ARPHRD_6LOWPAN)
+ #ifdef ARPHRD_IEEE802154
 	case ARPHRD_IEEE802154:
+ #endif
+	case ARPHRD_6LOWPAN:
 		iface->sllao.if_hwaddr_len = 64;
 		iface->sllao.if_prefix_len = 64;
+		/* *INDENT-OFF* */
+		memset(hwaddr,0,sizeof(hwaddr));
+		sprintf(hwaddr, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+			(unsigned char)ifr.ifr_hwaddr.sa_data[0],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[1],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[2],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[3],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[4],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[5],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[6],
+			(unsigned char)ifr.ifr_hwaddr.sa_data[7]);
+		/* *INDENT-ON* */
+		dlog(LOG_DEBUG, 3, "%s hardware address: %s", iface->props.name, hwaddr);
 		break;
-#endif
+#endif 				/* ARPHRD_IEEE802154 || ARPHRD_6LOWPAN */
 	default:
 		iface->sllao.if_hwaddr_len = -1;
 		iface->sllao.if_prefix_len = -1;
@@ -370,9 +397,14 @@ static char const *hwstr(unsigned short sa_family)
 	case ARPHRD_IEEE80211_RADIOTAP:
 		rc = "ARPHRD_IEEE80211_RADIOTAP";
 		break;
+	case ARPHRD_6LOWPAN:
+		rc = "ARPHRD_6LOWPAN";
+		break;
+#ifdef ARPHRD_IEEE802154
 	case ARPHRD_IEEE802154:
 		rc = "ARPHRD_IEEE802154";
 		break;
+#endif
 #if ARPHRD_IEEE802154_MONITOR
 	case ARPHRD_IEEE802154_MONITOR:
 		rc = "ARPHRD_IEEE802154_MONITOR";
