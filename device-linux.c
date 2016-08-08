@@ -17,9 +17,14 @@
 #include "radvd.h"
 #include "defaults.h"
 #include "pathnames.h"
+#include "netlink.h"
 
 #ifndef IPV6_ADDR_LINKLOCAL
 #define IPV6_ADDR_LINKLOCAL   0x0020U
+#endif
+
+#ifndef ARPHRD_6LOWPAN
+#define ARPHRD_6LOWPAN	825	/* IPv6 over LoWPAN */
 #endif
 
 static char const *hwstr(unsigned short sa_family);
@@ -79,12 +84,21 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->sllao.if_maxmtu = -1;
 		break;
 #endif				/* ARPHDR_ARCNET */
-#ifdef ARPHRD_IEEE802154
-	case ARPHRD_IEEE802154:
-		iface->sllao.if_hwaddr_len = 64;
-		iface->sllao.if_prefix_len = 64;
-		break;
+	case ARPHRD_6LOWPAN:
+#ifdef HAVE_NETLINK
+		/* hwaddr length differs on some L2 type lets detect them */
+		iface->sllao.if_hwaddr_len = netlink_get_device_addr_len(iface);
+		if (iface->sllao.if_hwaddr_len != -1) {
+			iface->sllao.if_hwaddr_len *= 8;
+			iface->sllao.if_prefix_len = 64;
+		} else {
+			iface->sllao.if_prefix_len = -1;
+		}
+#else
+		iface->sllao.if_hwaddr_len = -1;
+		iface->sllao.if_prefix_len = -1;
 #endif
+		break;
 	default:
 		iface->sllao.if_hwaddr_len = -1;
 		iface->sllao.if_prefix_len = -1;
@@ -382,6 +396,9 @@ static char const *hwstr(unsigned short sa_family)
 		rc = "ARPHRD_IEEE802154_PHY";
 		break;
 #endif
+	case ARPHRD_6LOWPAN:
+		rc = "ARPHRD_6LOWPAN";
+		break;
 	case ARPHRD_VOID:
 		rc = "ARPHRD_VOID";
 		break;
