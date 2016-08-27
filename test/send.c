@@ -61,7 +61,7 @@ START_TEST (test_add_prefix)
 	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_prefix(&sb, iface->AdvPrefixList, iface->state_info.cease_adv);
+	add_prefixs(&sb, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
 	print_safe_buffer(&sb);

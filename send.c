@@ -26,7 +26,8 @@ static void decrement_lifetime(const time_t secs, uint32_t * lifetime);
 static void update_iface_times(struct Interface * iface);
 
 static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const * ra_header_info, int cease_adv);
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const * prefix, int cease_adv);
+static void add_prefixs(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const * prefix, int cease_adv);
+static void add_one_prefix(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const * prefix, int cease_adv);
 static void add_route(struct safe_buffer * sb, struct AdvRoute const *route, int cease_adv);
 static void add_rdnss(struct safe_buffer * sb, struct AdvRDNSS const *rdnss, int cease_adv);
 static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl);
@@ -138,7 +139,7 @@ static void update_iface_times(struct Interface * iface)
 
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
 	while (prefix) {
-		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
+		if ((!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
 			if (!(iface->state_info.cease_adv && prefix->DeprecatePrefixFlag)) {
 				if (prefix->DecrementLifetimesFlag) {
 
@@ -191,39 +192,130 @@ static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const *
 	safe_buffer_append(sb, &radvert, sizeof(radvert));
 }
 
-static void add_prefix(struct safe_buffer * sb, struct AdvPrefix const *prefix, int cease_adv)
+static void add_one_prefix(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const * prefix, int cease_adv)
+{
+	struct nd_opt_prefix_info pinfo;
+
+	memset(&pinfo, 0, sizeof(pinfo));
+
+	pinfo.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
+	pinfo.nd_opt_pi_len = 4;
+	pinfo.nd_opt_pi_prefix_len = prefix->PrefixLen;
+
+	pinfo.nd_opt_pi_flags_reserved = (prefix->AdvOnLinkFlag) ? ND_OPT_PI_FLAG_ONLINK : 0;
+	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvAutonomousFlag) ? ND_OPT_PI_FLAG_AUTO : 0;
+	/* Mobile IPv6 ext */
+	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
+
+	if (cease_adv && prefix->DeprecatePrefixFlag) {
+		/* RFC4862, 5.5.3, step e) */
+		if (prefix->curr_validlft < MIN_AdvValidLifetime) {
+			pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
+		} else {
+			pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
+		}
+		pinfo.nd_opt_pi_preferred_time = 0;
+	} else {
+		pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
+		pinfo.nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+	}
+
+	memcpy(&pinfo.nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
+
+	safe_buffer_append(sb, &pinfo, sizeof(pinfo));
+}
+static void add_auto_prefixes_6to4(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const *prefix, int cease_adv)
+{
+#ifdef HAVE_IFADDRS_H
+	struct AdvPrefix xprefix = *prefix;
+	unsigned int dst;
+	if (get_v4addr(prefix->if6to4, &dst) < 0) {
+		flog(LOG_ERR, "Base6to4interface %s has no IPv4 addresses", prefix->if6to4);
+	} else {
+		memcpy(xprefix.Prefix.s6_addr + 2, &dst, sizeof(dst));
+		*((uint16_t *)(xprefix.Prefix.s6_addr)) = htons(0x2002);
+		xprefix.PrefixLen = 64;
+
+		char pfx_str[INET6_ADDRSTRLEN];
+		addrtostr(&xprefix.Prefix, pfx_str, sizeof(pfx_str));
+		dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s",
+			pfx_str, xprefix.PrefixLen, ifname);
+
+		/* TODO: Something must be done with these. */
+		(void)xprefix.curr_validlft;
+		(void)xprefix.curr_preferredlft;
+
+		add_one_prefix(sb, ifname, &xprefix, cease_adv);
+	}
+#endif
+}
+
+
+static void add_auto_prefixes(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const *prefix, int cease_adv)
+{
+#ifdef HAVE_IFADDRS_H
+	struct AdvPrefix xprefix;
+	struct ifaddrs *ifap = 0, *ifa = 0;
+
+	if (getifaddrs(&ifap) != 0)
+		flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
+
+	for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+
+		if (strncmp(ifa->ifa_name, ifname, IFNAMSIZ))
+			continue;
+
+		if (ifa->ifa_addr->sa_family != AF_INET6)
+			continue;
+
+		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)ifa->ifa_addr;
+		struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
+
+		if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
+			continue;
+
+		xprefix = *prefix;
+		xprefix.Prefix = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
+		xprefix.PrefixLen = count_mask(mask);
+
+		char pfx_str[INET6_ADDRSTRLEN];
+		addrtostr(&xprefix.Prefix, pfx_str, sizeof(pfx_str));
+		dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s",
+			pfx_str, xprefix.PrefixLen, ifname);
+
+		/* TODO: Something must be done with these. */
+		(void)xprefix.curr_validlft;
+		(void)xprefix.curr_preferredlft;
+
+		add_one_prefix(sb, ifname, &xprefix, cease_adv);
+	}
+
+	if (ifap)
+		freeifaddrs(ifap);
+#endif
+}
+
+static void add_prefixs(struct safe_buffer * sb, char const * ifname, struct AdvPrefix const *prefix, int cease_adv)
 {
 	while (prefix) {
-		if (prefix->enabled && (!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
-			struct nd_opt_prefix_info pinfo;
-
-			memset(&pinfo, 0, sizeof(pinfo));
-
-			pinfo.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
-			pinfo.nd_opt_pi_len = 4;
-			pinfo.nd_opt_pi_prefix_len = prefix->PrefixLen;
-
-			pinfo.nd_opt_pi_flags_reserved = (prefix->AdvOnLinkFlag) ? ND_OPT_PI_FLAG_ONLINK : 0;
-			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvAutonomousFlag) ? ND_OPT_PI_FLAG_AUTO : 0;
-			/* Mobile IPv6 ext */
-			pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
-
-			if (cease_adv && prefix->DeprecatePrefixFlag) {
-				/* RFC4862, 5.5.3, step e) */
-				if (prefix->curr_validlft < MIN_AdvValidLifetime) {
-					pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
-				} else {
-					pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
+		if ((!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
+			struct in6_addr zero = {};
+			if (prefix->if6to4[0] || prefix->if6[0] || 0 == memcmp(&prefix->Prefix, &zero, sizeof(zero))) {
+				if (prefix->if6to4[0]) {
+					dlog(LOG_DEBUG, 4, "if6to4 auto prefix detected on iface %s", ifname);
+					add_auto_prefixes_6to4(sb, prefix->if6to4, prefix, cease_adv);
 				}
-				pinfo.nd_opt_pi_preferred_time = 0;
+				if (prefix->if6[0]) {
+					dlog(LOG_DEBUG, 4, "if6 auto prefix detected on iface %s", ifname);
+					add_auto_prefixes(sb, prefix->if6, prefix, cease_adv);
+				}
+				if (0 == memcmp(&prefix->Prefix, &zero, sizeof(zero))) {
+					dlog(LOG_DEBUG, 4, "::/64 auto prefix detected on iface %s", ifname);
+					add_auto_prefixes(sb, ifname, prefix, cease_adv);
+				}
 			} else {
-				pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
-				pinfo.nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+				add_one_prefix(sb, ifname, prefix, cease_adv);
 			}
-
-			memcpy(&pinfo.nd_opt_pi_prefix, &prefix->Prefix, sizeof(struct in6_addr));
-
-			safe_buffer_append(sb, &pinfo, sizeof(pinfo));
 		}
 
 		prefix = prefix->next;
@@ -579,7 +671,7 @@ static void build_ra(struct safe_buffer * sb, struct Interface const * iface)
 	add_ra_header(sb, &iface->ra_header_info, iface->state_info.cease_adv);
 
 	if (iface->AdvPrefixList) {
-		add_prefix(sb, iface->AdvPrefixList, iface->state_info.cease_adv);
+		add_prefixs(sb, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv);
 	}
 
 	if (iface->AdvRouteList) {

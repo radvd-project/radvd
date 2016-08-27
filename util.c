@@ -171,3 +171,40 @@ ssize_t writen(int fd, const void *buf, size_t count)
 	}
 	return n;
 }
+
+int countbits(int b)
+{
+	int count;
+
+	for (count = 0; b != 0; count++) {
+		b &= b - 1; // this clears the LSB-most set bit
+	}
+
+	return (count);
+}
+
+int count_mask(struct sockaddr_in6 *m)
+{
+	struct in6_addr *in6 = &m->sin6_addr;
+	int i;
+	int count = 0;
+
+	for (i = 0; i < 16; ++i) {
+		count += countbits(in6->s6_addr[i]);
+	}
+	return count;
+}
+
+struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
+{
+	struct in6_addr prefix = *addr;
+	int i = 0;
+
+	for (; i < 16; ++i) {
+		prefix.s6_addr[i] &= mask->s6_addr[i];
+	}
+
+	return prefix;
+}
+
+

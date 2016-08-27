@@ -144,8 +144,6 @@ struct AdvPrefix {
 
 	/* 6to4 etc. extensions */
 	char if6to4[IFNAMSIZ];
-	int enabled;
-	int AutoSelected;
 
 	/* Select prefixes from this interface. */
 	char if6[IFNAMSIZ];
@@ -310,6 +308,9 @@ void process(int sock, struct Interface *, unsigned char *, int, struct sockaddr
 int recv_rs_ra(int sock, unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *, unsigned char*);
 
 /* util.c */
+int countbits(int b);
+int count_mask(struct sockaddr_in6 *m);
+struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask);
 char * strdupf(char const * format, ...) __attribute__ ((format(printf, 1, 2)));
 double rand_between(double, double);
 int check_dnssl_presence(struct AdvDNSSL *, const char *);
