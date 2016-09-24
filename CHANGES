@@ -1,3 +1,5 @@
+2016/09/24	Release v2.15
+
 2016/09/18	Moved auto prefix code from config file parse to send_ra.
 
 2016/08/08	Merged ARPHRD_6LOWPAN netlink query from <Alexander Aring>
