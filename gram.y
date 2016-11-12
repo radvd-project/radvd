@@ -51,6 +51,7 @@
 %token		T_CLIENTS
 %token		T_LOWPANCO
 %token		T_ABRO
+%token		T_RASRCADDRESS
 
 %token	<str>	STRING
 %token	<num>	NUMBER
@@ -123,13 +124,14 @@
 
 %type	<str>	name
 %type	<pinfo> prefixdef
-%type	<ainfo> clientslist v6addrlist
+%type	<ainfo> clientslist v6addrlist_clients
 %type	<rinfo>	routedef
 %type	<rdnssinfo> rdnssdef
 %type	<dnsslinfo> dnssldef
 %type   <lowpancoinfo> lowpancodef
 %type   <abroinfo> abrodef
 %type   <num>	number_or_infinity
+%type	<rasrcaddressinfo> rasrcaddresslist v6addrlist_rasrcaddress
 
 %union {
 	unsigned int		num;
@@ -144,6 +146,7 @@
 	struct Clients		*ainfo;
 	struct AdvLowpanCo	*lowpancoinfo;
 	struct AdvAbro		*abroinfo;
+	struct AdvRASrcAddress	*rasrcaddressinfo;
 };
 
 %{
@@ -227,6 +230,7 @@ ifaceparam 	: ifaceval
 		| dnssldef 	{ ADD_TO_LL(struct AdvDNSSL, AdvDNSSLList, $1); }
 		| lowpancodef   { ADD_TO_LL(struct AdvLowpanCo, AdvLowpanCoList, $1); }
 		| abrodef       { ADD_TO_LL(struct AdvAbro, AdvAbroList, $1); }
+		| rasrcaddresslist { ADD_TO_LL(struct AdvRASrcAddress, AdvRASrcAddressList, $1); }
 		;
 
 ifaceval	: T_MinRtrAdvInterval NUMBER ';'
@@ -327,13 +331,13 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		}
 		;
 
-clientslist	: T_CLIENTS '{' v6addrlist '}' ';'
+clientslist	: T_CLIENTS '{' v6addrlist_clients '}' ';'
 		{
 			$$ = $3;
 		}
 		;
 
-v6addrlist	: IPV6ADDR ';'
+v6addrlist_clients	: IPV6ADDR ';'
 		{
 			struct Clients *new = calloc(1, sizeof(struct Clients));
 			if (new == NULL) {
@@ -344,7 +348,7 @@ v6addrlist	: IPV6ADDR ';'
 			memcpy(&(new->Address), $1, sizeof(struct in6_addr));
 			$$ = new;
 		}
-		| v6addrlist IPV6ADDR ';'
+		| v6addrlist_clients IPV6ADDR ';'
 		{
 			struct Clients *new = calloc(1, sizeof(struct Clients));
 			if (new == NULL) {
@@ -358,6 +362,36 @@ v6addrlist	: IPV6ADDR ';'
 		}
 		;
 
+rasrcaddresslist	: T_RASRCADDRESS '{' v6addrlist_rasrcaddress '}' ';'
+		{
+			$$ = $3;
+		}
+		;
+
+v6addrlist_rasrcaddress	: IPV6ADDR ';'
+		{
+			struct AdvRASrcAddress *new = calloc(1, sizeof(struct AdvRASrcAddress));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->address), $1, sizeof(struct in6_addr));
+			$$ = new;
+		}
+		| v6addrlist_rasrcaddress IPV6ADDR ';'
+		{
+			struct AdvRASrcAddress *new = calloc(1, sizeof(struct AdvRASrcAddress));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->address), $2, sizeof(struct in6_addr));
+			new->next = $1;
+			$$ = new;
+		}
+		;
 
 prefixdef	: prefixhead optional_prefixplist ';'
 		{
