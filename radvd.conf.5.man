@@ -744,13 +744,14 @@ RFC 6106, November 2010.
 .PP
 Z. Shelby, S. Chakrabarti, E. Nordmark and  C. Bormann " Neighbor Discovery Optimization for IPv6 over Low-Power 
 Wireless Personal Area Networks (6LoWPANs)", RFC 6775, November 2012.
+.PP
+Gont, F. "Security Implications of IPv6 Fragmentation with IPv6 Neighbor Discovery",
+RFC 6980, August 2013.
+.PP
+Yourtchenko, A. and Colitti, L. "Reducing Energy Consumption of Router Advertisements",
+RFC 7772, February 2016.
+
 .SH "SEE ALSO"
 
 .BR radvd (8),
 .BR radvdump (8)
-
-.SH BUGS
-radvd does not support splitting up RAs to multiple packets (RFC4861 6.2.3 last paragraph).
-In practise this limits advertising to ~45 prefixes on a link, but there is no reason to
-be able to so.
-

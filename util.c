@@ -28,6 +28,13 @@ struct safe_buffer * new_safe_buffer(void)
 	return sb;
 }
 
+struct safe_buffer * clone_safe_buffer(struct safe_buffer const *src)
+{
+	struct safe_buffer * dst = new_safe_buffer();
+	safe_buffer_append(dst, src->buffer, src->used);
+	return dst;
+}
+
 void safe_buffer_free(struct safe_buffer * sb)
 {
 	if (sb->buffer) {
@@ -39,36 +46,57 @@ void safe_buffer_free(struct safe_buffer * sb)
 	}
 }
 
+void safe_buffer_resize(struct safe_buffer * sb, size_t new_capacity)
+{
+	if (new_capacity > 64*1024) {
+		flog(LOG_ERR, "Requested buffer too large for any possible IPv6 ND, even with jumbogram.  Exiting.");
+		exit(1);
+	}
+	if (sb->allocated < new_capacity) {
+		sb->allocated = new_capacity;
+		sb->buffer = realloc(sb->buffer, sb->allocated);
+	}
+}
+
+void safe_buffer_expand(struct safe_buffer * sb, size_t additional_capacity)
+{
+	safe_buffer_resize(sb, sb->allocated + additional_capacity);
+}
+
 size_t safe_buffer_pad(struct safe_buffer * sb, size_t count)
 {
-	size_t rc = 0;
-	unsigned char zero = 0;
-
-	while (count--) {
-		rc += safe_buffer_append(sb, &zero, 1);
-	}
-
-	return rc;
+	safe_buffer_expand(sb, count);
+	memset(&sb->buffer[sb->used], (uint8_t)0, count);
+	sb->used += count;
+	return count;
 }
 
 size_t safe_buffer_append(struct safe_buffer * sb, void const * v, size_t count)
 {
 	if (sb) {
 		unsigned const char * m = (unsigned const char *)v;
-		if (sb->allocated <= sb->used + count) {
-			sb->allocated = sb->used + count + MSG_SIZE_SEND;
-			sb->buffer = realloc(sb->buffer, sb->allocated);
-		}
+		safe_buffer_expand(sb, count);
 		memcpy(&sb->buffer[sb->used], m, count);
 		sb->used += count;
-
-		if (sb->used >= MSG_SIZE_SEND) {
-			flog(LOG_ERR, "Too many prefixes, routes, rdnss or dnssl to fit in buffer.  Exiting.");
-			exit(1);
-		}
 	}
 
 	return count;
+}
+
+struct safe_buffer_list * new_safe_buffer_list(void)
+{
+	struct safe_buffer_list * sbl = malloc(sizeof(struct safe_buffer_list));
+	sbl->sb = new_safe_buffer();
+	sbl->next = NULL;
+	return sbl;
+}
+
+void safe_buffer_list_free(struct safe_buffer_list * sbl)
+{
+	for (struct safe_buffer_list *current = sbl; current; current = current->next) {
+		if(current->sb)
+			safe_buffer_free(current->sb);
+	}
 }
 
 __attribute__ ((format(printf, 1, 2)))
