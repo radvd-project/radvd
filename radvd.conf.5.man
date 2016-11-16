@@ -32,6 +32,7 @@ The file contains one or more interface definitions of the form:
 	list of RDNSS definitions
 	list of DNSSL definitions
 	list of ABRO definitions
+	list of acceptable RA source addresses
 .B };
 .fi
 
@@ -103,6 +104,18 @@ The definitions are of the form:
 
 .nf
 .BR clients " " {
+        list of IPv6 addresses
+.B };
+.fi
+
+By default radvd will use the first link-local address for the interface as the
+source address for route advertisements. This can be overwritten by manually
+setting the list of acceptable source addresses. If done, radvd will use the
+first address from the interface that is present in the configured source
+addresses only. This functionality will NOT spoof the source address, but may be useful in combination with VRRP or other functionality that 
+
+.nf
+.BR AdvRASrcAddress " " {
         list of IPv6 addresses
 .B };
 .fi

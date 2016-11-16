@@ -90,6 +90,12 @@ int setup_iface(int sock, struct Interface *iface)
 		return -1;
 	}
 
+	/* Check if we a usable RA source address */
+	if(iface->props.if_addr_rasrc == NULL) {
+		dlog(LOG_DEBUG, 5, "no configured AdvRASrcAddress present, skipping send");
+		return -1;
+	}
+
 	/* join the allrouters multicast group so we get the solicitations */
 	if (setup_allrouters_membership(sock, iface) < 0) {
 		return -1;

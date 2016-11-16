@@ -69,6 +69,7 @@ struct Interface {
 		struct in6_addr if_addr; /* the first link local addr */
 		struct in6_addr *if_addrs; /* all the addrs */
 		int addrs_count;
+		struct in6_addr *if_addr_rasrc; /* selected AdvRASrcAddress or NULL */
 	} props;
 
 	struct ra_header_info {
@@ -116,6 +117,8 @@ struct Interface {
 
 	struct AdvLowpanCo *AdvLowpanCoList;
 	struct AdvAbro *AdvAbroList;
+
+	struct AdvRASrcAddress *AdvRASrcAddressList;
 
 	int lineno; /* On what line in the config file was this iface defined? */
 };
@@ -205,6 +208,12 @@ struct AdvAbro {
 	struct in6_addr LBRaddress;
 
 	struct AdvAbro *next;
+};
+
+struct AdvRASrcAddress {
+	struct in6_addr address;
+
+	struct AdvRASrcAddress *next;
 };
 
 /* Mobile IPv6 extensions */
@@ -320,7 +329,7 @@ size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 ssize_t readn(int fd, void *buf, size_t count);
 ssize_t writen(int fd, const void *buf, size_t count);
 struct safe_buffer * new_safe_buffer(void);
-void addrtostr(struct in6_addr *, char *, size_t);
+void addrtostr(struct in6_addr const *, char *, size_t);
 void safe_buffer_free(struct safe_buffer * sb);
 
 /* privsep.c */

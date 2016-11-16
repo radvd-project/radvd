@@ -91,7 +91,7 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	/* If we refused a client's solicitation, log it if debugging is high enough */
 	if (get_debuglevel() >= 5) {
 		char address_text[INET6_ADDRSTRLEN] = { "" };
-		inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
+		addrtostr(dest, address_text, INET6_ADDRSTRLEN);
 		dlog(LOG_DEBUG, 5, "Not answering request from %s, not configured", address_text);
 	}
 
@@ -728,9 +728,11 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 	update_iface_times(iface);
 
-	char address_text[INET6_ADDRSTRLEN] = { "" };
-	inet_ntop(AF_INET6, dest, address_text, INET6_ADDRSTRLEN);
-	dlog(LOG_DEBUG, 5, "sending RA to %s on %s", address_text, iface->props.name);
+	char dest_text[INET6_ADDRSTRLEN] = { "" };
+	char src_text[INET6_ADDRSTRLEN] = { "" };
+	addrtostr(dest, dest_text, INET6_ADDRSTRLEN);
+	addrtostr(iface->props.if_addr_rasrc, src_text, INET6_ADDRSTRLEN);
+	dlog(LOG_DEBUG, 5, "sending RA to %s on %s (%s)", dest_text, iface->props.name, src_text);
 
 	struct safe_buffer safe_buffer = SAFE_BUFFER_INIT;
 
@@ -773,7 +775,7 @@ static int really_send(int sock, struct in6_addr const *dest, struct properties 
 
 	struct in6_pktinfo *pkt_info = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 	pkt_info->ipi6_ifindex = props->if_index;
-	memcpy(&pkt_info->ipi6_addr, &props->if_addr, sizeof(struct in6_addr));
+	memcpy(&pkt_info->ipi6_addr, props->if_addr_rasrc, sizeof(struct in6_addr));
 
 #ifdef HAVE_SIN6_SCOPE_ID
 	if (IN6_IS_ADDR_LINKLOCAL(&addr.sin6_addr) || IN6_IS_ADDR_MC_LINKLOCAL(&addr.sin6_addr))
