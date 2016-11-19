@@ -71,6 +71,22 @@ size_t safe_buffer_append(struct safe_buffer * sb, void const * v, size_t count)
 	return count;
 }
 
+struct safe_buffer_list * new_safe_buffer_list(void)
+{
+	struct safe_buffer_list * sbl = malloc(sizeof(struct safe_buffer_list));
+	sbl->sb = new_safe_buffer();
+	sbl->next = NULL;
+	return sbl;
+}
+
+void safe_buffer_list_free(struct safe_buffer_list * sbl)
+{
+	for (struct safe_buffer_list *current = sbl; current; current = current->next) {
+		if(current->sb)
+			safe_buffer_free(current->sb);
+	}
+}
+
 __attribute__ ((format(printf, 1, 2)))
 char * strdupf(char const * format, ...)
 {
