@@ -20,6 +20,8 @@
 #include "test/util.c"
 #endif
 
+void safe_buffer_check_used_size(size_t proposed_size);
+
 struct safe_buffer * new_safe_buffer(void)
 {
 	struct safe_buffer * sb = malloc(sizeof(struct safe_buffer));
@@ -46,12 +48,16 @@ void safe_buffer_free(struct safe_buffer * sb)
 	}
 }
 
-void safe_buffer_resize(struct safe_buffer * sb, size_t new_capacity)
-{
-	if (new_capacity > 64*1024) {
+void safe_buffer_check_used_size(size_t proposed_size) {
+	if (proposed_size > 64*1024) {
 		flog(LOG_ERR, "Requested buffer too large for any possible IPv6 ND, even with jumbogram.  Exiting.");
 		exit(1);
 	}
+}
+
+void safe_buffer_resize(struct safe_buffer * sb, size_t new_capacity)
+{
+	// This may slightly exceed 64KiB at some points.
 	if (sb->allocated < new_capacity) {
 		sb->allocated = new_capacity;
 		sb->buffer = realloc(sb->buffer, sb->allocated);
@@ -65,6 +71,7 @@ void safe_buffer_expand(struct safe_buffer * sb, size_t additional_capacity)
 
 size_t safe_buffer_pad(struct safe_buffer * sb, size_t count)
 {
+	safe_buffer_check_used_size(sb->used + count);
 	safe_buffer_expand(sb, count);
 	memset(&sb->buffer[sb->used], (uint8_t)0, count);
 	sb->used += count;
@@ -74,6 +81,7 @@ size_t safe_buffer_pad(struct safe_buffer * sb, size_t count)
 size_t safe_buffer_append(struct safe_buffer * sb, void const * v, size_t count)
 {
 	if (sb) {
+		safe_buffer_check_used_size(sb->used + count);
 		unsigned const char * m = (unsigned const char *)v;
 		safe_buffer_expand(sb, count);
 		memcpy(&sb->buffer[sb->used], m, count);
