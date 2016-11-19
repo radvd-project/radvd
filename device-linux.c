@@ -28,6 +28,7 @@
 #endif
 
 static char const *hwstr(unsigned short sa_family);
+uint32_t get_interface_linkmtu(const char *);
 
 /*
  * this function gets the hardware type and address of an interface,
@@ -157,6 +158,32 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	}
 
 	return 0;
+}
+
+uint32_t get_interface_linkmtu(const char *iface)
+{
+	int value;
+	FILE *fp = NULL;
+	char proc_path[sizeof(PROC_SYS_IP6_LINKMTU) + IFNAMSIZ];
+
+	snprintf(proc_path, sizeof(PROC_SYS_IP6_LINKMTU) + IFNAMSIZ, PROC_SYS_IP6_LINKMTU, iface);
+
+	fp = fopen(proc_path, "r");
+	if (fp) {
+		int rc = fscanf(fp, "%d", &value);
+		if (rc != 1) {
+			flog(LOG_ERR, "cannot read value from %s: %s", proc_path, strerror(errno));
+			exit(1);
+		}
+		fclose(fp);
+	} else {
+		flog(LOG_DEBUG,
+		     "Correct IPv6 MTU entry not found, " "perhaps the procfs is disabled, "
+		     "or the kernel interface has changed?");
+		value = 1280; /* RFC2460: section 5 */
+	}
+
+	return value;
 }
 
 int set_interface_linkmtu(const char *iface, uint32_t mtu)
