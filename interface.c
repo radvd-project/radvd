@@ -154,6 +154,8 @@ int check_iface(struct Interface *iface)
 {
 	int res = 0;
 	int MIPv6 = 0;
+	struct in6_addr zeroaddr;
+	memset(&zeroaddr, 0, sizeof(zeroaddr));
 
 	/* Check if we use Mobile IPv6 extensions */
 	if (iface->ra_header_info.AdvHomeAgentFlag || iface->mipv6.AdvHomeAgentInfo || iface->mipv6.AdvIntervalOpt) {
@@ -268,6 +270,27 @@ int check_iface(struct Interface *iface)
 		if (route->PrefixLen > MAX_PrefixLen) {
 			flog(LOG_ERR, "invalid route prefix length (%u) for %s", route->PrefixLen, iface->props.name);
 			res = -1;
+		}
+
+		/* For the default route 0::/0, we need to explicitly check the
+		 * lifetime against the AdvDefaultLifetime value.
+		 *
+		 * If exactly one of the two has a zero value, then nodes processing
+		 * the RA may have a flap in their default route.
+		 *
+		 * AdvDefaultLifetime == 0 && route.AdvRouteLifetime > 0:
+		 * - default route is deleted and then re-added.
+		 * AdvDefaultLifetime > 0 && route.AdvRouteLifetime == 0:
+		 * - default route is added and then deleted.
+		 */
+		if(IN6_IS_ADDR_UNSPECIFIED(&(route->Prefix))) {
+			int route_zerolife = (route->AdvRouteLifetime == 0);
+			int defaultroute_zerolife = (iface->ra_header_info.AdvDefaultLifetime == 0);
+			if( route_zerolife ^ defaultroute_zerolife ) {
+				flog(LOG_ERR, "route 0::/0 lifetime (%u) conflicts with AdvDefaultLifetime (%u), default routes will flap!",
+						route->AdvRouteLifetime, iface->ra_header_info.AdvDefaultLifetime);
+				// res = -1; // In some future version, abort on this configuration error.
+			}
 		}
 
 		route = route->next;
