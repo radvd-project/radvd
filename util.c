@@ -28,6 +28,13 @@ struct safe_buffer * new_safe_buffer(void)
 	return sb;
 }
 
+struct safe_buffer * clone_safe_buffer(struct safe_buffer const *src)
+{
+	struct safe_buffer * dst = new_safe_buffer();
+	safe_buffer_append(dst, src->buffer, src->used);
+	return dst;
+}
+
 void safe_buffer_free(struct safe_buffer * sb)
 {
 	if (sb->buffer) {
@@ -37,6 +44,23 @@ void safe_buffer_free(struct safe_buffer * sb)
 	if (sb->should_free) {
 		free(sb);
 	}
+}
+
+void safe_buffer_resize(struct safe_buffer * sb, size_t new_capacity)
+{
+	if (new_capacity > 64*1024) {
+		flog(LOG_ERR, "Requested buffer too large for any possible IPv6 ND, even with jumbogram.  Exiting.");
+		exit(1);
+	}
+	if (sb->allocated < new_capacity) {
+		sb->allocated = new_capacity;
+		sb->buffer = realloc(sb->buffer, sb->allocated);
+	}
+}
+
+void safe_buffer_expand(struct safe_buffer * sb, size_t additional_capacity)
+{
+	safe_buffer_resize(sb, sb->allocated + additional_capacity);
 }
 
 size_t safe_buffer_pad(struct safe_buffer * sb, size_t count)
