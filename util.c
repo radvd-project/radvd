@@ -101,9 +101,12 @@ struct safe_buffer_list * new_safe_buffer_list(void)
 
 void safe_buffer_list_free(struct safe_buffer_list * sbl)
 {
-	for (struct safe_buffer_list *current = sbl; current; current = current->next) {
+	struct safe_buffer_list * next;
+	for (struct safe_buffer_list *current = sbl; current; current = next) {
 		if(current->sb)
 			safe_buffer_free(current->sb);
+		next = current->next;
+		free(current);
 	}
 }
 
