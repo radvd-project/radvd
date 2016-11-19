@@ -74,6 +74,7 @@ struct Interface {
 		struct in6_addr *if_addrs; /* all the addrs */
 		int addrs_count;
 		struct in6_addr *if_addr_rasrc; /* selected AdvRASrcAddress or NULL */
+		uint32_t max_ra_option_size;
 	} props;
 
 	struct ra_header_info {

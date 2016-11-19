@@ -49,6 +49,23 @@ int update_device_info(int sock, struct Interface *iface)
 	iface->sllao.if_maxmtu = ifr.ifr_mtu;
 	dlog(LOG_DEBUG, 3, "%s mtu: %d", iface->props.name, ifr.ifr_mtu);
 
+	/* Get the smallest MTU between the SIOCGIFMTU value and the protocol MTU
+	 * /proc/sys/net/ipv6/conf/eth0/mtu
+	 * Because the protocol MTU _may_ be different than the physical link MTU
+	 * See  RFC 2460: 5. Packet Size Issues
+	 *
+	 * If Link-layer MTU <= 1280: use 1280
+	 * If Link-layer MTU > 1280: use the lower of:
+	 *   - link-layer MTU
+	 *   - per-protocol MTU
+	 */
+	if(iface->sllao.if_maxmtu <= 1280) {
+		iface->props.max_ra_option_size = 1280;
+	} else {
+		int protocol_mtu = MAX(1280, get_interface_linkmtu(iface->props.name)); // should be a no-op
+		iface->props.max_ra_option_size = MIN(iface->sllao.if_maxmtu, protocol_mtu);
+	}
+
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
 		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed on %s: %s", iface->props.name, strerror(errno));
 		return -1;
@@ -71,11 +88,13 @@ int update_device_info(int sock, struct Interface *iface)
 			(unsigned char)ifr.ifr_hwaddr.sa_data[5]);
 		/* *INDENT-ON* */
 		dlog(LOG_DEBUG, 3, "%s hardware address: %s", iface->props.name, hwaddr);
+		iface->props.max_ra_option_size -= 14; /* RFC 2464 */
 		break;
 #ifdef ARPHRD_FDDI
 	case ARPHRD_FDDI:
 		iface->sllao.if_hwaddr_len = 48;
 		iface->sllao.if_prefix_len = 64;
+		iface->props.max_ra_option_size -= 22; /* RFC 2109 */
 		break;
 #endif				/* ARPHDR_FDDI */
 #ifdef ARPHRD_ARCNET
@@ -83,6 +102,9 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->sllao.if_hwaddr_len = 8;
 		iface->sllao.if_prefix_len = -1;
 		iface->sllao.if_maxmtu = -1;
+		/* RFC1201: fragmentation handled at a lower layer.
+		 * native packet size is 256-512 bytes */
+		iface->props.max_ra_option_size -= 0;
 		break;
 #endif				/* ARPHDR_ARCNET */
 	case ARPHRD_6LOWPAN:
@@ -99,11 +121,16 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->sllao.if_hwaddr_len = -1;
 		iface->sllao.if_prefix_len = -1;
 #endif
+		/* RFC4944: fragmentation handled at a lower layer.
+		 * native packet size maxes at 127 bytes */
+		iface->props.max_ra_option_size -= 0;
 		break;
 	default:
 		iface->sllao.if_hwaddr_len = -1;
 		iface->sllao.if_prefix_len = -1;
 		iface->sllao.if_maxmtu = -1;
+		/* Assume fragmentation handled at a lower layer. */
+		iface->props.max_ra_option_size -= 0;
 		break;
 	}
 
@@ -134,6 +161,10 @@ int update_device_info(int sock, struct Interface *iface)
 
 		prefix = prefix->next;
 	}
+
+	// Regardless of link-layer, every RA message will have an IPV6 header & RA header
+	iface->props.max_ra_option_size -= sizeof(struct ip6_hdr);
+	iface->props.max_ra_option_size -= sizeof(struct nd_router_advert);
 
 	return 0;
 }
