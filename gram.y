@@ -69,6 +69,7 @@
 %token		T_AdvManagedFlag
 %token		T_AdvOtherConfigFlag
 %token		T_AdvLinkMTU
+%token		T_AdvRAMTU
 %token		T_AdvReachableTime
 %token		T_AdvRetransTimer
 %token		T_AdvCurHopLimit
@@ -276,6 +277,12 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_AdvLinkMTU NUMBER ';'
 		{
 			iface->AdvLinkMTU = $2;
+		}
+		| T_AdvRAMTU NUMBER ';'
+		{
+			iface->AdvRAMTU = $2;
+			iface->AdvRAMTU = MAX(MIN_AdvLinkMTU, iface->AdvRAMTU);
+			iface->AdvRAMTU = MIN(MAX_AdvLinkMTU, iface->AdvRAMTU);
 		}
 		| T_AdvReachableTime NUMBER ';'
 		{

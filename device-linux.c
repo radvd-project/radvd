@@ -49,22 +49,20 @@ int update_device_info(int sock, struct Interface *iface)
 	iface->sllao.if_maxmtu = ifr.ifr_mtu;
 	dlog(LOG_DEBUG, 3, "%s mtu: %d", iface->props.name, ifr.ifr_mtu);
 
+	/* RFC 2460: 5. Packet Size Issues */
 	/* Get the smallest MTU between the SIOCGIFMTU value and the protocol MTU
 	 * /proc/sys/net/ipv6/conf/eth0/mtu
 	 * Because the protocol MTU _may_ be different than the physical link MTU
-	 * See  RFC 2460: 5. Packet Size Issues
 	 *
-	 * If Link-layer MTU <= 1280: use 1280
+	 * If Link-layer MTU <= 1280: use 1280 (enforced by iface->AdvRAMTU)
 	 * If Link-layer MTU > 1280: use the lower of:
+	 *   - RA MTU
 	 *   - link-layer MTU
 	 *   - per-protocol MTU
 	 */
-	if(iface->sllao.if_maxmtu <= 1280) {
-		iface->props.max_ra_option_size = 1280;
-	} else {
-		int protocol_mtu = MAX(1280, get_interface_linkmtu(iface->props.name)); // should be a no-op
-		iface->props.max_ra_option_size = MIN(iface->sllao.if_maxmtu, protocol_mtu);
-	}
+	iface->props.max_ra_option_size = iface->AdvRAMTU;
+	iface->props.max_ra_option_size = MIN(iface->props.max_ra_option_size, MAX(iface->sllao.if_maxmtu, RFC2460_MIN_MTU));
+	iface->props.max_ra_option_size = MIN(iface->props.max_ra_option_size, MAX(get_interface_linkmtu(iface->props.name), RFC2460_MIN_MTU));
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
 		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed on %s: %s", iface->props.name, strerror(errno));

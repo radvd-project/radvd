@@ -41,7 +41,8 @@ int update_device_info(int sock, struct Interface *iface)
 	iface->sllao.if_maxmtu = ifr.ifr_mtu;
 
 	/* RFC 2460: 5. Packet Size Issues */
-	iface->props.max_ra_option_size = MAX(iface->sllao.if_maxmtu, 1280);
+	iface->props.max_ra_option_size = iface->AdvRAMTU;
+	iface->props.max_ra_option_size = MIN(iface->props.max_ra_option_size, MAX(iface->sllao.if_maxmtu, RFC2460_MIN_MTU));
 
 	if (getifaddrs(&addresses) != 0) {
 		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);

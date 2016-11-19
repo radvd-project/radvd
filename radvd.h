@@ -100,6 +100,7 @@ struct Interface {
 	struct AdvDNSSL *AdvDNSSLList;
 
 	uint32_t AdvLinkMTU; /* XXX: sllao also has an if_maxmtu value...Why? */
+	uint32_t AdvRAMTU; /* MTU used for RA */
 
 	struct sllao {
 		uint8_t if_hwaddr[HWADDR_MAX];

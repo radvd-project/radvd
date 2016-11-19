@@ -46,6 +46,7 @@ void iface_init_defaults(struct Interface *iface)
 	iface->mipv6.HomeAgentLifetime = -1;
 
 	iface->AdvLinkMTU = DFLT_AdvLinkMTU;
+	iface->AdvRAMTU = DFLT_AdvRAMTU;
 
 }
 
