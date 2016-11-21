@@ -30,7 +30,7 @@ static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct Ad
 
 // Options that only need a single block
 static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const * ra_header_info, int cease_adv);
-static void add_ra_option_prefix(struct safe_buffer * sb, struct Interface const * iface, char const * ifname, struct AdvPrefix const * prefix, int cease_adv);
+static void add_ra_option_prefix(struct safe_buffer * sb, struct AdvPrefix const * prefix, int cease_adv);
 static void add_ra_option_mtu(struct safe_buffer * sb, uint32_t AdvLinkMTU);
 static void add_ra_option_sllao(struct safe_buffer * sb, struct sllao const *sllao);
 static void add_ra_option_mipv6_rtr_adv_interval(struct safe_buffer * sb, double MaxRtrAdvInterval);
@@ -210,7 +210,7 @@ static void add_ra_header(struct safe_buffer * sb, struct ra_header_info const *
 	safe_buffer_append(sb, &radvert, sizeof(radvert));
 }
 
-static void add_ra_option_prefix(struct safe_buffer * sb, struct Interface const * iface, char const * ifname, struct AdvPrefix const * prefix, int cease_adv)
+static void add_ra_option_prefix(struct safe_buffer * sb, struct AdvPrefix const * prefix, int cease_adv)
 {
 	struct nd_opt_prefix_info pinfo;
 
@@ -267,7 +267,7 @@ static struct safe_buffer_list * add_auto_prefixes_6to4(struct safe_buffer_list 
 		if(cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
 			sbl->next = new_safe_buffer_list();
 			sbl = sbl->next;
-			add_ra_option_prefix(sbl->sb, iface, ifname, &xprefix, cease_adv);
+			add_ra_option_prefix(sbl->sb, &xprefix, cease_adv);
 		}
 	}
 #endif
@@ -314,7 +314,7 @@ static struct safe_buffer_list * add_auto_prefixes(struct safe_buffer_list * sbl
 		if(cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
 			sbl->next = new_safe_buffer_list();
 			sbl = sbl->next;
-			add_ra_option_prefix(sbl->sb, iface, ifname, &xprefix, cease_adv);
+			add_ra_option_prefix(sbl->sb, &xprefix, cease_adv);
 		}
 	}
 
@@ -346,7 +346,7 @@ static struct safe_buffer_list* add_ra_options_prefix(struct safe_buffer_list * 
 				if(cease_adv || schedule_option_prefix(dest, iface, prefix)) {
 					sbl->next = new_safe_buffer_list();
 					sbl = sbl->next;
-					add_ra_option_prefix(sbl->sb, iface, ifname, prefix, cease_adv);
+					add_ra_option_prefix(sbl->sb, prefix, cease_adv);
 				}
 			}
 		}
