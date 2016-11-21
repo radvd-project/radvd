@@ -99,6 +99,17 @@ struct safe_buffer_list * new_safe_buffer_list(void)
 	return sbl;
 }
 
+struct safe_buffer_list * safe_buffer_list_append(struct safe_buffer_list * sbl)
+{
+	// Only allocate a new entry if this one has bytes in it.
+	if(sbl->sb && sbl->sb->used > 0) {
+		struct safe_buffer_list * next = new_safe_buffer_list();
+		sbl->next = next;
+		sbl = next;
+	}
+	return sbl;
+}
+
 void safe_buffer_list_to_safe_buffer(struct safe_buffer_list * sbl, struct safe_buffer *sb)
 {
 	struct safe_buffer_list *cur;

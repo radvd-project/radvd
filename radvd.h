@@ -342,6 +342,7 @@ void addrtostr(struct in6_addr const *, char *, size_t);
 void safe_buffer_free(struct safe_buffer * sb);
 struct safe_buffer_list * new_safe_buffer_list(void);
 void safe_buffer_list_free(struct safe_buffer_list * sbl);
+struct safe_buffer_list * safe_buffer_list_append(struct safe_buffer_list * sbl);
 void safe_buffer_list_to_safe_buffer(struct safe_buffer_list * sbl, struct safe_buffer *sb);
 
 /* privsep.c */
