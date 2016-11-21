@@ -41,7 +41,9 @@ START_TEST (test_add_ra_header)
 	add_ra_header(&sb, &iface->ra_header_info, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x86, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
@@ -64,7 +66,9 @@ START_TEST (test_add_prefix)
 	add_prefixs(&sb, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x03, 0x04, 0x40, 0xe0, 0xff, 0xff, 0xff, 0xff,
@@ -97,7 +101,9 @@ START_TEST (test_add_route)
 	add_route(&sb, iface->AdvRouteList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x18, 0x03, 0x30, 0x18, 0x00, 0x00, 0x27, 0x10,
@@ -127,7 +133,9 @@ START_TEST (test_add_rdnss)
 	add_rdnss(&sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x19, 0x07, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2,
@@ -159,7 +167,9 @@ START_TEST (test_add_rdnss2)
 	free_ifaces(iface);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x19, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2d,
@@ -184,7 +194,9 @@ START_TEST (test_add_dnssl)
 	add_dnssl(&sb, iface->AdvDNSSLList, iface->state_info.cease_adv);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x1f, 0x09, 0x00, 0x00, 0x00, 0x00, 0x03, 0xe8,
@@ -231,7 +243,9 @@ START_TEST (test_add_mtu)
 	add_mtu(&sb, iface->AdvLinkMTU);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2,
@@ -258,7 +272,9 @@ START_TEST (test_add_sllao)
 	add_sllao(&sb, &sllao48);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected48[] = {
 		0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
@@ -281,7 +297,8 @@ START_TEST (test_add_sllao)
 	add_sllao(&sb, &sllao64);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected64[] = {
 		0x01, 0x02, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
@@ -304,7 +321,9 @@ START_TEST (test_add_lowpanco)
 	add_lowpanco(&sb, iface->AdvLowpanCoList);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x22, 0x03, 0x32, 0x48, 0x00, 0x00, 0xe8, 0x03,
@@ -329,7 +348,9 @@ START_TEST (test_add_abro)
 	add_abro(&sb, iface->AdvAbroList);
 
 #ifdef PRINT_SAFE_BUFFER
-	print_safe_buffer(&sb);
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
 		0x23, 0x03, 0x0a, 0x00, 0x02, 0x00, 0x02, 0x00,
