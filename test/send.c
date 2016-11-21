@@ -58,12 +58,17 @@ START_TEST (test_add_ra_header)
 }
 END_TEST
 
-START_TEST (test_add_prefix)
+START_TEST (test_add_ra_options_prefix)
 {
 	ck_assert_ptr_ne(0, iface);
 
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_prefixs(&sb, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv);
+
+	add_ra_options_prefix(sbl, iface, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv, NULL);
+
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -93,12 +98,17 @@ START_TEST (test_add_prefix)
 }
 END_TEST
 
-START_TEST (test_add_route)
+START_TEST (test_add_ra_options_route)
 {
 	ck_assert_ptr_ne(0, iface);
 
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_route(&sb, iface->AdvRouteList, iface->state_info.cease_adv);
+
+	add_ra_options_route(sbl, iface, iface->AdvRouteList, iface->state_info.cease_adv, NULL);
+
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -125,12 +135,17 @@ START_TEST (test_add_route)
 END_TEST
 
 
-START_TEST (test_add_rdnss)
+START_TEST (test_add_ra_options_rdnss)
 {
 	ck_assert_ptr_ne(0, iface);
 
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_rdnss(&sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
+
+	add_ra_options_rdnss(sbl, iface, iface->AdvRDNSSList, iface->state_info.cease_adv, NULL);
+
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -156,14 +171,19 @@ START_TEST (test_add_rdnss)
 END_TEST
 
 
-START_TEST (test_add_rdnss2)
+START_TEST (test_add_ra_options_rdnss2)
 {
 	static struct Interface * iface = 0;
 	iface = readin_config("test/test_rdnss.conf");
 	ck_assert_ptr_ne(0, iface);
 
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_rdnss(&sb, iface->AdvRDNSSList, iface->state_info.cease_adv);
+
+	add_ra_options_rdnss(sbl, iface, iface->AdvRDNSSList, iface->state_info.cease_adv, NULL);
+
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
 	free_ifaces(iface);
 
 #ifdef PRINT_SAFE_BUFFER
@@ -186,12 +206,17 @@ START_TEST (test_add_rdnss2)
 END_TEST
 
 
-START_TEST (test_add_dnssl)
+START_TEST (test_add_ra_options_dnssl)
 {
 	ck_assert_ptr_ne(0, iface);
 
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_dnssl(&sb, iface->AdvDNSSLList, iface->state_info.cease_adv);
+
+	add_ra_options_dnssl(sbl, iface, iface->AdvDNSSLList, iface->state_info.cease_adv, NULL);
+
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -235,12 +260,12 @@ START_TEST (test_add_dnssl)
 END_TEST
 
 
-START_TEST (test_add_mtu)
+START_TEST (test_add_ra_option_mtu)
 {
 	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_mtu(&sb, iface->AdvLinkMTU);
+	add_ra_option_mtu(&sb, iface->AdvLinkMTU);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -259,7 +284,7 @@ START_TEST (test_add_mtu)
 }
 END_TEST
 
-START_TEST (test_add_sllao)
+START_TEST (test_add_ra_option_sllao)
 {
 	struct sllao sllao48 = {
 		{1, 2, 3, 4, 5, 6, 7, 8},
@@ -269,7 +294,7 @@ START_TEST (test_add_sllao)
 	};
 	
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_sllao(&sb, &sllao48);
+	add_ra_option_sllao(&sb, &sllao48);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -294,7 +319,7 @@ START_TEST (test_add_sllao)
 	};
 	
 	sb = SAFE_BUFFER_INIT;
-	add_sllao(&sb, &sllao64);
+	add_ra_option_sllao(&sb, &sllao64);
 
 #ifdef PRINT_SAFE_BUFFER
 	snprint_safe_buffer(buf, 4096, &sb);
@@ -313,12 +338,12 @@ START_TEST (test_add_sllao)
 }
 END_TEST
 
-START_TEST (test_add_lowpanco)
+START_TEST (test_add_ra_option_lowpanco)
 {
 	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_lowpanco(&sb, iface->AdvLowpanCoList);
+	add_ra_option_lowpanco(&sb, iface->AdvLowpanCoList);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -340,12 +365,12 @@ START_TEST (test_add_lowpanco)
 END_TEST
 
 
-START_TEST (test_add_abro)
+START_TEST (test_add_ra_option_abro)
 {
 	ck_assert_ptr_ne(0, iface);
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_abro(&sb, iface->AdvAbroList);
+	add_ra_option_abro(&sb, iface->AdvAbroList);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -375,15 +400,15 @@ Suite * send_suite(void)
 	TCase * tc_build = tcase_create("build");
 	tcase_add_unchecked_fixture(tc_build, iface_setup, iface_teardown);
 	tcase_add_test(tc_build, test_add_ra_header);
-	tcase_add_test(tc_build, test_add_prefix);
-	tcase_add_test(tc_build, test_add_route);
-	tcase_add_test(tc_build, test_add_rdnss);
-	tcase_add_test(tc_build, test_add_rdnss2);
-	tcase_add_test(tc_build, test_add_dnssl);
-	tcase_add_test(tc_build, test_add_mtu);
-	tcase_add_test(tc_build, test_add_sllao);
-	tcase_add_test(tc_build, test_add_lowpanco);
-	tcase_add_test(tc_build, test_add_abro);
+	tcase_add_test(tc_build, test_add_ra_options_prefix);
+	tcase_add_test(tc_build, test_add_ra_options_route);
+	tcase_add_test(tc_build, test_add_ra_options_rdnss);
+	tcase_add_test(tc_build, test_add_ra_options_rdnss2);
+	tcase_add_test(tc_build, test_add_ra_options_dnssl);
+	tcase_add_test(tc_build, test_add_ra_option_mtu);
+	tcase_add_test(tc_build, test_add_ra_option_sllao);
+	tcase_add_test(tc_build, test_add_ra_option_lowpanco);
+	tcase_add_test(tc_build, test_add_ra_option_abro);
 
 	Suite *s = suite_create("send");
 	suite_add_tcase(s, tc_update);
