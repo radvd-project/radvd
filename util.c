@@ -99,6 +99,15 @@ struct safe_buffer_list * new_safe_buffer_list(void)
 	return sbl;
 }
 
+void safe_buffer_list_to_safe_buffer(struct safe_buffer_list * sbl, struct safe_buffer *sb)
+{
+	struct safe_buffer_list *cur;
+	for(cur = sbl; cur; cur = cur->next) {
+		if(cur->sb)
+			safe_buffer_append(sb, cur->sb->buffer, cur->sb->used);
+	}
+}
+
 void safe_buffer_list_free(struct safe_buffer_list * sbl)
 {
 	struct safe_buffer_list * next;
