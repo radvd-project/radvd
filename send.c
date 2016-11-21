@@ -265,8 +265,7 @@ static struct safe_buffer_list * add_auto_prefixes_6to4(struct safe_buffer_list 
 		(void)xprefix.curr_preferredlft;
 
 		if(cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
-			sbl->next = new_safe_buffer_list();
-			sbl = sbl->next;
+			sbl = safe_buffer_list_append(sbl);
 			add_ra_option_prefix(sbl->sb, &xprefix, cease_adv);
 		}
 	}
@@ -312,8 +311,7 @@ static struct safe_buffer_list * add_auto_prefixes(struct safe_buffer_list * sbl
 		(void)xprefix.curr_preferredlft;
 
 		if(cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
-			sbl->next = new_safe_buffer_list();
-			sbl = sbl->next;
+			sbl = safe_buffer_list_append(sbl);
 			add_ra_option_prefix(sbl->sb, &xprefix, cease_adv);
 		}
 	}
@@ -344,8 +342,7 @@ static struct safe_buffer_list* add_ra_options_prefix(struct safe_buffer_list * 
 				}
 			} else {
 				if(cease_adv || schedule_option_prefix(dest, iface, prefix)) {
-					sbl->next = new_safe_buffer_list();
-					sbl = sbl->next;
+					sbl = safe_buffer_list_append(sbl);
 					add_ra_option_prefix(sbl->sb, prefix, cease_adv);
 				}
 			}
@@ -439,8 +436,7 @@ static struct safe_buffer_list* add_ra_options_route(struct safe_buffer_list *sb
 
 		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
 
-		sbl->next = new_safe_buffer_list();
-		sbl = sbl->next;
+		sbl = safe_buffer_list_append(sbl);
 		safe_buffer_append(sbl->sb, &rinfo, sizeof(rinfo));
 
 		route = route->next;
@@ -474,8 +470,7 @@ static struct safe_buffer_list * add_ra_options_rdnss(struct safe_buffer_list * 
 		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
 		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
 
-		sbl->next = new_safe_buffer_list();
-		sbl = sbl->next;
+		sbl = safe_buffer_list_append(sbl);
 		safe_buffer_append(sbl->sb, &rdnssinfo, sizeof(rdnssinfo) - (3 - rdnss->AdvRDNSSNumber) * sizeof(struct in6_addr));
 
 		rdnss = rdnss->next;
@@ -574,8 +569,7 @@ static struct safe_buffer_list * add_ra_options_dnssl(struct safe_buffer_list * 
 
 		size_t const padding = dnsslinfo.nd_opt_dnssli_len * 8 - bytes;
 
-		sbl->next = new_safe_buffer_list();
-		sbl = sbl->next;
+		sbl = safe_buffer_list_append(sbl);
 		safe_buffer_expand(sbl->sb, sizeof(dnsslinfo) + domain_name_bytes);
 		safe_buffer_append(sbl->sb, &dnsslinfo, sizeof(dnsslinfo));
 		safe_buffer_append(sbl->sb, serialized_domains->buffer, serialized_domains->used);
