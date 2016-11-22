@@ -337,7 +337,6 @@ size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 ssize_t readn(int fd, void *buf, size_t count);
 ssize_t writen(int fd, const void *buf, size_t count);
 struct safe_buffer * new_safe_buffer(void);
-struct safe_buffer * clone_safe_buffer(struct safe_buffer const * sb);
 void addrtostr(struct in6_addr const *, char *, size_t);
 void safe_buffer_free(struct safe_buffer * sb);
 struct safe_buffer_list * new_safe_buffer_list(void);

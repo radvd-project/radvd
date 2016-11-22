@@ -87,28 +87,6 @@ START_TEST (test_safe_buffer_pad)
 }
 END_TEST
 
-START_TEST (test_clone_safe_buffer)
-{
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	char array[] = {"This is a test"};
-	struct safe_buffer *sb_clone;
-
-	safe_buffer_append(&sb, array, sizeof(array));
-	sb_clone = clone_safe_buffer(&sb);
-	// Check that they are properly seperate
-	safe_buffer_append(&sb, array, sizeof(array));
-
-	ck_assert_str_eq(sb.buffer, array);
-	ck_assert_str_eq(sb.buffer + sizeof(array), array);
-	ck_assert_int_eq(sb.used, 2*sizeof(array));
-	
-	ck_assert_str_eq(sb_clone->buffer, array);
-	ck_assert_int_eq(sb_clone->used, sizeof(array));
-	
-	safe_buffer_free(&sb);
-}
-END_TEST
-
 START_TEST (test_safe_buffer_list)
 {
 	struct safe_buffer_list *sbl = new_safe_buffer_list();
@@ -309,7 +287,6 @@ Suite * util_suite(void)
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append2);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_pad);
-	tcase_add_test(tc_safe_buffer, test_clone_safe_buffer);
 	
 	TCase * tc_safe_buffer_list = tcase_create("safe_buffer_list");
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_list);
