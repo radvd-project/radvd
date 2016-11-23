@@ -5,14 +5,14 @@
 
 #include <stdio.h>
 
-void print_safe_buffer(struct safe_buffer * sb)
+void print_safe_buffer(struct safe_buffer const * sb)
 {
 	char buf[4096];
 	snprint_safe_buffer(buf, sizeof(buf), sb);
 	printf("%s", buf);
 }
 
-size_t snprint_safe_buffer(char *s, size_t size, struct safe_buffer * sb)
+size_t snprint_safe_buffer(char *s, size_t size, struct safe_buffer const * sb)
 {
 	size_t count = 0;
 
