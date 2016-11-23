@@ -390,8 +390,8 @@ static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct Ad
 			else
 				label_len = (unsigned char)(strchr(label, '.') - label);
 
-			// +8 is for null & padding
-			safe_buffer_expand(safe_buffer, sizeof(label_len) + label_len + 8);
+			// +8 is for null & padding, only allocate once.
+			safe_buffer_resize(safe_buffer, safe_buffer->used + sizeof(label_len) + label_len + 8);
 			len += safe_buffer_append(safe_buffer, &label_len, sizeof(label_len));
 			len += safe_buffer_append(safe_buffer, label, label_len);
 
@@ -570,7 +570,7 @@ static struct safe_buffer_list * add_ra_options_dnssl(struct safe_buffer_list * 
 		size_t const padding = dnsslinfo.nd_opt_dnssli_len * 8 - bytes;
 
 		sbl = safe_buffer_list_append(sbl);
-		safe_buffer_expand(sbl->sb, sizeof(dnsslinfo) + domain_name_bytes);
+		safe_buffer_resize(sbl->sb, sbl->sb->used + sizeof(dnsslinfo) + domain_name_bytes + padding);
 		safe_buffer_append(sbl->sb, &dnsslinfo, sizeof(dnsslinfo));
 		safe_buffer_append(sbl->sb, serialized_domains->buffer, serialized_domains->used);
 		safe_buffer_pad(sbl->sb, padding);

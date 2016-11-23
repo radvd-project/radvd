@@ -36,19 +36,6 @@ START_TEST (test_safe_buffer_resize)
 }
 END_TEST
 
-START_TEST (test_safe_buffer_expand)
-{
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	int size_sum = 0;
-	for(int i = 0; i < 5000; i += 17) {
-		safe_buffer_expand(&sb, i);
-		size_sum += i;
-		ck_assert_int_ge(sb.allocated, size_sum);
-	}
-	safe_buffer_free(&sb);
-}
-END_TEST
-
 START_TEST (test_safe_buffer_append)
 {
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
@@ -283,7 +270,6 @@ Suite * util_suite(void)
 	TCase * tc_safe_buffer = tcase_create("safe_buffer");
 	tcase_add_test(tc_safe_buffer, test_safe_buffer);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_resize);
-	tcase_add_test(tc_safe_buffer, test_safe_buffer_expand);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_append2);
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_pad);

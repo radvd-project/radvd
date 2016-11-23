@@ -331,7 +331,6 @@ double rand_between(double, double);
 int check_dnssl_presence(struct AdvDNSSL *, const char *);
 int check_rdnss_presence(struct AdvRDNSS *, struct in6_addr *);
 void safe_buffer_resize(struct safe_buffer * sb, size_t new_capacity);
-void safe_buffer_expand(struct safe_buffer * sb, size_t additional_capacity);
 size_t safe_buffer_append(struct safe_buffer * sb, void const * m, size_t count);
 size_t safe_buffer_pad(struct safe_buffer * sb, size_t count);
 ssize_t readn(int fd, void *buf, size_t count);
