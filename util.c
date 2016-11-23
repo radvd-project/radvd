@@ -88,6 +88,11 @@ size_t safe_buffer_append(struct safe_buffer * sb, void const * v, size_t count)
 	return count;
 }
 
+/**
+ * Create a new safe_buffer_list
+ *
+ * @return new safe_buffer_list, with a safe_buffer on the heap.
+ */
 struct safe_buffer_list * new_safe_buffer_list(void)
 {
 	struct safe_buffer_list * sbl = malloc(sizeof(struct safe_buffer_list));
@@ -96,6 +101,15 @@ struct safe_buffer_list * new_safe_buffer_list(void)
 	return sbl;
 }
 
+/**
+ * Ensure list tail has an empty buffer ready to accept data.
+ *
+ * If the present element is empty of data, just return it.
+ * Otherwise return a new safe_buffer_list ready to accept data.
+ *
+ * @param sbl safe_buffer_list.
+ * @return new tail of list.
+ */
 struct safe_buffer_list * safe_buffer_list_append(struct safe_buffer_list * sbl)
 {
 	// Only allocate a new entry if this one has bytes in it.
@@ -107,6 +121,12 @@ struct safe_buffer_list * safe_buffer_list_append(struct safe_buffer_list * sbl)
 	return sbl;
 }
 
+/**
+ * Convert an entire safe_buffer_list to a single safe_buffer.
+ *
+ * @param sbl safe_buffer_list source.
+ * @param sb  safe_buffer destination.
+ */
 void safe_buffer_list_to_safe_buffer(struct safe_buffer_list * sbl, struct safe_buffer *sb)
 {
 	struct safe_buffer_list *cur;
@@ -116,6 +136,11 @@ void safe_buffer_list_to_safe_buffer(struct safe_buffer_list * sbl, struct safe_
 	}
 }
 
+/**
+ * Free all memory used by a safe_buffer_list
+ *
+ * @param sbl safe_buffer_list to free.
+ */
 void safe_buffer_list_free(struct safe_buffer_list * sbl)
 {
 	struct safe_buffer_list * next;
