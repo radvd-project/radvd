@@ -59,6 +59,7 @@ MinRtrAdvInterval	{ return T_MinRtrAdvInterval; }
 AdvManagedFlag		{ return T_AdvManagedFlag; }
 AdvOtherConfigFlag	{ return T_AdvOtherConfigFlag; }
 AdvLinkMTU		{ return T_AdvLinkMTU; }
+AdvRAMTU		{ return T_AdvRAMTU; }
 AdvReachableTime	{ return T_AdvReachableTime; }
 AdvRetransTimer		{ return T_AdvRetransTimer; }
 AdvCurHopLimit		{ return T_AdvCurHopLimit; }
