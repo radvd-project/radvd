@@ -11,7 +11,8 @@ After=network.target
 Type=forking
 ExecStartPre=@SBINDIR@/radvd --logmethod stderr_clean --configtest
 ExecStart=@SBINDIR@/radvd --logmethod stderr_clean
-ExecReload=@SBINDIR@/radvd --logmethod stderr_clean --configtest && /bin/kill -HUP $MAINPID
+ExecReload=@SBINDIR@/radvd --logmethod stderr_clean --configtest
+ExecReload=/bin/kill -HUP $MAINPID
 PIDFile=@PATH_RADVD_PID@
 
 # Set the CPU scheduling policy to idle which is for running very low priority background jobs
