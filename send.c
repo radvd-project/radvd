@@ -355,7 +355,7 @@ static struct safe_buffer_list* add_ra_options_prefix(struct safe_buffer_list * 
 
 
 
-/* *INDENT-OFF* */
+/* clang-format off */
 /*
  * Domain Names of DNS Search List
  *   One or more domain names of DNS Search List that MUST
@@ -374,7 +374,7 @@ static struct safe_buffer_list* add_ra_options_prefix(struct safe_buffer_list * 
  *   encoding parts of the domain name representations
  *   MUST be padded with zeros.
  */
-/* *INDENT-ON* */
+/* clang-format on */
 static size_t serialize_domain_names(struct safe_buffer * safe_buffer, struct AdvDNSSL const *dnssl)
 {
 	size_t len = 0;
@@ -484,62 +484,6 @@ static struct safe_buffer_list * add_ra_options_dnssl(struct safe_buffer_list * 
 	struct safe_buffer *serialized_domains = new_safe_buffer();
 	while (dnssl) {
 
-		/* *INDENT-OFF* */
-		/*
-		 * Snippet from RFC 6106...
-		 *
-		 *    5.2. DNS Search List Option
-		 * 
-		 * 
-		 *    The DNSSL option contains one or more domain names of DNS suffixes.
-		 *    All of the domain names share the same Lifetime value.  If it is
-		 *    desirable to have different Lifetime values, multiple DNSSL options
-		 *    can be used.  Figure 2 shows the format of the DNSSL option.
-		 * 
-		 *       0                   1                   2                   3
-		 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-		 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		 *      |     Type      |     Length    |           Reserved            |
-		 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		 *      |                           Lifetime                            |
-		 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		 *      |                                                               |
-		 *      :                Domain Names of DNS Search List                :
-		 *      |                                                               |
-		 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		 * 
-		 *               Figure 2: DNS Search List (DNSSL) Option Format
-		 * 
-		 *   Fields:
-		 *     Type          8-bit identifier of the DNSSL option type as assigned
-		 *                   by the IANA: 31
-		 * 
-		 *     Length        8-bit unsigned integer.  The length of the option
-		 *                   (including the Type and Length fields) is in units of
-		 *                   8 octets.  The minimum value is 2 if at least one
-		 *                   domain name is contained in the option.  The Length
-		 *                   field is set to a multiple of 8 octets to accommodate
-		 *                   all the domain names in the field of Domain Names of
-		 *                   DNS Search List.
-		 * 
-		 *     Lifetime      32-bit unsigned integer.  The maximum time, in
-		 *                   seconds (relative to the time the packet is sent),
-		 *                   over which this DNSSL domain name MAY be used for
-		 *                   name resolution.  The Lifetime value has the same
-		 *                   semantics as with the RDNSS option.  That is, Lifetime
-		 *                   SHOULD be bounded as follows:
-		 *                   MaxRtrAdvInterval <= Lifetime <= 2*MaxRtrAdvInterval.
-		 *                   A value of all one bits (0xffffffff) represents
-		 *                   infinity.  A value of zero means that the DNSSL
-		 *                   domain name MUST no longer be used.
-		 * 
-		 *     Domain Names of DNS Search List
-		 *                   One or more domain names of DNS Search List that MUST
-		 *                   be encoded using the technique described in Section
-		 *                   3.1 of [RFC1035].
-		 * 
-		 */
-		/* *INDENT-ON* */
 		struct nd_opt_dnssl_info_local dnsslinfo;
 
 		if(!cease_adv && !schedule_option_dnssl(dest, iface, dnssl)) {
@@ -588,39 +532,6 @@ static struct safe_buffer_list * add_ra_options_dnssl(struct safe_buffer_list * 
  */
 static void add_ra_option_sllao(struct safe_buffer * sb, struct sllao const *sllao)
 {
-	/* *INDENT-OFF* */
-	/*
-	4.6.1.  Source/Target Link-layer Address
-
-	      0                   1                   2                   3
-	      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	     |     Type      |    Length     |    Link-Layer Address ...
-	     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-	   Fields:
-
-	      Type
-			     1 for Source Link-layer Address
-			     2 for Target Link-layer Address
-
-	      Length         The length of the option (including the type and
-			     length fields) in units of 8 octets.  For example,
-			     the length for IEEE 802 addresses is 1 [IPv6-
-			     ETHER].
-
-	      Link-Layer Address
-			     The variable length link-layer address.
-
-			     The content and format of this field (including
-			     byte and bit ordering) is expected to be specified
-			     in specific documents that describe how IPv6
-			     operates over different link layers.  For instance,
-			     [IPv6-ETHER].
-
-	 */
-	/* *INDENT-ON* */
-
 	/* +2 for the ND_OPT_SOURCE_LINKADDR and the length (each occupy one byte) */
 	size_t const sllao_bytes = (sllao->if_hwaddr_len / 8) + 2;
 	size_t const sllao_len = (sllao_bytes + 7) / 8;
@@ -817,32 +728,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	add_ra_header(ra_hdr, &iface->ra_header_info, iface->state_info.cease_adv);
 	// Build RA option list
 	struct safe_buffer_list *ra_opts = build_ra_options(iface, dest);
-
-	/* *INDENT-OFF* */
-	/*
-	 *	RFC4861: 6.2.3.  Router Advertisement Message Content
-	 *	   If including all options causes the size of an advertisement to
-	 *	   exceed the link MTU, multiple advertisements can be sent, each
-	 *	   containing a subset of the options.
-	 *
-	 *	RFC6980: 5.  Specification
-	 *		Nodes MUST NOT employ IPv6 fragmentation for sending any of the
-	 *		following Neighbor Discovery and SEcure Neighbor Discovery messages:
-	 *
-	 *		o  Neighbor Solicitation
-	 *		o  Neighbor Advertisement
-	 *		o  Router Solicitation
-	 *		o  Router Advertisement
-	 *		o  Redirect
-	 *		o  Certification Path Solicitation
-	 *
-	 *		Nodes SHOULD NOT employ IPv6 fragmentation for sending the following
-	 *		messages (see Section 6.4.2 of [RFC3971]):
-	 *
-	 *		o  Certification Path Advertisement
-	 *
-	*/
-	/* *INDENT-ON* */
 
 	// Send out one or more RAs, all in the form of (hdr+options),
 	// such that none of the RAs exceed the link MTU

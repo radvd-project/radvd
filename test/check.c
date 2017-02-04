@@ -19,7 +19,7 @@ Suite * send_suite();
 
 #ifdef HAVE_GETOPT_LONG
 
-/* *INDENT-OFF* */
+/* clang-format off */
 static char usage_str[] = {
 "\n"
 "  -h, --help                Print the help and quit.\n"
@@ -43,7 +43,7 @@ static struct option prog_opt[] = {
 static char usage_str[] = {
 "[-hv] [-m mode] [-s suite] [-t test]"
 };
-/* *INDENT-ON* */
+/* clang-format on */
 
 #endif
 

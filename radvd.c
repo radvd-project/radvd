@@ -28,7 +28,7 @@
 
 #ifdef HAVE_GETOPT_LONG
 
-/* *INDENT-OFF* */
+/* clang-format off */
 static char usage_str[] = {
 "\n"
 "  -C, --config=PATH       Set the config file.  Default is /etc/radvd.d.\n"
@@ -69,7 +69,7 @@ static char usage_str[] = {
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 
 };
-/* *INDENT-ON* */
+/* clang-format on */
 
 #endif
 

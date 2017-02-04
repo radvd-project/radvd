@@ -75,7 +75,6 @@ int update_device_info(int sock, struct Interface *iface)
 	case ARPHRD_ETHER:
 		iface->sllao.if_hwaddr_len = 48;
 		iface->sllao.if_prefix_len = 64;
-		/* *INDENT-OFF* */
 		char hwaddr[3 * 6];
 		sprintf(hwaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
 			(unsigned char)ifr.ifr_hwaddr.sa_data[0],
@@ -84,7 +83,6 @@ int update_device_info(int sock, struct Interface *iface)
 			(unsigned char)ifr.ifr_hwaddr.sa_data[3],
 			(unsigned char)ifr.ifr_hwaddr.sa_data[4],
 			(unsigned char)ifr.ifr_hwaddr.sa_data[5]);
-		/* *INDENT-ON* */
 		dlog(LOG_DEBUG, 3, "%s hardware address: %s", iface->props.name, hwaddr);
 		iface->props.max_ra_option_size -= 14; /* RFC 2464 */
 		break;
