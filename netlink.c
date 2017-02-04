@@ -1,10 +1,10 @@
 /*
  *
  *   Authors:
- *    Lars Fenneberg		<lf@elemental.net>	 
+ *    Lars Fenneberg		<lf@elemental.net>
  *    Reuben Hawkins		<reubenhwk@gmail.com>
  *
- *   This software is Copyright 1996,1997 by the above mentioned author(s), 
+ *   This software is Copyright 1996,1997 by the above mentioned author(s),
  *   All Rights Reserved.
  *
  *   The license which is distributed with this software in the file COPYRIGHT
@@ -13,37 +13,37 @@
  *
  */
 
-#include "config.h"
-#include "radvd.h"
-#include "log.h"
 #include "netlink.h"
+#include "config.h"
+#include "log.h"
+#include "radvd.h"
 
 #include <asm/types.h>
-#include <sys/socket.h>
+#include <errno.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <net/if.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
 
 #ifndef SOL_NETLINK
-#define SOL_NETLINK	270
+#define SOL_NETLINK 270
 #endif
 
 struct iplink_req {
-	struct nlmsghdr		n;
-	struct ifinfomsg	i;
-	char			buf[1024];
+	struct nlmsghdr n;
+	struct ifinfomsg i;
+	char buf[1024];
 };
 
 int netlink_get_device_addr_len(struct Interface *iface)
 {
 	struct iplink_req req = {};
-	struct iovec iov = { &req, sizeof(req) };
+	struct iovec iov = {&req, sizeof(req)};
 	struct sockaddr_nl sa = {};
-	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+	struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0};
 	int sock, len, addr_len = -1;
 	unsigned short type;
 	char answer[32768];
@@ -94,18 +94,18 @@ out:
 	return addr_len;
 }
 
-void process_netlink_msg(int sock, struct Interface * ifaces)
+void process_netlink_msg(int sock, struct Interface *ifaces)
 {
 	char buf[4096];
-	struct iovec iov = { buf, sizeof(buf) };
+	struct iovec iov = {buf, sizeof(buf)};
 	struct sockaddr_nl sa;
-	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+	struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0};
 	int len = recvmsg(sock, &msg, 0);
 	if (len == -1) {
 		flog(LOG_ERR, "netlink: recvmsg failed: %s", strerror(errno));
 	}
 
-	for (struct nlmsghdr * nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
+	for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
 		char ifnamebuf[IF_NAMESIZE];
 		/* The end of multipart message. */
 		if (nh->nlmsg_type == NLMSG_DONE)
@@ -174,17 +174,16 @@ void process_netlink_msg(int sock, struct Interface * ifaces)
 				int count = get_iface_addrs(iface->props.name, NULL, &if_addrs);
 
 				if (count != iface->props.addrs_count ||
-					0 != memcmp(if_addrs, iface->props.if_addrs, count * sizeof(struct in6_addr))) {
-					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are different",
-						ifname, ifaddr->ifa_index);
+				    0 != memcmp(if_addrs, iface->props.if_addrs, count * sizeof(struct in6_addr))) {
+					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are different", ifname,
+					     ifaddr->ifa_index);
 					touch_iface(iface);
 				} else {
-					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are the same",
-						ifname, ifaddr->ifa_index);
+					dlog(LOG_DEBUG, 3, "netlink: %s, ifindex %d, addresses are the same", ifname,
+					     ifaddr->ifa_index);
 				}
 				free(if_addrs);
 			}
-
 		}
 	}
 }
