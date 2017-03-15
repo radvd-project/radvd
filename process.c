@@ -122,6 +122,34 @@ void process(int sock, struct Interface *interfaces, unsigned char *msg, int len
 
 static void process_rs(int sock, struct Interface *iface, unsigned char *msg, int len, struct sockaddr_in6 *addr)
 {
+	/* RFC 7772, section 5.1:
+	 * 5.1.  Network-Side Recommendations
+	 *    1.  Router manufacturers SHOULD allow network administrators to
+	 *        configure the routers to respond to Router Solicitations with
+	 *        unicast Router Advertisements if:
+	 *        *  The Router Solicitation's source address is not the
+	 *           unspecified address, and:
+	 *        *  The solicitation contains a valid Source Link-Layer Address
+	 *           option.
+	 *
+	 * However, testing shows that many clients do not set the SLLA option:
+	 * https://github.com/reubenhwk/radvd/issues/63#issuecomment-287172252
+	 * As of 2017/03/16:
+	 * - macOS 10.12.3 sierra - sends SLLA 2 times out of 4
+	 * - iOS 10.2.1 (iPhone 5s) - no SLLA
+	 * - Android 7.0 (sony xperia phone) - sends SLLA
+	 * - Android 5.1 (nexus 7 tablet) - sends SLLA
+	 * - Ubuntu 16.04.2 LTS w/ Network Manager, running 4.9 kernel (dell laptop) - no SLLA
+	 * - Windows 10 (dell laptop) - no SLLA
+	 *
+	 * We decide to ignore the SLLA option for now, and only require the
+	 * unspecified address check. Clients that did not set the SLLA option will
+	 * trigger a neighbour solicit to the solicited-node address trying to
+	 * resolve the link-local address to, this would still be less traffic than
+	 * the all-nodes multicast.
+	 */
+	int rfc7772_unicast_response = iface->AdvRASolicitedUnicast && !IN6_IS_ADDR_UNSPECIFIED(&addr->sin6_addr);
+
 	/* validation */
 	len -= sizeof(struct nd_router_solicit);
 
@@ -158,7 +186,7 @@ static void process_rs(int sock, struct Interface *iface, unsigned char *msg, in
 
 	double const delay = (MAX_RA_DELAY_SECONDS * rand() / (RAND_MAX + 1.0));
 
-	if (iface->UnicastOnly) {
+	if (iface->UnicastOnly || rfc7772_unicast_response) {
 		send_ra_forall(sock, iface, &addr->sin6_addr);
 	} else if (timespecdiff(&ts, &iface->times.last_multicast) / 1000.0 < iface->MinDelayBetweenRAs) {
 		/* last RA was sent only a few moments ago, don't send another immediately. */
