@@ -86,7 +86,7 @@
 #include <net/if_types.h>
 #endif
 
-#if defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER)
+#if defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER) && !defined(HAVE_LINUX_IF_ARP_H)
 #include <net/if_arp.h>
 #endif /* defined(HAVE_NET_IF_ARP_H) && !defined(ARPHRD_ETHER) */
 
