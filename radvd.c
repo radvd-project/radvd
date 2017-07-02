@@ -82,7 +82,7 @@ static int check_conffile_perm(const char *, const char *);
 static int drop_root_privileges(const char *);
 static int open_and_lock_pid_file(char const *daemon_pid_file_ident);
 static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
-static pid_t daemonp(int nochdir, int noclose, char const *daemon_pid_file_ident);
+static pid_t daemonp(char const *daemon_pid_file_ident);
 static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
 static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
@@ -106,7 +106,7 @@ static void version(void);
 /* daemonize and write pid file.  The pid of the daemon child process
  * will be written to the pid file from the *parent* process.  This
  * insures there is no race condition as described in redhat bug 664783. */
-static pid_t daemonp(int nochdir, int noclose, char const *daemon_pid_file_ident)
+static pid_t daemonp(char const *daemon_pid_file_ident)
 {
 	int pipe_ends[2];
 
@@ -138,28 +138,24 @@ static pid_t daemonp(int nochdir, int noclose, char const *daemon_pid_file_ident
 			exit(-1);
 		}
 
-		if (nochdir == 0) {
-			if (chdir("/") == -1) {
-				perror("chdir");
-				exit(1);
-			}
+		if (chdir("/") == -1) {
+			perror("chdir");
+			exit(1);
 		}
-		if (noclose == 0) {
-			close(STDIN_FILENO);
-			close(STDOUT_FILENO);
-			close(STDERR_FILENO);
-			if (open("/dev/null", O_RDONLY) == -1) {
-				flog(LOG_ERR, "unable to redirect stdin to /dev/null");
-				exit(-1);
-			}
-			if (open("/dev/null", O_WRONLY) == -1) {
-				flog(LOG_ERR, "unable to redirect stdout to /dev/null");
-				exit(-1);
-			}
-			if (open("/dev/null", O_RDWR) == -1) {
-				flog(LOG_ERR, "unable to redirect stderr to /dev/null");
-				exit(-1);
-			}
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+		if (open("/dev/null", O_RDONLY) == -1) {
+			flog(LOG_ERR, "unable to redirect stdin to /dev/null");
+			exit(-1);
+		}
+		if (open("/dev/null", O_WRONLY) == -1) {
+			flog(LOG_ERR, "unable to redirect stdout to /dev/null");
+			exit(-1);
+		}
+		if (open("/dev/null", O_RDWR) == -1) {
+			flog(LOG_ERR, "unable to redirect stderr to /dev/null");
+			exit(-1);
 		}
 	} else {
 		/* Parent.  Make sure the pid file is written before exiting. */
@@ -590,11 +586,7 @@ static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident)
 {
 	pid_t pid = -1;
 
-	if (L_STDERR_SYSLOG == log_method || L_STDERR == log_method) {
-		pid = daemonp(1, 1, daemon_pid_file_ident);
-	} else {
-		pid = daemonp(0, 0, daemon_pid_file_ident);
-	}
+	pid = daemonp(daemon_pid_file_ident);
 
 	if (-1 == pid) {
 		flog(LOG_ERR, "unable to daemonize: %s", strerror(errno));
