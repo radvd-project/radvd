@@ -82,7 +82,7 @@ __attribute__((format(printf, 2, 0))) static int vlog(int prio, char const *form
 		break;
 	case L_STDERR_SYSLOG:
 		syslog(prio, "%s", buff);
-		if (prio > LOG_ERR) /* fall through for messages with high priority */
+		if (debug_level < prio) /* fall through for messages with high priority */
 			break;
 	case L_STDERR:
 		current = time(NULL);
