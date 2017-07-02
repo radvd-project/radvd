@@ -1,3 +1,6 @@
+2017/07/01	Fix STDERR_SYSLOG log level bug.
+		Always close stdout and stderr when daemonizing.
+
 2017/03/15	Implement RFC 7772 Section 5.1.1, 5.1.2, defaulted to on. <Robin H. Johnson>
 
 2017/02/04	clang-format the code
