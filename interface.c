@@ -31,6 +31,8 @@ void iface_init_defaults(struct Interface *iface)
 	iface->AdvSourceLLAddress = DFLT_AdvSourceLLAddress;
 	iface->MinDelayBetweenRAs = DFLT_MinDelayBetweenRAs;
 	iface->MinRtrAdvInterval = -1;
+	iface->UnicastOnly = DFLT_UnicastOnly;
+	iface->AdvRASolicitedUnicast = DFLT_AdvRASolicitedUnicast;
 
 	iface->ra_header_info.AdvDefaultPreference = DFLT_AdvDefaultPreference;
 	iface->ra_header_info.AdvDefaultLifetime = -1;
