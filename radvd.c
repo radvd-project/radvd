@@ -181,7 +181,8 @@ static pid_t daemonp(char const *daemon_pid_file_ident)
 int main(int argc, char *argv[])
 {
 	int c;
-	int log_method = L_STDERR_SYSLOG;
+	int log_method = L_SYSLOG;
+	int log_method_set_explicitly = 0;
 	char *logfile = PATH_RADVD_LOG;
 	int facility = LOG_FACILITY;
 	char *username = NULL;
@@ -238,6 +239,7 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "%s: unknown log method: %s\n", pname, optarg);
 				exit(1);
 			}
+			log_method_set_explicitly = 1;
 			break;
 		case 't':
 			chrootdir = strdup(optarg);
@@ -253,6 +255,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			daemonize = 0;
+			if (!log_method_set_explicitly) {
+				log_method = L_STDERR_SYSLOG;
+			}
 			break;
 		case 'h':
 			usage(pname);
