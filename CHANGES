@@ -1,3 +1,5 @@
+2017/07/03	Release v2.17
+
 2017/07/01	Fix STDERR_SYSLOG log level bug.
 		Always close stdout and stderr when daemonizing.
 
