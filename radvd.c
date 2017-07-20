@@ -65,7 +65,7 @@ static struct option prog_opt[] = {
 #else
 
 static char usage_str[] = {
-"[-hsvcn] [-d level] [-C config_path] [-m log_method] [-l log_file]\n"
+"[-hvcn] [-d level] [-C config_path] [-m log_method] [-l log_file]\n"
 "\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]"
 
 };
