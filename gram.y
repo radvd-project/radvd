@@ -436,9 +436,11 @@ prefixhead	: T_PREFIX IPV6ADDR '/' NUMBER
 			struct in6_addr zeroaddr;
 			memset(&zeroaddr, 0, sizeof(zeroaddr));
 
+#ifndef HAVE_IFADDRS_H	// all-zeros prefix is a way to tell us to get the prefix from the interface config
 			if (!memcmp($2, &zeroaddr, sizeof(struct in6_addr))) {
 				flog(LOG_WARNING, "invalid all-zeros prefix in %s, line %d", filename, num_lines);
 			}
+#endif
 			prefix = malloc(sizeof(struct AdvPrefix));
 
 			if (prefix == NULL) {
