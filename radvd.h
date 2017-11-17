@@ -259,9 +259,7 @@ struct nd_opt_6co {
 	uint8_t nd_opt_6co_type;
 	uint8_t nd_opt_6co_len;
 	uint8_t nd_opt_6co_context_len;
-	uint8_t nd_opt_6co_res : 3;
-	uint8_t nd_opt_6co_c : 1;
-	uint8_t nd_opt_6co_cid : 4;
+	uint8_t nd_opt_6co_res_c_cid; /* [ res=3-bits | c=1-bit | cid=4-bits ] */
 	uint16_t nd_opt_6co_reserved;
 	uint16_t nd_opt_6co_valid_lifetime;
 	struct in6_addr nd_opt_6co_con_prefix;
