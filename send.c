@@ -619,8 +619,8 @@ static void add_ra_option_lowpanco(struct safe_buffer *sb, struct AdvLowpanCo co
 	co.nd_opt_6co_type = ND_OPT_6CO;
 	co.nd_opt_6co_len = 3;
 	co.nd_opt_6co_context_len = lowpanco->ContextLength;
-	co.nd_opt_6co_c = lowpanco->ContextCompressionFlag;
-	co.nd_opt_6co_cid = lowpanco->AdvContextID;
+	co.nd_opt_6co_res_c_cid = ((lowpanco->ContextCompressionFlag ? 1 : 0) << 4)
+				| (lowpanco->AdvContextID & 0x0F);
 	co.nd_opt_6co_valid_lifetime = lowpanco->AdvLifeTime;
 	co.nd_opt_6co_con_prefix = lowpanco->AdvContextPrefix;
 
