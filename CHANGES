@@ -1,3 +1,5 @@
+2017/12/18	Allow quoted strings in config.
+
 2017/07/03	Release v2.17
 
 2017/07/01	Fix STDERR_SYSLOG log level bug.
