@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- mode:sh; sh-indentation:2 -*- vim:set ft=sh et sw=2 ts=2:
 #
-# radvd-gen v1.0.0 - Generate radvd.conf from template based on ip state
+# radvd-gen v1.1.1 - Generate radvd.conf from template based on ip state
 # Author: Scott Shambarger <devel@shambarger.net>
 #
 # Copyright (C) 2018 Scott Shambarger
@@ -97,19 +97,21 @@ usage() {
   echo " -v - verbose output"
   echo " <interface> - interface (ignored)"
   echo " <action> - up | dhcp6-change | down (default: up, unlisted ignored)"
-  exit 1
+  exit 0
 }
 
 while :; do
   case "$1" in
-    -v|--verbose) verbose=1; shift;;
-    -d|--debug) ((debug++)); shift;;
-    -*) usage;;
+    -v|--verbose) verbose=1;;
+    -d|--debug) ((debug++));;
+    -h) usage;;
+    -*) echo >&2 "Unknown option '$1' (-h for help)"; exit 1;;
     *) break;;
   esac
+  shift
 done
 
-interface=$1
+#interface=$1
 action=$2
 
 # if no action, default to up
@@ -120,168 +122,125 @@ action=${action:-up}
 #
 
 err() {
-  local IFS=' '; echo 1>&2 "$*"
+  local IFS=' '; echo >&2 "$*"; return 0
 }
 
 # backtrace to stderr, skipping <level> callers
 backtrace() { # <level>
-  local -i x=$1; echo 1>&2 "Backtrace: <line#> <func> <file>"
-  while :; do ((x++)); caller 1>&2 $x || return 0; done
+  local -i x=$1; echo >&2 "Backtrace: <line#> <func> <file>"
+  while :; do ((x++)); caller >&2 $x || return 0; done
 }
 
 # print <msg> to stderr, and dump backtrace of callers
 fatal() { # <msg>
-  local IFS=' '; printf 1>&2 "FATAL: %s\n" "$*"
+  local IFS=' '; echo >&2 "FATAL: $*"
+  [ $debug -gt 0 ] && backtrace 0
   exit 1
 }
 
 # fd for debug/verbose output
 exec 3>&1
 
-xdebug() { # <level> <msg>
-  [ $debug -lt $1 ] && return; shift
-  local IFS=' '; printf 1>&3 "%16s: %s\n" "${FUNCNAME[2]}" "$*"; return 0
+xdebug() { # <msg>
+  local IFS=' '; printf >&3 "%16s: %s\\n" "${FUNCNAME[2]}" "${*//$'\a'/\\}"
+  return 0
 }
 
-debug() { xdebug 1 "$@"; }
-debug2() { xdebug 2 "$@"; }
-debug3() { xdebug 3 "$@"; }
+if [ $debug -gt 0 ]; then debug() { xdebug "$@"; }; else debug() { :; }; fi
+if [ $debug -gt 1 ]; then debug2() { xdebug "$@"; }; else debug2() { :; }; fi
+if [ $debug -gt 2 ]; then debug3() { xdebug "$@"; }; else debug3() { :; }; fi
 
 verbose() { # <msg>
-  [[ ! $verbose ]] && return
-  local IFS=' '; echo 1>&3 "$*"
+  [[ $verbose ]] || return 0
+  local IFS=' '; echo >&3 "$*"; return 0
 }
 
 #
 # DATASTORE INTERNAL FUNCTIONS
 #
 
-# INTERNAL: declare global DATASTORE if it's not an assoc array in scope
+# INTERNAL: declare global DS if it's not an assoc array in scope
 _ds_init() {
-  [ "${DATASTORE[init]}" = "dsmagic#100349" ] && return
-  debug3 "Initializing DATASTORE"
-  local v=$(declare 2>/dev/null -p -A DATASTORE)
-  [ -z "$v" -o "${v#declare -A DATASTORE}" != "$v" ] && declare -g -A DATASTORE
-  DATASTORE[init]="dsmagic#100349"
+  [ "${BASH_VERSINFO[0]}" -ge 4 ] || fatal "Bash v4+ required"
+  local v; v=$(declare 2>/dev/null -p -A DS)
+  if [ -z "$v" ] || [ "${v#declare -A DS}" = "$v" ]; then
+    # we can declare global DS in bash 4.2+"
+    [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${BASH_VERSINFO[1]}" -lt 2 ] && \
+      fatal "'declare -A DS' must be declared before using datastore!"
+    debug3 "Initializing DS"
+    unset -v DS 2>/dev/null; declare -gA DS
+  fi
+  unset -f _ds_init
+  _ds_init() { :; }
 }
 
-# INTERNAL: sets DATASTORE[name]=<i>_<i_2>..._<i_n>, or "_" (n=0 or i=empty)
-_ds_name() { # <n> <i>...<i_n> ...(ignored)...
-  local IFS=_; local -i n=$1; DATASTORE[name]=${*:2:$n}
-  [[ ${DATASTORE[name]} ]] || DATASTORE[name]=_
+# INTERNAL: sets _n=\a<i>\a<i2>...\a<in>
+_ds_name() { # <n> <i1>...<in> ...(ignored)...
+  local IFS=$'\a'; local -i n=$1; _n=$'\a'${*:2:$n}
 }
 
-# INTERNAL: DATASTORE[value]=<value>..., merging <value>s with space
-_ds_value() { # <n> <i>...<i_n> <value>...
-  local IFS=' '; local -i n=$1
-  [ $n -ge 0 ] && { shift $n; DATASTORE[value]=${*:2}; } || DATASTORE[value]=
-}
-
-# INTERNAL: DATASTORE[<key>]=<value>...
-_ds_set() { # <key> <value>...
-  _ds_init
-  local IFS=' '
-  debug2 "$1=${*:2}"
-  DATASTORE[${1:-_}]=${*:2}
-}
-
-# INTERNAL: DATASTORE[_]=DATASTORE[ds_name($@)] (0 if value)
-_ds_nget() { # <n> <idx>...<idx_n>
-  _ds_name "$@"; DATASTORE[_]=${DATASTORE[${DATASTORE[name]}]}
-  debug3 "${DATASTORE[name]} -> \"${DATASTORE[_]}\""
-  [[ ${DATASTORE[_]} ]]
-}
-
-# INTERNAL: DATASTORE[_]=# where ds_nget(2 <base> #)==<value>...
-# or next available # (true if found, or <value> empty)
-_ds_index() { # <base> <value>...
-  debug3 "$@"
-  local val tval; local -i i=0
-  _ds_value 1 "$@"; val=${DATASTORE[value]}
-  while :; do
-    _ds_nget 2 "$1" $i || break
-    tval=${DATASTORE[_]}
-    [ "$val" = "$tval" ] && debug3 "found at index $i" && break
-    ((i++))
-  done
-  DATASTORE[_]=$i
-  [[ ! $val ]] && return
-  [ "$val" = "$tval" ]
-}
-
-# INTERNAL: DATASTORE[_]=mapping of <key>s to <i>s, used for
-# keys and vals access (true if exists)
-_ds_keymap() { # <n> <key1>...<keyn>
-  debug2 "$@"
-  _ds_init
-  local map=; local -i i=2 n=$1
-  [ $n -le 0 ] && DATASTORE[_]= && return
-  ((n+=i)) # offset args
-  while [ $i -lt $n ]; do
-    _ds_index "keys$map" "${@:$i:1}" || break
-    _ds_name 2 "$map" "${DATASTORE[_]}"; map=${DATASTORE[name]}
-    [[ ${DATASTORE[keys$map]} ]] || break
-    ((i++))
-  done
-  [[ ${DATASTORE[keys$map]} ]] && DATASTORE[_]=$map || DATASTORE[_]=
-  [[ ${DATASTORE[_]} ]]
-}
-
-# INTERNAL: safely assign <var>=DATASTORE[_]
-_ds_ret() { # <var>
-  [[ $1 ]] && unset 2>/dev/null -v "$1" && eval $1=\${DATASTORE[_]}
-  [[ ${DATASTORE[_]} ]]
+# INTERNAL: safely assign <var>=<value>
+_ds_ret() { # <var> <value>
+  [[ $1 ]] && printf 2>/dev/null -v "$1" %s "$2"
+  [[ $2 ]]
 }
 
 #
-# DATASTORE USER FUNCTIONS
+# DS USER FUNCTIONS
 #
-# optionally "declare -A DATASTORE" in local scope before using...
+# optionally "local -A DS" before using...
 #
 
-# DATASTORE["vals"kvmap(<n> keys...)]=<value>...
+# dump contents of DS to debug
+ds_dump() {
+  declare -p DS | \
+    sed -e 's/[[]\$'\''/\n  [/g' -e 's/'\''[]]/]/g' -e 's/\\a/\\/g' | \
+    grep '[[]' | sort >&3 -b -t \\ -k 2 -k 1
+}
+
+# DS[_ds_name($@)]=<value>...
 ds_nset() { # <n> [ <key1>...<keyn> ] [ <value>... ]
-  debug2 "$@"
   _ds_init
-  local key=keys val; local -i n=$1 i=2
-  _ds_value "$@"; val=${DATASTORE[value]}
-  [ $n -eq 0 ] && _ds_set "vals" "$val" && return
-  ((n+=i))
-  while [ $i -lt $n ]; do
-    _ds_index "$key" "${@:$i:1}" || :
-    _ds_name 2 "$key" "${DATASTORE[_]}"; key=${DATASTORE[name]}
-    [[ ${DATASTORE[$key]} ]] || _ds_set "$key" "${@:$i:1}"
-    ((i++))
-  done
-  _ds_set "vals${key#keys}" "$val"
+  local _n iname value IFS=' '
+  _ds_name "$@"; shift "$1"; value=${*:2}
+  debug3 "$_n=$value"
+  [[ $value ]] || return
+  [[ ${DS[_$_n]} ]] && DS[_$_n]=$value && return
+  iname=${_n%$'\a'*}
+  local -i i=${DS[i$iname]}
+  DS[k$iname$'\a'$i]=${_n##*$'\a'}; ((i++))
+  DS[i$iname]=$i
+  DS[_$_n]=$value
 }
 
 # short for ds_nset(1 <key> <value>...)
 ds_set() { # <key> <value>...
-  [[ $1 ]] && ds_nset 1 "$@" || ds_nset 0 "${@:2}"
+  if [[ $1 ]]; then ds_nset 1 "$@"; else ds_nset 0 "${@:2}"; fi
 }
 
 # <ret>=value identified by <key1>...<keyn> (true if value)
 ds_nget() { # <ret> <n> <key1>...<keyn>
-  debug2 "$@"
-  _ds_keymap "${@:2}" && _ds_nget 1 "vals${DATASTORE[_]}"
-  _ds_ret "$1"
+  local _n
+  _ds_name "${@:2}"
+  debug3 "$_n => ${DS[_$_n]}"
+  _ds_ret "$1" "${DS[_$_n]}"
 }
 
-# short for ds_nget(<ret> 1 <key>) (0 if value)
+# short for ds_nget(<ret> 1 <key>) (true if value)
 ds_get() { # <ret> <key>
-  [[ $2 ]] && ds_nget "$1" 1 "$2" || ds_nget "$1"
+  if [[ $2 ]]; then ds_nget "$1" 1 "$2"; else ds_nget "$1"; fi
 }
 
-# <ret>=<i>th keyname below <key1>...<keyn> (0 if value)
+# <ret>=<i>th key below <key1>...<keyn> (true if value)
 ds_ngeti() { # <ret> <n> <key1>...<keyn> <i>
-  debug2 "$@"
-  local -i n=$2 i; ((n+=3)); local key=
-  if _ds_keymap "${@:2}"; then
-    i=${@:$n:1}; _ds_name 2 "keys${DATASTORE[_]}" "$i"
-    DATASTORE[_]=${DATASTORE[${DATASTORE[name]}]}
-  fi
-  _ds_ret "$1"
+  local _n _key
+  local -i _i=$2
+  ((_i+=3)); _i=${*:$_i:1}
+  [ "$_i" -lt 0 ] && { _ds_ret "$1"; return; }
+  _ds_name "${@:2}"
+  _key=${DS[k$_n$'\a'$_i]}
+  debug3 "$_n#$_i => $_key"
+  _ds_ret "$1" "$_key"
 }
 
 #
@@ -289,33 +248,38 @@ ds_ngeti() { # <ret> <n> <key1>...<keyn> <i>
 #
 
 shopt -s extglob
-strip() { # <var> <text>
+lstrip() { # <var> <text>
   debug3 "$@"
-  local -l val=${@:2}
-  val=${val##*([[:space:]])}; val=${val%%*([[:space:]])}
-  unset 2>/dev/null -v "$1" && eval $1=\$val
+  local -l _s=$2
+  _s=${_s##+([[:space:]])}; _s=${_s%%+([[:space:]])}
+  printf -v "$1" %s "$_s"
 }
 
-convert() { # <ret> "valid" | "pref" <value>
-  debug "$@"
-  local t=$2 ts=$3
+convert() { # <ret> <value>
+  debug2 "$@"
+  local ts=$2
   if [ "$ts" = forever ]; then
     ts=infinity
   elif [[ "$ts" = [0-9]*sec ]]; then
     ts=${ts%sec}
   fi
-  unset 2>/dev/null -v "$1" && eval $1=\$ts
+  printf -v "$1" %s "$ts"
 }
 
-# var=2nd word of <args>, trailing ';' stripped
-parse_2nd() { # <var> <args>...
-  local IFS=$' '; set -- $@
-  eval $1=\${3%%\;*}
+# var=2nd word of <text>, trailing ';' stripped
+parse_2nd() { # <var> <text>
+  local _w IFS=' '; read -r -a _w <<< "$2"
+  printf -v "$1" %s "${_w[1]%%;*}"
 }
 
 #
 # INTERFACE/PREFIX DATASTORE
 #
+
+set_iface() { # <iface>
+  debug "$@"
+  ds_nset 2 IFACES "$1" -
+}
 
 set_iface_key() { # <iface> <key> <value>
   [[ ! $3 ]] && return
@@ -332,6 +296,11 @@ is_iface_key() { # <iface> <key> (true if value)
 get_iface() { # <ret> <n>
   debug "$@"
   ds_ngeti "$1" 1 IFACES "$2"
+}
+
+set_prefix() { # <iface> <prefix>
+  debug "$@"
+  ds_nset 4 IFACES "$1" prefix "$2" -
 }
 
 set_prefix_key() { # <iface> <prefix> <key> <value>
@@ -388,10 +357,11 @@ set_dynamic() {
   local mode=$1 iface=$2 prefix=$3 valid=$4 pref=$5 decr=$6 has_decr=$7
 
   verbose "      Adding $prefix valid=$valid pref=$pref decr=$decr has_decr=$has_decr"
-  set_prefix_key "$iface" "$prefix" ${mode}_valid "$valid"
-  set_prefix_key "$iface" "$prefix" ${mode}_pref "$pref"
-  set_prefix_key "$iface" "$prefix" ${mode}_decr "$decr"
-  set_prefix_key "$iface" "$prefix" ${mode}_has_decr "$has_decr"
+  set_prefix "$iface" "$prefix"
+  set_prefix_key "$iface" "$prefix" "${mode}_valid" "$valid"
+  set_prefix_key "$iface" "$prefix" "${mode}_pref" "$pref"
+  set_prefix_key "$iface" "$prefix" "${mode}_decr" "$decr"
+  set_prefix_key "$iface" "$prefix" "${mode}_has_decr" "$has_decr"
   if [ "$mode" = src ]; then
     if [[ ! ( $valid && $pref ) ]]; then
       set_iface_key "$iface" dynamic 1
@@ -419,14 +389,15 @@ read_file() {
 
   local iface prefix line val IFS=$'\n' state=text valid pref decr has_decr
 
-  while read line; do
-    strip line "$line"
+  while read -r line; do
+    lstrip line "$line"
     case $state in
       text)
         if [[ "$line" =~ ^interface ]]; then
           parse_2nd iface "$line"
           [[ ! $iface ]] && fatal "Unable to parse interface in \"$src\""
           verbose "  Found interface $iface"
+          set_iface "$iface"
           set_iface_key "$iface" "$mode" 1
           state=interface
         fi
@@ -435,29 +406,30 @@ read_file() {
         if [[ "$line" =~ ^\}\; ]]; then
           state=text
         elif [[ "$line" =~ ^prefix ]]; then
-          parse_2nd prefix $line
+          parse_2nd prefix "$line"
           [[ ! $prefix ]] && fatal "Unable to parse prefix in \"$src\""
           verbose "    Found static prefix $prefix"
-          set_prefix_key "$iface" "$prefix" $mode 1
-          state=prefix valid= pref= decr= has_decr=
+          set_prefix "$iface" "$prefix"
+          set_prefix_key "$iface" "$prefix" "$mode" 1
+          state=prefix valid='' pref='' decr='' has_decr=''
         elif [[ "$line" =~ ^@prefix@ ]]; then
-          if [ $mode != src ]; then
+          if [ "$mode" != src ]; then
             err "@PREFIX@ found in \"$src\"!"
           else
             verbose "    Found dynamic prefix"
           fi
           if [[ "$line" =~ \{ ]]; then
-            state=prefix prefix=dynamic valid= pref= decr=1 has_decr=
+            state=prefix prefix=dynamic valid='' pref='' decr=1 has_decr=''
           else
-            set_dynamic $mode "$iface" dynamic "" "" 1 ""
+            set_dynamic "$mode" "$iface" dynamic "" "" 1 ""
           fi
         fi
         ;;
       prefix)
-        parse_2nd val $line
+        parse_2nd val "$line"
         if [[ "$line" =~ ^\}\; ]]; then
-          if [ "$mode" = src -o "$prefix" != dynamic ]; then
-            set_dynamic $mode "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
+          if [ "$mode" = src ] || [ "$prefix" != dynamic ]; then
+            set_dynamic "$mode" "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
           fi
           state=interface
         elif [[ "$line" =~ ^advvalidlifetime ]]; then
@@ -483,11 +455,11 @@ read_file() {
 #   <iface> <prefix> wired_pref # - pref lifetime (# or infinity)
 get_addrs() {
   # <iface>
-  local e state=text pfx= valid= pref= iface=$1
+  local e state=text pfx valid pref iface=$1
 
   verbose "  Looking for prefixes on interface $iface"
 
-  for e in $("$IP_EXE" 2>/dev/null -6 addr show dev $iface scope global); do
+  for e in $("$IP_EXE" 2>/dev/null -6 addr show dev "$iface" scope global); do
     case "$state" in
       text)
         case "$e" in
@@ -497,21 +469,22 @@ get_addrs() {
         esac
         ;;
       inet6)
-        pfx= valid= pref=
+        pfx='' valid='' pref=''
         [[ "$e" =~ [0-9a-f:]*/64 ]] && pfx=$e
         state=text
         ;;
       valid)
-        [[ "$e" =~ [0-9]*(sec|forever)+ ]] && convert valid valid $e
+        [[ "$e" =~ [0-9]*(sec|forever)+ ]] && convert valid "$e"
         state=text
         ;;
       pref)
-        [[ "$e" =~ [0-9]*(sec|forever)+ ]] && convert pref pref $e
+        [[ "$e" =~ [0-9]*(sec|forever)+ ]] && convert pref "$e"
         state=text
         ;;
     esac
     if [[ $pfx && $valid && $pref ]]; then
       verbose "    Found prefix: $pfx valid: $valid pref: $pref"
+      set_prefix "$iface" "$pfx"
       set_prefix_key "$iface" "$pfx" wired 1
       set_prefix_key "$iface" "$pfx" wired_valid "$valid"
       set_prefix_key "$iface" "$pfx" wired_pref "$pref"
@@ -519,7 +492,7 @@ get_addrs() {
         # not in source, mark as decrementing if dynamic prefix decrements
         is_prefix_key "$iface" dynamic decr && set_decr_iface "$iface" "$pfx"
       fi
-      pfx= valid= pref=
+      pfx='' valid='' pref=''
     fi
   done
 }
@@ -540,7 +513,7 @@ get_iface_addrs() {
 values_differ() {
   # <num1> <num2> [ <diff> ], true if <num1,2> differ > <diff>%
   debug "$@"
-  if [ "$1" = infinity -o "$2" = infinity ]; then
+  if [ "$1" = infinity ] || [ "$2" = infinity ]; then
     [ "$1" = "$2" ] && verbose "      Values both infinity, ignore" && return 1
     verbose "      Values $1, $2 differ" && return 0
   fi
@@ -564,7 +537,7 @@ get_new_lt() { # <ret> <iface> <prefix> "valid" | "pref"
   # static > both
   get_prefix_key nlt "$2" "$3" "src_$4" && lt=$nlt
 
-  unset 2>/dev/null -v "$1" && eval $1=\$lt
+  printf -v "$1" %s "$lt"
 }
 
 check_lt() {
@@ -575,9 +548,9 @@ check_lt() {
   verbose "    Checking $3 lifetimes"
   get_new_lt new "$@"
   [[ ! $new ]] && verbose "      No new value, ignore" && return 1
-  get_prefix_key cur "$1" "$2" cur_$3
+  get_prefix_key cur "$1" "$2" "cur_$3"
   [[ ! $cur ]] && verbose "      No current value, change" && return 0
-  values_differ $new $cur
+  values_differ "$new" "$cur"
 }
 
 check_iface() {
@@ -629,8 +602,8 @@ check_ifaces() {
 }
 
 gen_line() {
+  debug2 "$(printf "$@")"
   printf "$@"
-  [ $debug -gt 0 ] && printf 1>&3 "$@"
 }
 
 gen_dynamic() {
@@ -646,28 +619,28 @@ gen_dynamic() {
     elif is_prefix_key "$iface" "$pfx" src; then
       debug "  skipping $pfx as declared static in template" && continue
     fi
-    gen_line "\tprefix %s {\n" "$pfx"
+    gen_line "\\tprefix %s {\\n" "$pfx"
     if is_prefix_key "$iface" dynamic decr && \
         ! is_prefix_key "$iface" dynamic src_has_decr; then
-      gen_line "\t\tDecrementLifetimes on;\n"
+      gen_line "\\t\\tDecrementLifetimes on;\\n"
     fi
     if ! is_prefix_key "$iface" dynamic src_valid; then
       get_new_lt val "$iface" "$pfx" valid
-      gen_line "\t\tAdvValidLifetime %s;\n" "$val"
+      gen_line "\\t\\tAdvValidLifetime %s;\\n" "$val"
     fi
     if ! is_prefix_key "$iface" dynamic src_pref; then
       get_new_lt val "$iface" "$pfx" pref
-      gen_line "\t\tAdvPreferredLifetime %s;\n" "$val"
+      gen_line "\\t\\tAdvPreferredLifetime %s;\\n" "$val"
     fi
     # include any saved values from @PREFIX@
     i=0
     while :; do
-      get_prefix_keyi key "$iface" saved $i || break
+      get_prefix_keyi key "$iface" saved "$i" || break
       ((i++))
       get_prefix_key val "$iface" saved "$key"
-      gen_line "%s\n" "$val"
+      gen_line "%s\\n" "$val"
     done
-    gen_line "\t};\n"
+    gen_line "\\t};\\n"
   done
 }
 
@@ -693,12 +666,12 @@ gen_file() {
     return 1
   fi
 
-  while read orig; do
-    strip line "$orig"
+  while read -r orig; do
+    lstrip line "$orig"
     case $state in
       text)
         if [[ "$line" =~ ^interface ]]; then
-          parse_2nd iface $line
+          parse_2nd iface "$line"
           [[ ! $iface ]] && fatal "Unable to parse interface in $src"
           verbose "  Found interface $iface"
           state=interface
@@ -708,7 +681,7 @@ gen_file() {
         if [[ "$line" =~ ^\}\; ]]; then
           state=text
         elif [[ "$line" =~ ^prefix ]]; then
-          parse_2nd prefix $line
+          parse_2nd prefix "$line"
           [[ ! $prefix ]] && fatal "Unable to parse prefix in $src"
           verbose "    Found static prefix $prefix"
           state=prefix
@@ -731,7 +704,7 @@ gen_file() {
           # gen_dynamic writes }
           continue
         else
-          set_prefix_key "$iface" saved $si "$orig"
+          set_prefix_key "$iface" saved "$si" "$orig"
           ((si++))
         fi
         ;;
@@ -739,7 +712,7 @@ gen_file() {
         [[ "$line" =~ ^\}\; ]] && state=interface
         ;;
     esac
-    [ $state != dynamic ] && gen_line "%s\n" "$orig"
+    [ $state != dynamic ] && gen_line "%s\\n" "$orig"
   done < "$src" >> "$TMPFILE"
 
   if ! cp "$TMPFILE" "$dst"; then
@@ -761,9 +734,9 @@ signal_radvd() { # "reload" | "reset"
   if [ -x "$SC_EXE" ] && "$SC_EXE" -q is-active radvd; then
     verbose "Signaling radvd to $action"
     "$SC_EXE" kill -s "$sig" radvd
-  elif [ -x "$KILL_EXE" -a -r "$RADVD_PID" ]; then
+  elif [ -x "$KILL_EXE" ] && [ -r "$RADVD_PID" ]; then
     verbose "Signaling radvd to $action"
-    "$KILL_EXE" -s "$sig" -- $(< "$RADVD_PID")
+    "$KILL_EXE" -s "$sig" -- "$(< "$RADVD_PID")"
   fi
 }
 
@@ -772,15 +745,17 @@ setup_radvd() {
   # if no template, we're not configured; bail.
   [ ! -f "$SRC" ] && verbose "No template file '$SRC'" && return
 
+  [ "${BASH_VERSINFO[0]}" -ge 4 ] || fatal "Bash v4+ required"
+
   # keep data out of environment
-  local -A DATASTORE
+  local -A DS
 
   [ ! -x "$IP_EXE" ] && fatal "Unable to find ip command ('$IP_EXE')"
   [ ! -x "$MKTEMP_EXE" ] && \
     fatal "Unable to find mktemp command ('$MKTEMP_EXE')"
 
   [ ! -r "$SRC" ] && fatal "Unable to read $SRC"
-  [ -f "$DST" -a ! -w "$DST" ] && fatal "Unable to write $DST"
+  [ -f "$DST" ] && [ ! -w "$DST" ] && fatal "Unable to write $DST"
 
   read_file "src" "$SRC"
   read_file "cur" "$DST"
@@ -789,7 +764,11 @@ setup_radvd() {
 
   if check_ifaces; then
     # reset radvd if a prefix is decrementing
-    ds_get "" RESET && signal_radvd reset || verbose "No action required"
+    if ds_get "" RESET; then
+      signal_radvd reset
+    else
+      verbose "No action required"
+    fi
   else
     # generate new radvd.conf
     gen_file "$SRC" "$DST" || return
@@ -797,6 +776,7 @@ setup_radvd() {
     # reload radvd
     signal_radvd reload
   fi
+  [ $debug -gt 2 ] && ds_dump
 }
 
 case "$action" in
