@@ -527,8 +527,8 @@ static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sb
 
 		dnssl = dnssl->next;
 	}
-	return sbl;
 	safe_buffer_free(serialized_domains);
+	return sbl;
 }
 
 /*
