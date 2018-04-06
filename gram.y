@@ -408,7 +408,6 @@ v6addrlist_rasrcaddress	: IPV6ADDR ';'
 prefixdef	: prefixhead optional_prefixplist ';'
 		{
 			if (prefix) {
-				unsigned int dst;
 
 				if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
 				{
