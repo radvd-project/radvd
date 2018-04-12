@@ -797,7 +797,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 		}
 
 		// RA built, now send it.
-		dlog(LOG_DEBUG, 5, "sending RA to %s on %s (%s), %lu options (using %lu/%u bytes)", dest_text, iface->props.name,
+		dlog(LOG_DEBUG, 5, "sending RA to %s on %s (%s), %lu options (using %zd/%u bytes)", dest_text, iface->props.name,
 		     src_text, option_count, sb->used, iface->props.max_ra_option_size);
 		int err = really_send(sock, dest, &iface->props, sb);
 		if (err < 0) {
