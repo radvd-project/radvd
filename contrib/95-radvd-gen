@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- mode:sh; sh-indentation:2 -*- vim:set ft=sh et sw=2 ts=2:
 #
-# radvd-gen v1.1.1 - Generate radvd.conf from template based on ip state
+# radvd-gen v1.2.2 - Generate radvd.conf from template based on ip state
 # Author: Scott Shambarger <devel@shambarger.net>
 #
 # Copyright (C) 2018 Scott Shambarger
@@ -56,10 +56,14 @@
 # For @PREFIX@ sections, "DecrementLifetimes on" is set by default (really
 # the purpose of much of this script), but can be set off.
 #
+# TODO:
+#
 # For static prefix sections, dynamic Preferred/Valid times are supplied if
 # DecrementLifetimes is on, and either value is unspecified.  Other
 # settings are preserved.
 #
+
+[[ $TRACE ]] && set -x
 
 #
 # DEFAULT CONFIG (override in radvd-gen.conf or environment)
@@ -249,7 +253,7 @@ ds_ngeti() { # <ret> <n> <key1>...<keyn> <i>
 
 shopt -s extglob
 lstrip() { # <var> <text>
-  debug3 "$@"
+  debug2 "$@"
   local -l _s=$2
   _s=${_s##+([[:space:]])}; _s=${_s%%+([[:space:]])}
   printf -v "$1" %s "$_s"
@@ -388,64 +392,96 @@ read_file() {
   verbose "Parsing $mode file \"$src\""
 
   local iface prefix line val IFS=$'\n' state=text valid pref decr has_decr
+  local sub_state=error end_state=error end_prefix new_prefix
+  local -i lno
 
-  while read -r line; do
+  while read -r line || [[ $line ]]; do
+    debug2 "state=$state prefix=$prefix sub=$sub_state end=$end_state"
     lstrip line "$line"
+    ((lno++))
+    [[ "$line" =~ ^# ]] && continue
+    end_prefix='' new_prefix=''
     case $state in
       text)
         if [[ "$line" =~ ^interface ]]; then
+          sub_state=interface end_state=error
           parse_2nd iface "$line"
-          [[ ! $iface ]] && fatal "Unable to parse interface in \"$src\""
+          [[ ! $iface ]] &&
+            err "Unable to parse interface in \"$src\":$lno" && return 1
           verbose "  Found interface $iface"
           set_iface "$iface"
           set_iface_key "$iface" "$mode" 1
-          state=interface
         fi
         ;;
       interface)
-        if [[ "$line" =~ ^\}\; ]]; then
-          state=text
-        elif [[ "$line" =~ ^prefix ]]; then
-          parse_2nd prefix "$line"
-          [[ ! $prefix ]] && fatal "Unable to parse prefix in \"$src\""
-          verbose "    Found static prefix $prefix"
-          set_prefix "$iface" "$prefix"
-          set_prefix_key "$iface" "$prefix" "$mode" 1
-          state=prefix valid='' pref='' decr='' has_decr=''
+        sub_state=int_option end_state=text
+        if [[ "$line" =~ ^prefix ]]; then
+          parse_2nd new_prefix "$line"
+          [[ ! $new_prefix ]] &&
+            err "Unable to parse prefix in \"$src\":$lno" && return 1
+          verbose "    Found static prefix $new_prefix"
+          end_prefix=1
         elif [[ "$line" =~ ^@prefix@ ]]; then
           if [ "$mode" != src ]; then
-            err "@PREFIX@ found in \"$src\"!"
+            err "@PREFIX@ found in \"$src\":$lno!"
           else
             verbose "    Found dynamic prefix"
           fi
-          if [[ "$line" =~ \{ ]]; then
-            state=prefix prefix=dynamic valid='' pref='' decr=1 has_decr=''
-          else
-            set_dynamic "$mode" "$iface" dynamic "" "" 1 ""
+          new_prefix=dynamic end_prefix=1
+        elif [[ $line && ! "$line" =~ ^\{ ]]; then
+          end_prefix=1
+        fi
+        ;;
+      int_option)
+        sub_state=sub_option end_state=interface
+        if [[ $prefix ]]; then
+          parse_2nd val "$line"
+          if [[ "$line" =~ ^advvalidlifetime ]]; then
+            verbose "      Found valid-life $val"
+            valid=$val
+          elif [[ "$line" =~ ^advpreferredlifetime ]]; then
+            verbose "      Found pref-life $val"
+            pref=$val
+          elif [[ "$line" =~ ^decrementlifetimes ]]; then
+            verbose "      Found decrement $val"
+            [[ "$val" =~ ^on ]] && decr=1 || decr=
+            has_decr=1
           fi
         fi
         ;;
-      prefix)
-        parse_2nd val "$line"
-        if [[ "$line" =~ ^\}\; ]]; then
-          if [ "$mode" = src ] || [ "$prefix" != dynamic ]; then
-            set_dynamic "$mode" "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
-          fi
-          state=interface
-        elif [[ "$line" =~ ^advvalidlifetime ]]; then
-          verbose "      Found valid-life $val"
-          valid=$val
-        elif [[ "$line" =~ ^advpreferredlifetime ]]; then
-          verbose "      Found pref-life $val"
-          pref=$val
-        elif [[ "$line" =~ ^decrementlifetimes ]]; then
-          verbose "      Found decrement $val"
-          [[ "$val" =~ ^on ]] && decr=1 || decr=
-          has_decr=1
-        fi
+      sub_option)
+        sub_state=error end_state=int_option
+        ;;
+      error)
+        ((lno--))
+        err "Parse error in $mode file \"$src\":$lno" && return 1
         ;;
     esac
+    if [[ "$line" =~ \{ && $sub_state ]]; then
+      end_state=$state state=$sub_state
+    fi
+    if [[ "$line" =~ \}\; && $end_state ]]; then
+      [ "$state" = int_option ] && end_prefix=1
+      state=$end_state end_state=error sub_state=error
+    fi
+    if [[ $end_prefix && $prefix ]]; then
+      if [ "$mode" = src ] || [ "$prefix" != dynamic ]; then
+        if [ "$prefix" != dynamic ]; then
+          set_prefix "$iface" "$prefix"
+          set_prefix_key "$iface" "$prefix" "$mode" 1
+        fi
+        set_dynamic "$mode" "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
+      fi
+      prefix=''
+    fi
+    if [[ $new_prefix ]]; then
+      prefix=$new_prefix valid='' pref='' decr='' has_decr=''
+      [ "$prefix" = dynamic ] && decr=1
+    fi
   done < "$src"
+  [ "$state" != text ] &&
+    err "Parse error in $mode file \"$src\":$lno" && return 1
+  return 0
 }
 
 # Examines <iface> for prefix addresses
@@ -528,16 +564,19 @@ values_differ() {
 
 # ret=lifetime considering static > dynamic > wired
 get_new_lt() { # <ret> <iface> <prefix> "valid" | "pref"
-  local lt nlt
-  get_prefix_key lt "$2" "$3" "wired_$4"
+  local ret=$1 iface=$2 prefix=$3 type=$4 lt nlt
+
+  get_prefix_key lt "$iface" "$prefix" "wired_$type"
 
   # dynamic > wired
-  get_prefix_key nlt "$2" dynamic "src_$4" && lt=$nlt
+  is_prefix_key "$iface" "$prefix" decr &&
+    get_prefix_key nlt "$iface" dynamic "src_$type" && lt=$nlt
 
   # static > both
-  get_prefix_key nlt "$2" "$3" "src_$4" && lt=$nlt
+  get_prefix_key nlt "$iface" "$prefix" "src_$type" && lt=$nlt
 
-  printf -v "$1" %s "$lt"
+  debug2 "$1=$lt"
+  printf -v "$ret" %s "$lt"
 }
 
 check_lt() {
@@ -567,7 +606,7 @@ check_iface() {
   while :; do
     get_prefix pfx "$if" $p || break
     ((p++))
-    # we only examime changes on real prefixes
+    # we only examine changes on real prefixes
     [ "$pfx" = dynamic ] && continue
     verbose "  Considering prefix $pfx"
 
@@ -653,7 +692,7 @@ gen_cleanup() {
 gen_file() {
   # <template> <config>
   local src=$1 dst=$2
-  local -i si rc=0; local iface prefix orig line IFS=$'\n' state=text
+  local -i si rc=0
 
   verbose "Generating \"$dst\" from \"$src\""
 
@@ -666,53 +705,86 @@ gen_file() {
     return 1
   fi
 
-  while read -r orig; do
+  local iface prefix orig line IFS=$'\n' state=text
+  local sub_state=error end_state=error end_prefix new_prefix
+  local -i lno
+
+  while read -r orig || [[ $orig ]]; do
+    debug2 "state=$state prefix=$prefix sub=$sub_state end=$end_state"
     lstrip line "$orig"
+    ((lno++))
+    if [[ "$line" =~ ^# ]]; then
+      if [ "$prefix" = dynamic ]; then
+        set_prefix_key "$iface" saved "$si" "$orig"
+        ((si++))
+      else
+        gen_line "%s\\n" "$orig"
+      fi
+      continue
+    fi
+    end_prefix='' new_prefix=''
     case $state in
       text)
         if [[ "$line" =~ ^interface ]]; then
+          sub_state=interface end_state=error
           parse_2nd iface "$line"
-          [[ ! $iface ]] && fatal "Unable to parse interface in $src"
+          [[ ! $iface ]] && fatal "Unable to parse interface in \"$src\":$lno"
           verbose "  Found interface $iface"
-          state=interface
         fi
         ;;
       interface)
-        if [[ "$line" =~ ^\}\; ]]; then
-          state=text
-        elif [[ "$line" =~ ^prefix ]]; then
-          parse_2nd prefix "$line"
-          [[ ! $prefix ]] && fatal "Unable to parse prefix in $src"
-          verbose "    Found static prefix $prefix"
-          state=prefix
+        sub_state=int_option end_state=text
+        if [[ "$line" =~ ^prefix ]]; then
+          parse_2nd new_prefix "$line"
+          [[ ! $new_prefix ]] &&
+            fatal "Unable to parse prefix in \"$src\":$lno"
+          verbose "    Found static prefix $new_prefix"
+          end_prefix=1
         elif [[ "$line" =~ ^@prefix@ ]]; then
           verbose "    Found dynamic prefix"
-          if [[ "$line" =~ \{ ]]; then
-            state=dynamic si=0
-          else
-            gen_dynamic "$iface"
-            state=interface
-          fi
-          # dont emit @PREFIX@
-          continue
+          new_prefix=dynamic end_prefix=1
+        elif [[ $line && ! "$line" =~ ^\{ ]]; then
+          end_prefix=1
         fi
         ;;
-      dynamic)
-        if [[ "$line" =~ ^\}\; ]]; then
-          gen_dynamic "$iface"
-          state=interface
-          # gen_dynamic writes }
-          continue
-        else
-          set_prefix_key "$iface" saved "$si" "$orig"
-          ((si++))
-        fi
+      int_option)
+        sub_state=sub_option end_state=interface
         ;;
-      prefix)
-        [[ "$line" =~ ^\}\; ]] && state=interface
+      sub_option)
+        sub_state=error end_state=int_option
+        ;;
+      error)
+        ((lno--))
+        fatal "Parse error in $mode file \"$src\":$lno"
         ;;
     esac
-    [ $state != dynamic ] && gen_line "%s\\n" "$orig"
+    if [[ "$line" =~ \{ && $sub_state ]]; then
+      end_state=$state state=$sub_state
+    fi
+    if [[ "$line" =~ \}\; && $end_state ]]; then
+      [ "$state" = int_option ] && end_prefix=1
+      state=$end_state end_state=error sub_state=error
+    fi
+    if [[ $end_prefix && $prefix ]]; then
+      if [ "$prefix" = dynamic ]; then
+        gen_dynamic "$iface"
+        prefix=$new_prefix
+        [[ "$line" =~ ^\}\; && "$state" = interface ]] &&
+          continue # gen_dynamic writes };
+      fi
+      prefix=$new_prefix
+    fi
+    if [[ $new_prefix ]]; then
+      prefix=$new_prefix si=0
+      [ "$prefix" = dynamic ] && continue # don't save @PREFIX@
+    fi
+    if [ "$prefix" = dynamic ]; then
+      [[ "$line" =~ \{ || "$line" =~ \}\; ]] && continue # don't save braces
+      set_prefix_key "$iface" saved "$si" "$orig"
+      ((si++))
+    else
+      gen_line "%s\\n" "$orig"
+    fi
   done < "$src" >> "$TMPFILE"
 
   if ! cp "$TMPFILE" "$dst"; then
@@ -725,15 +797,20 @@ gen_file() {
 }
 
 signal_radvd() { # "reload" | "reset"
-  local action sig
-  case "$1" in
-    reload) action="reload config"; sig=SIGHUP;;
+  local mode=$1 action sig
+  case "$mode" in
+    reload) action="reload config"; sig=SIGHUP; mode=reload-or-restart;;
     reset) action="reset timers"; sig=SIGUSR1;;
     *) return
   esac
-  if [ -x "$SC_EXE" ] && "$SC_EXE" -q is-active radvd; then
+  if [ -x "$SC_EXE" ] && "$SC_EXE" 2>/dev/null -q is-enabled radvd; then
     verbose "Signaling radvd to $action"
-    "$SC_EXE" kill -s "$sig" radvd
+    "$SC_EXE" -q is-active radvd || mode=restart
+    if [ "$mode" = reset ]; then
+      "$SC_EXE" kill -s "$sig" radvd
+    else
+      "$SC_EXE" "$mode" radvd
+    fi
   elif [ -x "$KILL_EXE" ] && [ -r "$RADVD_PID" ]; then
     verbose "Signaling radvd to $action"
     "$KILL_EXE" -s "$sig" -- "$(< "$RADVD_PID")"
@@ -757,12 +834,12 @@ setup_radvd() {
   [ ! -r "$SRC" ] && fatal "Unable to read $SRC"
   [ -f "$DST" ] && [ ! -w "$DST" ] && fatal "Unable to write $DST"
 
-  read_file "src" "$SRC"
+  read_file "src" "$SRC" || exit 1
   read_file "cur" "$DST"
 
   get_iface_addrs
 
-  if check_ifaces; then
+  if [ -f "$DST" ] && check_ifaces; then
     # reset radvd if a prefix is decrementing
     if ds_get "" RESET; then
       signal_radvd reset
@@ -777,6 +854,7 @@ setup_radvd() {
     signal_radvd reload
   fi
   [ $debug -gt 2 ] && ds_dump
+  return 0
 }
 
 case "$action" in
