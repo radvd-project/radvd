@@ -958,6 +958,7 @@ struct Interface * readin_config(char const *path)
 		if (yyparse() != 0) {
 			free_ifaces(iface);
 			iface = 0;
+			IfaceList = 0;
 		} else {
 			dlog(LOG_DEBUG, 1, "config file, %s, syntax ok", path);
 		}
