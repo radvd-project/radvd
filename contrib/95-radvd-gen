@@ -1,10 +1,10 @@
 #!/bin/bash
 # -*- mode:sh; sh-indentation:2 -*- vim:set ft=sh et sw=2 ts=2:
 #
-# radvd-gen v1.2.2 - Generate radvd.conf from template based on ip state
+# radvd-gen v1.3.0 - Generate radvd.conf from template based on ip state
 # Author: Scott Shambarger <devel@shambarger.net>
 #
-# Copyright (C) 2018 Scott Shambarger
+# Copyright (C) 2018-19 Scott Shambarger
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 # Existing radvd.conf is parsed to discover current settings, and if
 # new settings are not significantly different (similar timeouts within
 # $PERDIFF percentage), radvd is only signaled to reset the decrementing
-# of lifetimes (if necessary).
+# lifetimes (but then only if some prefix has enabled that)
 #
 # Example template is:
 #
@@ -41,26 +41,28 @@
 #	AdvSendAdvert on;
 #	MinRtrAdvInterval 30;
 #       @PREFIX@ {
-#		AdvAutonomous on
+#		AdvAutonomous on;
+#		DecrementLifetimes on;
 #       };
 #       prefix ffdd:1234:1234::1/64 {
-#		AdvValidLifetime infinity
-#		AdvPreferredLifetime infinity
+#		AdvValidLifetime infinity;
 #	};
 # };
 #
 # Multiple interface sections are supported.
 #
-# @PREFIX@ specific options are optional, just "@PREFIX@" (w/o { }) is ok.
+# Any missing AdvValidLifetime/AdvPreferredLifetime values will be
+# added with current values found from the interface (this appies to
+# both dynamically created prefixes for @PREFIX@, or statically
+# defined prefixes like ffdd:1234:1234::1/64 above).
 #
-# For @PREFIX@ sections, "DecrementLifetimes on" is set by default (really
-# the purpose of much of this script), but can be set off.
+# @PREFIX@ specific options are optional, just "@PREFIX@" (w/o { }) is ok.
 #
 # TODO:
 #
-# For static prefix sections, dynamic Preferred/Valid times are supplied if
-# DecrementLifetimes is on, and either value is unspecified.  Other
-# settings are preserved.
+# Unclear what should happen if no interfaces are added to
+# radvd.conf - radvd tends to crash in this case...perhaps remove
+# the file and kill radvd?
 #
 
 [[ $TRACE ]] && set -x
@@ -75,6 +77,10 @@ RADVDGEN_CONF=${RADVDGEN_CONF:-/etc/NetworkManager/radvd-gen.conf}
 # template and config locations
 SRC=/etc/NetworkManager/radvd.conf.templ
 DST=/etc/radvd.conf
+
+# verbose/debug triggers
+VERBOSE=
+DEBUG=
 
 # percentage difference to trigger new config
 PERDIFF=10
@@ -93,6 +99,9 @@ KILL_EXE=$(command -v kill) # set empty to disable
 
 verbose=
 declare -i debug=0
+
+[[ $VERBOSE ]] && verbose=1
+[[ $DEBUG ]] && debug=$DEBUG
 
 usage() {
   echo "Generate '$DST' from template '$SRC'"
@@ -344,19 +353,17 @@ get_prefix_keyi() { # <ret> <iface> <prefix> <n>
 #   <iface> decr 1
 #   <iface> <prefix> decr 1
 # If static prefix, also flags RESET
-set_decr_iface() {
-  # <iface> <prefix>
+set_decr_iface() { # <iface> <prefix>
   local iface=$1 prefix=$2
   if [ "$prefix" != dynamic ]; then
-    verbose "      Reset radvd if prefix $prefix decrementing"
+    verbose "      Resetting radvd, $prefix decrementing"
     ds_set RESET 1
   fi
   set_iface_key "$iface" decr 1
   set_prefix_key "$iface" "$prefix" decr 1
 }
 
-set_dynamic() {
-  # <mode> <iface> <prefix> <valid> <pref> <decr> <has_decr>
+set_prefix_vals() { # <mode> <iface> <prefix> <valid> <pref> <decr> <has_decr>
   debug "$@"
   local mode=$1 iface=$2 prefix=$3 valid=$4 pref=$5 decr=$6 has_decr=$7
 
@@ -367,8 +374,8 @@ set_dynamic() {
   set_prefix_key "$iface" "$prefix" "${mode}_decr" "$decr"
   set_prefix_key "$iface" "$prefix" "${mode}_has_decr" "$has_decr"
   if [ "$mode" = src ]; then
-    if [[ ! ( $valid && $pref ) ]]; then
-      set_iface_key "$iface" dynamic 1
+    [ "$prefix" = dynamic ] && set_iface_key "$iface" dynamic 1
+    if [[ ! ( $valid = infinity && $pref = infinity ) ]]; then
       [[ $decr ]] && set_decr_iface "$iface" "$prefix"
     fi
   fi
@@ -377,14 +384,15 @@ set_dynamic() {
 # Parses <file> to determine interface and prefix settings
 # Sets the following values based <mode> ("cur" for existing, or "src"):
 #   <iface> <mode> 1 - if interface exists in that file
-#   <iface> dynamic 1 - if interface has @PREFIX@
+#   <iface> dynamic 1 - if interface is @PREFIX@
 #   <iface> decr 1 - if interface has prefixes with decr times
 #   <iface> <prefix> decr 1 - static prefix has decrementing times
 #   <iface> <prefix> <mode> 1 - prefix declared in <mode>
 #   <iface> <prefix> <mode>_valid # - valid lifetime in <mode> (# or infinity)
 #   <iface> <prefix> <mode>_pref # - pref lifetime in <mode> (# or infinity)
-read_file() {
-  # <mode> <file>
+#   <iface> <prefix> <mode>_decr 1 - decrement on in <mode>
+#   <iface> <prefix> <mode>_has_decr 1 - decrement declared in <mode>
+read_file() { # cur|src <file>
   debug "$@"
   local mode=$1 src=$2
   [ -r "$src" ] || return
@@ -470,13 +478,12 @@ read_file() {
           set_prefix "$iface" "$prefix"
           set_prefix_key "$iface" "$prefix" "$mode" 1
         fi
-        set_dynamic "$mode" "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
+        set_prefix_vals "$mode" "$iface" "$prefix" "$valid" "$pref" "$decr" "$has_decr"
       fi
       prefix=''
     fi
     if [[ $new_prefix ]]; then
       prefix=$new_prefix valid='' pref='' decr='' has_decr=''
-      [ "$prefix" = dynamic ] && decr=1
     fi
   done < "$src"
   [ "$state" != text ] &&
@@ -489,8 +496,7 @@ read_file() {
 #   <iface> <prefix> wired 1 - <prefix> found
 #   <iface> <prefix> wired_valid # - valid lifetime (# or infinity)
 #   <iface> <prefix> wired_pref # - pref lifetime (# or infinity)
-get_addrs() {
-  # <iface>
+get_addrs() { # <iface>
   local e state=text pfx valid pref iface=$1
 
   verbose "  Looking for prefixes on interface $iface"
@@ -519,7 +525,7 @@ get_addrs() {
         ;;
     esac
     if [[ $pfx && $valid && $pref ]]; then
-      verbose "    Found prefix: $pfx valid: $valid pref: $pref"
+      verbose "    Found prefix=$pfx valid=$valid pref=$pref"
       set_prefix "$iface" "$pfx"
       set_prefix_key "$iface" "$pfx" wired 1
       set_prefix_key "$iface" "$pfx" wired_valid "$valid"
@@ -536,9 +542,10 @@ get_addrs() {
 # Examines all interfaces which have <iface> dynamic set
 get_iface_addrs() {
   verbose "Looking for addresses on interfaces"
-  local -i i=0; local if
-  while :; do
-    get_iface if $i || break
+  local -i i; local if
+
+  i=0
+  while get_iface if $i; do
     ((i++))
     # skip if not in src doesn't have dynamic settings on interface
     is_iface_key "$if" dynamic || continue
@@ -546,65 +553,89 @@ get_iface_addrs() {
   done
 }
 
-values_differ() {
-  # <num1> <num2> [ <diff> ], true if <num1,2> differ > <diff>%
-  debug "$@"
-  if [ "$1" = infinity ] || [ "$2" = infinity ]; then
-    [ "$1" = "$2" ] && verbose "      Values both infinity, ignore" && return 1
-    verbose "      Values $1, $2 differ" && return 0
+# ret=item from static or dynamic entry in template
+get_src_value() { # <ret> <iface> <prefix> <item>
+  local ret=$1 iface=$2 prefix=$3 item=$4
+
+  # if static prefix, use that value, or dynamic by default
+  if is_prefix_key "$iface" "$prefix" src; then
+    get_prefix_key "$ret" "$iface" "$prefix" "src_$item"
+  else
+    get_prefix_key "$ret" "$iface" dynamic "src_$item"
   fi
-  local -i a=$1 b=$2 d l
-  [[ $3 ]] && l=$3 || l=$PERDIFF
+}
+
+item_differs() { # <new> <cur> <desc>
+  local -i rc=1; local msg
+  [ "$1" != "$2" ] && rc=0
+  [ $rc -eq 0 ] && msg=" - CHANGE"
+  verbose "    Checking $3 ($1 : $2)$msg"
+  return $rc
+}
+
+pfx_item_differs() { # <iface> <prefix> <item> <desc>
+  debug "$@"
+  local iface=$1 prefix=$2 item=$3 desc=$4 new cur
+
+  # get template value, and compare with current file
+  get_src_value new "$iface" "$prefix" "$item"
+  get_prefix_key cur "$iface" "$prefix" "cur_$item"
+
+  item_differs "$new" "$cur" "$desc"
+}
+
+# ret=<type> lifetime, get template value, or wired if unset
+get_new_lifetime() { # <ret> <iface> <prefix> <type>
+  get_src_value "$1" "$2" "$3" "$4" ||
+    get_prefix_key "$1" "$2" "$3" "wired_$4"
+}
+
+pfx_lifetime_differs() { # <iface> <prefix> <type>
+  debug "$@"
+  local iface=$1 prefix=$2 type=$3 new cur
+
+  # get template value (or wired if unset), and compare with current file
+  get_new_lifetime new "$iface" "$prefix" "$type"
+  get_prefix_key cur "$iface" "$prefix" "cur_$type"
+
+  # if either infinity, just check for a change
+  if [ "$new" = infinity ] || [ "$cur" = infinity ]; then
+    item_differs "$new" "$cur" "$type lifetimes"
+    return
+  fi
+
+  # if either is unset, just check for change (handles unwired prefixes)
+  if [[ ! ( $new && $cur ) ]]; then
+    item_differs "$new" "$cur" "$type lifetimes"
+    return
+  fi
+
+  verbose "    Checking $type lifetime values ($new : $cur)"
+
+  local -i a=$new b=$cur d
   ((d=((a*200)-(b*200))/(a+b)))
   [ $d -lt 0 ] && ((d=-d))
-  [ $d -lt $l ] && verbose "      Values $a, $b within $l%, ignore" && return 1
-  verbose "      Values $a and $b differ more than $l%, change"
+  if [ $d -lt $PERDIFF ]; then
+    verbose "      Lifetimes within $PERDIFF%"
+    return 1
+  fi
+  verbose "      Lifetimes differ more than $PERDIFF% ($d%) - CHANGE"
   return 0
 }
 
-# ret=lifetime considering static > dynamic > wired
-get_new_lt() { # <ret> <iface> <prefix> "valid" | "pref"
-  local ret=$1 iface=$2 prefix=$3 type=$4 lt nlt
-
-  get_prefix_key lt "$iface" "$prefix" "wired_$type"
-
-  # dynamic > wired
-  is_prefix_key "$iface" "$prefix" decr &&
-    get_prefix_key nlt "$iface" dynamic "src_$type" && lt=$nlt
-
-  # static > both
-  get_prefix_key nlt "$iface" "$prefix" "src_$type" && lt=$nlt
-
-  debug2 "$1=$lt"
-  printf -v "$ret" %s "$lt"
-}
-
-check_lt() {
-  # <iface> <prefix> (valid | pref)
-  # check lifetimes, true if has new val and change
+# Look for changes on new and current <iface> (true if changes)
+iface_differs() { # <iface>
   debug "$@"
-  local new cur
-  verbose "    Checking $3 lifetimes"
-  get_new_lt new "$@"
-  [[ ! $new ]] && verbose "      No new value, ignore" && return 1
-  get_prefix_key cur "$1" "$2" "cur_$3"
-  [[ ! $cur ]] && verbose "      No current value, change" && return 0
-  values_differ "$new" "$cur"
-}
-
-check_iface() {
-  # <iface>, look for changes on <iface>, true if differences
-  debug "$@"
-  local if=$1 pfx decr cdecr
-  local -i p=0 has_diff=0
+  local if=$1 pfx decr cdecr un=un
+  local -i p same=1
 
   # check if interface is in <src>
   is_iface_key "$if" src || return 0
 
   verbose "Looking for significant changes on interface $if"
 
-  while :; do
-    get_prefix pfx "$if" $p || break
+  p=0
+  while get_prefix pfx "$if" $p; do
     ((p++))
     # we only examine changes on real prefixes
     [ "$pfx" = dynamic ] && continue
@@ -612,32 +643,32 @@ check_iface() {
 
     # check if src missing in current (checking dyn changes, not all)
     if is_prefix_key "$if" "$pfx" cur; then
-      # check new times vs current
-      check_lt "$if" "$pfx" valid && has_diff=1
-      check_lt "$if" "$pfx" pref && has_diff=1
-      get_prefix_key decr "$if" "$pfx" decr
-      get_prefix_key cdecr "$if" "$pfx" cur_decr
-      if [ "$decr" != "$cdecr" ]; then
-        has_diff=1; verbose "    Decrement option differs, change"
-      fi
+      # check template vs current
+      pfx_lifetime_differs "$if" "$pfx" valid && same=0
+      pfx_lifetime_differs "$if" "$pfx" pref && same=0
+      pfx_item_differs "$if" "$pfx" has_decr "if decrement declared" && same=0
+      pfx_item_differs "$if" "$pfx" decr "decrement setting" && same=0
     else
-      has_diff=1; verbose "    Missing in current, change"
+      same=0; verbose "    Missing in current, change"
     fi
   done
-  return $has_diff
+
+  (( $same )) || un=
+  verbose "  Interface $if ${un}changed"
+  return $same
 }
 
-check_ifaces() {
-  # check all interfaces for changes, true if changes
-  local -i i=0 rc=0; local iface
+# Check all interfaces for changes (true if changes)
+ifaces_differs() {
+  local -i i same=1; local iface
 
-  while :; do
-    get_iface iface $i || break
+  i=0
+  while get_iface iface $i; do
     ((i++))
-    check_iface "$iface" || rc=1
+    iface_differs "$iface" && same=0
   done
 
-  return $rc
+  return $same
 }
 
 gen_line() {
@@ -645,13 +676,28 @@ gen_line() {
   printf "$@"
 }
 
-gen_dynamic() {
-  # <iface>, echos dynamic section for <iface>
+# Echos missing lifetime entries for prefix, if not defined in <source>
+gen_missing_lifetimes() { # <iface> <source> <prefix>
   debug "$@"
-  local -i p=0 i; local iface=$1 pfx key val
+  local iface=$1 source=$2 prefix=$3
 
-  while :; do
-    get_prefix pfx "$iface" $p || break
+  if ! is_prefix_key "$iface" "$source" src_valid; then
+    get_new_lifetime val "$iface" "$prefix" valid
+    gen_line "\\t\\tAdvValidLifetime %s;\\n" "$val"
+  fi
+  if ! is_prefix_key "$iface" "$source" src_pref; then
+    get_new_lifetime val "$iface" "$prefix" pref
+    gen_line "\\t\\tAdvPreferredLifetime %s;\\n" "$val"
+  fi
+}
+
+# Echos dynamic section for <iface>
+gen_dynamic() { # <iface>
+  debug "$@"
+  local -i p i; local iface=$1 pfx key val
+
+  p=0
+  while get_prefix pfx "$iface" $p; do
     ((p++))
     if ! is_prefix_key "$iface" "$pfx" wired; then
       debug "  skipping $pfx as not available" && continue
@@ -659,22 +705,11 @@ gen_dynamic() {
       debug "  skipping $pfx as declared static in template" && continue
     fi
     gen_line "\\tprefix %s {\\n" "$pfx"
-    if is_prefix_key "$iface" dynamic decr && \
-        ! is_prefix_key "$iface" dynamic src_has_decr; then
-      gen_line "\\t\\tDecrementLifetimes on;\\n"
-    fi
-    if ! is_prefix_key "$iface" dynamic src_valid; then
-      get_new_lt val "$iface" "$pfx" valid
-      gen_line "\\t\\tAdvValidLifetime %s;\\n" "$val"
-    fi
-    if ! is_prefix_key "$iface" dynamic src_pref; then
-      get_new_lt val "$iface" "$pfx" pref
-      gen_line "\\t\\tAdvPreferredLifetime %s;\\n" "$val"
-    fi
+    # always include missing lifetimes
+    gen_missing_lifetimes "$iface" dynamic "$pfx"
     # include any saved values from @PREFIX@
     i=0
-    while :; do
-      get_prefix_keyi key "$iface" saved "$i" || break
+    while get_prefix_keyi key "$iface" saved "$i"; do
       ((i++))
       get_prefix_key val "$iface" saved "$key"
       gen_line "%s\\n" "$val"
@@ -689,8 +724,7 @@ gen_cleanup() {
   [ -f "$TMPFILE" ] && verbose "Cleaning up \"$TMPFILE\"" && rm -f "$TMPFILE"
 }
 
-gen_file() {
-  # <template> <config>
+gen_file() { # <template> <config>
   local src=$1 dst=$2
   local -i si rc=0
 
@@ -771,6 +805,8 @@ gen_file() {
         prefix=$new_prefix
         [[ "$line" =~ ^\}\; && "$state" = interface ]] &&
           continue # gen_dynamic writes };
+      else
+        gen_missing_lifetimes "$iface" "$prefix" "$prefix"
       fi
       prefix=$new_prefix
     fi
@@ -796,7 +832,7 @@ gen_file() {
   return $rc
 }
 
-signal_radvd() { # "reload" | "reset"
+signal_radvd() { # reload|reset
   local mode=$1 action sig
   case "$mode" in
     reload) action="reload config"; sig=SIGHUP; mode=reload-or-restart;;
@@ -814,6 +850,8 @@ signal_radvd() { # "reload" | "reset"
   elif [ -x "$KILL_EXE" ] && [ -r "$RADVD_PID" ]; then
     verbose "Signaling radvd to $action"
     "$KILL_EXE" -s "$sig" -- "$(< "$RADVD_PID")"
+  else
+    verbose "No radvd found to tell to $action"
   fi
 }
 
@@ -839,7 +877,7 @@ setup_radvd() {
 
   get_iface_addrs
 
-  if [ -f "$DST" ] && check_ifaces; then
+  if [ -f "$DST" ] && [[ "$DST" -nt "$SRC" ]] && ! ifaces_differs; then
     # reset radvd if a prefix is decrementing
     if ds_get "" RESET; then
       signal_radvd reset
