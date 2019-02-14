@@ -1,0 +1,27 @@
+language: c
+
+os:
+  - linux
+  #- osx
+
+dist: xenial
+
+compiler:
+  - gcc
+  - clang
+
+addons:
+  apt:
+    packages:
+      - check
+  homebrew:
+    packages:
+      - check
+
+script:
+  - cd "$TRAVIS_BUILD_DIR"
+  - ./autogen.sh
+  - ./configure --with-check
+  - make -j2
+  - make check
+  - sudo make install
