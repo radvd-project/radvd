@@ -239,7 +239,8 @@ AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(
 	Makefile \
 	radvd.service \
-	redhat/radvd.spec\
+	redhat/systemd/radvd.spec \
+	redhat/SysV/radvd.spec \
 )
 
 cat << EOF
