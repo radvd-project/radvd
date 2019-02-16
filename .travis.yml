@@ -22,6 +22,6 @@ script:
   - cd "$TRAVIS_BUILD_DIR"
   - ./autogen.sh
   - ./configure --with-check
-  - make -j2
+  - make -j
   - make check
   - sudo make install
