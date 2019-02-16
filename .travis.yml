@@ -24,4 +24,5 @@ script:
   - ./configure --with-check
   - make -j
   - make check
+  - make dist-xz
   - sudo make install
