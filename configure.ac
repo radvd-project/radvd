@@ -50,6 +50,9 @@ dnl Determine CC and preset CFLAGS
 AC_PROG_CC_C99
 AC_PROG_RANLIB
 
+AC_ARG_WITH([stack-protector], AS_HELP_STRING([--without-stack-protector], [Build without -fstack-protector]),[],[with_stack_protector=yes])
+AM_CONDITIONAL(HAVE_STACK_PROTECTOR, test x"$with_stack_protector" = xyes)
+
 AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=no])
 AS_IF([test "x$with_check" = "xyes"], [
     AS_IF([test "x$arch" = "xlinux"], [

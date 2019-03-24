@@ -43,9 +43,13 @@ DISABLE_WARNINGS = \
 
 AM_CFLAGS = \
 	-fno-strict-aliasing \
-	-fstack-protector \
 	$(ENABLE_WARNINGS) \
 	$(DISABLE_WARNINGS)
+
+if HAVE_STACK_PROTECTOR
+AM_CFLAGS += \
+	-fstack-protector
+endif
 
 ### CPP is C PreProcessor ###
 
