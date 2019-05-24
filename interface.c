@@ -331,6 +331,21 @@ struct Interface *find_iface_by_name(struct Interface *iface, const char *name)
 	return 0;
 }
 
+struct Interface *find_iface_by_cdb_name(struct Interface *iface, const char *name)
+{
+	if (!name) {
+		return 0;
+	}
+
+	for (; iface; iface = iface->next) {
+		if (strcmp(iface->props.cdb_name, name) == 0) {
+			return iface;
+		}
+	}
+
+	return 0;
+}
+
 struct Interface *find_iface_by_time(struct Interface *iface)
 {
 	if (!iface) {
@@ -439,4 +454,184 @@ void free_ifaces(struct Interface *ifaces)
 	dlog(LOG_DEBUG, 3, "Freeing Interfaces");
 
 	free_iface_list(ifaces);
+}
+
+struct Interface *create_iface(const char *iface_name)
+{
+	struct Interface *iface = malloc(sizeof(struct Interface));
+
+	if (iface == NULL) {
+		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		return NULL;
+	}
+
+	iface_init_defaults(iface);
+	strncpy(iface->props.cdb_name, iface_name, IFCDBNAMSIZ);
+	iface->props.cdb_name[IFCDBNAMSIZ - 1] = '\0';
+
+	return iface;
+}
+
+struct AdvPrefix *create_prefix(const char *addr6_str)
+{
+	struct AdvPrefix *prefix = malloc(sizeof(struct AdvPrefix));
+
+	if (prefix == NULL) {
+		flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+		return NULL;
+	}
+
+	prefix_init_defaults(prefix);
+
+	if (!inet_pton(AF_INET6, addr6_str, &prefix->Prefix)) // success!
+	{
+		flog(LOG_CRIT, "inet_pton failed: %s", strerror(errno));
+		return NULL;
+	}
+
+	prefix->PrefixLen = 64;
+
+	return prefix;
+}
+
+static inline int ipv6_addr_equal(const struct in6_addr *a1, const struct in6_addr *a2)
+{
+#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && BITS_PER_LONG == 64
+	const unsigned long *ul1 = (const unsigned long *)a1;
+	const unsigned long *ul2 = (const unsigned long *)a2;
+
+	return ((ul1[0] ^ ul2[0]) | (ul1[1] ^ ul2[1])) == 0UL;
+#else
+	return ((a1->s6_addr32[0] ^ a2->s6_addr32[0]) | (a1->s6_addr32[1] ^ a2->s6_addr32[1]) |
+		(a1->s6_addr32[2] ^ a2->s6_addr32[2]) | (a1->s6_addr32[3] ^ a2->s6_addr32[3])) == 0;
+#endif
+}
+
+struct AdvPrefix *find_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6)
+{
+	struct AdvPrefix *p_list = prefix_list;
+
+	while (p_list) {
+		if (ipv6_addr_equal(&addr6, &p_list->Prefix)) {
+			return p_list;
+		}
+		p_list = p_list->next;
+	}
+
+	return NULL;
+}
+
+struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface)
+{
+	cJSON *cjson_ptr;
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "name"))) {
+		const char * iface_name = cJSON_GetStringValue(cjson_ptr);
+		strncpy(iface->props.name, iface_name, IFNAMSIZ);
+		iface->props.name[IFNAMSIZ - 1] = '\0';
+		dlog(LOG_DEBUG, 1, "cJSON name %s", iface->props.name);
+	}
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "max_rtr_interval"))) {
+		if (cJSON_IsNumber(cjson_ptr)) {
+			iface->MaxRtrAdvInterval = cjson_ptr->valuedouble;
+			dlog(LOG_DEBUG, 1, "cJSON max_rtr_interval %lf", iface->MaxRtrAdvInterval);
+		}
+	}
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "min_rtr_interval"))) {
+		if (cJSON_IsNumber(cjson_ptr)) {
+			iface->MinRtrAdvInterval = cjson_ptr->valuedouble;
+			dlog(LOG_DEBUG, 1, "cJSON min_rtr_interval %lf", iface->MinRtrAdvInterval);
+		}
+	}
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "adv_default_lifetime"))) {
+		if (cJSON_IsNumber(cjson_ptr)) {
+			iface->ra_header_info.AdvDefaultLifetime = cjson_ptr->valueint;
+			dlog(LOG_DEBUG, 1, "cJSON adv_default_lifetime %d", iface->ra_header_info.AdvDefaultLifetime);
+		}
+	}
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "adv_send_advert"))) {
+		iface->AdvSendAdvert = cJSON_IsTrue(cjson_ptr);
+		dlog(LOG_DEBUG, 1, "cJSON adv_send_advert %d", iface->AdvSendAdvert);
+	}
+
+	return iface;
+}
+
+struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_prefix)
+{
+	cJSON *cjson_ptr = NULL;
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_autonomous"))) {
+		prefix->AdvAutonomousFlag = cJSON_IsTrue(cjson_ptr);
+		dlog(LOG_DEBUG, 1, "cJSON adv_autonomous %d", prefix->AdvAutonomousFlag);
+	}
+
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_on_link"))) {
+		prefix->AdvOnLinkFlag = cJSON_IsTrue(cjson_ptr);
+		dlog(LOG_DEBUG, 1, "cJSON adv_on_link %d", prefix->AdvOnLinkFlag);
+	}
+
+	return prefix;
+}
+
+struct Interface * delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name)
+{
+	struct Interface *current = ifaces;
+	struct Interface *previous = NULL;
+
+
+	while(current) {
+		if(!strcmp(current->props.cdb_name, if_name)) {
+			if(previous) {
+				previous->next = current->next;
+			} else {
+				ifaces = current->next;
+			}
+			dlog(LOG_DEBUG, 1, "iface found, deleting");
+			free(current);
+			return ifaces;
+		}
+		previous = current;
+		current = current->next;
+
+	}
+
+	dlog(LOG_DEBUG, 1, "iface not found");
+	return ifaces;
+}
+
+struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str)
+{
+	struct AdvPrefix *current = prefix_list;
+	struct AdvPrefix *previous = NULL;
+
+	struct in6_addr addr6;
+	memset(&addr6, 0, sizeof(addr6));
+
+	while(current) {
+		memset(&addr6, 0, sizeof(addr6));
+		if(!inet_pton(AF_INET6, addr6_str, &addr6)) {
+			flog(LOG_CRIT, "inet_pton failed: %s", strerror(errno));
+			return prefix_list;
+		}
+		if(ipv6_addr_equal(&current->Prefix, &addr6)) {
+			if(previous) {
+				previous->next = current->next;
+			} else {
+				prefix_list = current->next;
+			}
+			dlog(LOG_DEBUG, 1, "prefix found, deleting");
+			free(current);
+			return prefix_list;
+		}
+		previous = current;
+		current = current->next;
+
+	}
+	dlog(LOG_DEBUG, 1, "prefix not found");
+	return prefix_list;
 }

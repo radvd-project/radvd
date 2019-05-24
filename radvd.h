@@ -20,6 +20,8 @@
 #include "includes.h"
 #include "log.h"
 
+#include <cjson/cJSON.h>
+
 #define CONTACT_EMAIL "Reuben Hawkins <reubenhwk@gmail.com>"
 
 extern int sock;
@@ -33,6 +35,7 @@ struct Clients;
 
 #define HWADDR_MAX 16
 #define USER_HZ 100
+#define IFCDBNAMSIZ 64
 
 struct safe_buffer {
 	int should_free;
@@ -71,6 +74,7 @@ struct Interface {
 
 	struct properties {
 		char name[IFNAMSIZ]; /* interface name */
+		char cdb_name[IFCDBNAMSIZ]; /* CDB interface name */
 		unsigned int if_index;
 		struct in6_addr if_addr;   /* the first link local addr */
 		struct in6_addr *if_addrs; /* all the addrs */
@@ -291,14 +295,22 @@ int update_device_index(struct Interface *iface);
 int update_device_info(int sock, struct Interface *);
 int get_iface_addrs(char const *name, struct in6_addr *if_addr, /* the first link local addr */
 		    struct in6_addr **if_addrs			/* all the addrs */
-		    );
+);
 
 /* interface.c */
 int check_iface(struct Interface *);
 int setup_iface(int sock, struct Interface *iface);
+struct Interface *create_iface(const char *iface_name);
+struct Interface *find_iface_by_cdb_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
+struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface);
+struct AdvPrefix *create_prefix(const char *addr6_str);
+struct AdvPrefix *find_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6);
+struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_prefix);
+struct Interface * delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name);
+struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);

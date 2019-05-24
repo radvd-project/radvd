@@ -28,6 +28,8 @@
 
 #ifdef HAVE_GETOPT_LONG
 
+#define SERVER_PATH "/tmp/radvd.sock"
+
 /* clang-format off */
 static char usage_str[] = {
 "\n"
@@ -78,14 +80,15 @@ static volatile int sigint_received = 0;
 static volatile int sigterm_received = 0;
 static volatile int sigusr1_received = 0;
 
-static int check_conffile_perm(const char *, const char *);
+// static int check_conffile_perm(const char *, const char *);
 static int drop_root_privileges(const char *);
 static int open_and_lock_pid_file(char const *daemon_pid_file_ident);
 static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
 static pid_t daemonp(char const *daemon_pid_file_ident);
 static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
 static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path);
-static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
+static struct Interface *process_command(int sock, struct Interface *ifaces);
+// static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void check_pid_file(char const *daemon_pid_file_ident);
 static void config_interface(struct Interface *iface);
 static void kickoff_adverts(int sock, struct Interface *iface);
@@ -316,25 +319,25 @@ int main(int argc, char *argv[])
 	/* check that 'other' cannot write the file
 	 * for non-root, also that self/own group can't either
 	 */
-	if (check_conffile_perm(username, conf_path) != 0) {
-		if (get_debuglevel() == 0) {
-			flog(LOG_ERR, "exiting, permissions on conf_file invalid");
-			exit(1);
-		} else
-			flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
-	}
+	// if (check_conffile_perm(username, conf_path) != 0) {
+	// 	if (get_debuglevel() == 0) {
+	// 		flog(LOG_ERR, "exiting, permissions on conf_file invalid");
+	// 		exit(1);
+	// 	} else
+	// 		flog(LOG_WARNING, "Insecure file permissions, but continuing anyway");
+	// }
 
 	/* parse config file */
 	struct Interface *ifaces = NULL;
-	if ((ifaces = readin_config(conf_path)) == 0) {
-		flog(LOG_ERR, "exiting, failed to read config file");
-		exit(1);
-	}
+	// if ((ifaces = readin_config(conf_path)) == 0) {
+	// 	flog(LOG_ERR, "exiting, failed to read config file");
+	// 	exit(1);
+	// }
 
-	if (configtest) {
-		free_ifaces(ifaces);
-		exit(0);
-	}
+	// if (configtest) {
+	// 	free_ifaces(ifaces);
+	// 	exit(0);
+	// }
 
 	/* get a raw socket for sending and receiving ICMPv6 messages */
 	int sock = open_icmpv6_socket();
@@ -432,7 +435,7 @@ int main(int argc, char *argv[])
 		dlog(LOG_DEBUG, 3, "running as user: %s", username);
 	}
 
-	setup_ifaces(sock, ifaces);
+	// setup_ifaces(sock, ifaces);
 	ifaces = main_loop(sock, ifaces, conf_path);
 	stop_adverts(sock, ifaces);
 
@@ -457,7 +460,7 @@ int main(int argc, char *argv[])
 
 static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path)
 {
-	struct pollfd fds[2];
+	struct pollfd fds[3];
 	sigset_t sigmask;
 	sigset_t sigempty;
 	struct sigaction sa;
@@ -502,6 +505,27 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 #else
 	fds[1].fd = -1;
 #endif
+	int sockfd;
+	struct sockaddr_un servaddr;
+
+	if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0) {
+		perror("socket creation failed");
+		exit(EXIT_FAILURE);
+	}
+
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sun_family = AF_UNIX;
+	strcpy(servaddr.sun_path, SERVER_PATH);
+
+	unlink(SERVER_PATH);
+
+	if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+		perror("bind failed");
+		exit(EXIT_FAILURE);
+	}
+
+	fds[2].fd = sockfd;
+	fds[2].events = POLLIN;
 
 	for (;;) {
 		struct timespec *tsp = 0;
@@ -513,8 +537,13 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 			ts.tv_sec = timeout / 1000;
 			ts.tv_nsec = (timeout - 1000 * ts.tv_sec) * 1000000;
 			tsp = &ts;
-			dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
-			     next_iface_to_expire->props.name);
+
+			if(next_iface_to_expire->props.name[0] != '\0') {
+				dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
+			    next_iface_to_expire->props.name);
+			}
+			dlog(LOG_DEBUG, 1, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
+			     next_iface_to_expire->props.cdb_name);
 		} else {
 			dlog(LOG_DEBUG, 1, "no iface is next. Polling indefinitely");
 		}
@@ -551,6 +580,17 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 					dlog(LOG_INFO, 4, "recv_rs_ra returned len <= 0: %d", len);
 				}
 			}
+
+			if (fds[2].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[2].fd");
+			} else if (fds[2].revents & POLLIN) {
+				ifaces = process_command(fds[2].fd, ifaces);
+				if (ifaces) {
+					setup_ifaces(sock, ifaces);
+					flog(LOG_INFO, "resuming normal operation");
+				}
+			}
+
 		} else if (rc == 0) {
 			if (next_iface_to_expire)
 				timer_handler(sock, next_iface_to_expire);
@@ -570,7 +610,9 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 
 		if (sighup_received) {
 			dlog(LOG_INFO, 3, "sig hup received");
-			ifaces = reload_config(sock, ifaces, conf_path);
+			// ifaces = reload_config(sock, ifaces, conf_path);
+			if(ifaces != NULL && sock < 0)
+			setup_iface(sock, ifaces);
 			sighup_received = 0;
 		}
 
@@ -780,24 +822,28 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 
 static void setup_ifaces(int sock, struct Interface *ifaces) { for_each_iface(ifaces, setup_iface_foo, &sock); }
 
-static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path)
-{
-	free_ifaces(ifaces);
+/*
+ * Brief cJSON messages are used for communication to update configurations.
+ */
 
-	flog(LOG_INFO, "attempting to reread config file");
+// static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path)
+// {
+// 	free_ifaces(ifaces);
 
-	/* reread config file */
-	ifaces = readin_config(conf_path);
-	if (!ifaces) {
-		flog(LOG_ERR, "exiting, failed to read config file");
-		exit(1);
-	}
-	setup_ifaces(sock, ifaces);
+// 	flog(LOG_INFO, "attempting to reread config file");
 
-	flog(LOG_INFO, "resuming normal operation");
+// 	/* reread config file */
+// 	ifaces = readin_config(conf_path);
+// 	if (!ifaces) {
+// 		flog(LOG_ERR, "exiting, failed to read config file");
+// 		exit(1);
+// 	}
+// 	setup_ifaces(sock, ifaces);
 
-	return ifaces;
-}
+// 	flog(LOG_INFO, "resuming normal operation");
+
+// 	return ifaces;
+// }
 
 static void sighup_handler(int sig) { sighup_received = 1; }
 
@@ -856,41 +902,171 @@ static int drop_root_privileges(const char *username)
 	return 0;
 }
 
-static int check_conffile_perm(const char *username, const char *conf_file)
+/*
+ * Brief Configuration file is not used. Communication is executed using cJSON messages.
+ */
+
+// static int check_conffile_perm(const char *username, const char *conf_file)
+// {
+// 	FILE *fp = fopen(conf_file, "r");
+// 	if (fp == NULL) {
+// 		flog(LOG_ERR, "can't open %s: %s", conf_file, strerror(errno));
+// 		return -1;
+// 	}
+// 	fclose(fp);
+
+// 	if (!username)
+// 		username = "root";
+
+// 	struct passwd *pw = getpwnam(username);
+// 	if (!pw) {
+// 		return -1;
+// 	}
+
+// 	struct stat stbuf;
+// 	if (0 != stat(conf_file, &stbuf)) {
+// 		return -1;
+// 	}
+
+// 	if (stbuf.st_mode & S_IWOTH) {
+// 		flog(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
+// 		return -1;
+// 	}
+
+// 	/* for non-root: must not be writable by self/own group */
+// 	if (strncmp(username, "root", 5) != 0 && ((stbuf.st_mode & S_IWGRP && pw->pw_gid == stbuf.st_gid) ||
+// 						  (stbuf.st_mode & S_IWUSR && pw->pw_uid == stbuf.st_uid))) {
+// 		flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
+// 		return -1;
+// 	}
+
+// 	return 0;
+// }
+
+static struct Interface *process_command(int sock, struct Interface *ifaces)
 {
-	FILE *fp = fopen(conf_file, "r");
-	if (fp == NULL) {
-		flog(LOG_ERR, "can't open %s: %s", conf_file, strerror(errno));
-		return -1;
+	char buffer[4096];
+	ssize_t rc = recv(sock, buffer, 4096, MSG_WAITALL);
+	if(rc < 0) {
+		flog(LOG_ERR, "Error on recv %s", strerror(errno));
+		return ifaces;
 	}
-	fclose(fp);
+	buffer[rc] = '\0';
+	cJSON *cjson_ra_config = NULL;
+	cJSON *cjson_destructive_iface = NULL;
+	cJSON *cjson_interface = NULL;
+	cJSON *cjson_destructive_prefix = NULL;
+	cJSON *cjson_prefix = NULL;
+	cJSON *cjson_prefixes = NULL;
+	cJSON *cjson_cdb_name = NULL;
+	cJSON *cjson_prefix_addr = NULL;
+	char *iface_cdb_name;
+	char *addr_str;
 
-	if (!username)
-		username = "root";
 
-	struct passwd *pw = getpwnam(username);
-	if (!pw) {
-		return -1;
+	if (!(cjson_ra_config = cJSON_Parse(buffer))) {
+		dlog(LOG_DEBUG, 1, "cJSON Parsing error");
+		return ifaces;
+	}
+	if (!(cjson_interface = cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "interface"))) {
+		dlog(LOG_DEBUG, 1, "cJSON interface error");
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
+	}
+	if (!(cjson_cdb_name = cJSON_GetObjectItemCaseSensitive(cjson_interface, "cdb_name"))) {
+		dlog(LOG_DEBUG, 1, "cJSON interface cdb_name error");
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
+	}
+	if(!(iface_cdb_name = cJSON_GetStringValue(cjson_cdb_name))) {
+		dlog(LOG_DEBUG, 1, "cJSON interface cdb_name is not a string");
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
 	}
 
-	struct stat stbuf;
-	if (0 != stat(conf_file, &stbuf)) {
-		return -1;
+	cjson_destructive_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "destructive");
+
+	if(cjson_destructive_iface){
+		if(cJSON_IsTrue(cjson_destructive_iface)) {
+			dlog(LOG_DEBUG, 1, "cJSON destroying interface");
+			ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
+			return ifaces;
+		}
 	}
 
-	if (stbuf.st_mode & S_IWOTH) {
-		flog(LOG_ERR, "Insecure file permissions (writable by others): %s", conf_file);
-		return -1;
+	struct Interface *iface = find_iface_by_cdb_name(ifaces, iface_cdb_name);
+
+	if (!iface) {
+		dlog(LOG_DEBUG, 1, "Creating iface %s", iface_cdb_name);
+		iface = create_iface(iface_cdb_name);
+
+		if (!ifaces) {
+			dlog(LOG_DEBUG, 1, "Creating ifaces list");
+			ifaces = iface;
+		} else {
+			struct Interface *current = ifaces;
+			while (current->next) {
+				current = current->next;
+			}
+			dlog(LOG_DEBUG, 1, "Inserting iface in ifaces linked list");
+			current->next = iface;
+		}
 	}
 
-	/* for non-root: must not be writable by self/own group */
-	if (strncmp(username, "root", 5) != 0 && ((stbuf.st_mode & S_IWGRP && pw->pw_gid == stbuf.st_gid) ||
-						  (stbuf.st_mode & S_IWUSR && pw->pw_uid == stbuf.st_uid))) {
-		flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
-		return -1;
+	iface = update_iface(iface, cjson_interface);
+
+	if(!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
+		dlog(LOG_DEBUG, 1, "cJSON prefixes error");
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
 	}
 
-	return 0;
+	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes) {
+		cjson_destructive_prefix = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "destructive");
+		struct in6_addr addr6;
+
+		if (!(cjson_prefix_addr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "addr"))) {
+			dlog(LOG_DEBUG, 1, "cJSON prefix addr error");
+			continue;
+		}
+		if (!(addr_str = cJSON_GetStringValue(cjson_prefix_addr))) {
+			dlog(LOG_DEBUG, 1, "cJSON prefix addr is not set");
+			continue;
+		}
+		if (!inet_pton(AF_INET6, addr_str, &addr6)) {
+			dlog(LOG_DEBUG, 1, "Invalid IPV6 prefix");
+			continue;
+		}
+		if(cjson_destructive_prefix) {
+			if(cJSON_IsTrue(cjson_destructive_prefix)) {
+				dlog(LOG_DEBUG, 1, "cJSON destroying prefix");
+				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr_str);
+				continue;
+			}
+		}
+		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
+
+		if (!prefix) {
+			dlog(LOG_DEBUG, 1, "Creating prefix list");
+			prefix = create_prefix(addr_str);
+			if (!iface->AdvPrefixList) {
+				dlog(LOG_DEBUG, 1, "Creating ifaces list");
+				iface->AdvPrefixList = prefix;
+			} else {
+				struct AdvPrefix *current = iface->AdvPrefixList;
+				while (current->next) {
+					current = current->next;
+				}
+				dlog(LOG_DEBUG, 1, "Inserting iface in ifaces linked list");
+				current->next = prefix;
+			}
+		}
+		prefix = update_iface_prefix(prefix, cjson_prefix);
+	}
+
+	cJSON_Delete(cjson_ra_config);
+
+	return ifaces;
 }
 
 static void version(void)

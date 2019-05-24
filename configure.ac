@@ -235,6 +235,12 @@ AS_IF([test "x$with_systemdsystemunitdir" != "xno"],
       [AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
 AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$with_systemdsystemunitdir" != "xno"])
 
+CJSON_LOCATION=../cjson-*
+
+CFLAGS="$CFLAGS -I$CJSON_LOCATION"
+CJSON_LIB="$CJSON_LOCATION/libcjson.so"
+AC_SUBST(CJSON_LIB)
+
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(
 	Makefile \

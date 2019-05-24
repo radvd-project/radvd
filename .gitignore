@@ -34,3 +34,11 @@ scanner.h
 stamp-h1
 ylwrap
 *.swp
+compile
+config.h.in~
+libcjson.a
+radvd.service
+redhat/SysV/radvd.spec
+redhat/systemd/radvd.spec
+test-driver
+test/client

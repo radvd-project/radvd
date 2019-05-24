@@ -31,7 +31,7 @@
 /* For each multicast interface: */
 
 #define DFLT_IgnoreIfMissing 1
-#define DFLT_AdvSendAdv 0
+#define DFLT_AdvSendAdv 1
 #define DFLT_MaxRtrAdvInterval 600
 #define DFLT_MinRtrAdvInterval(iface) (0.33 * (iface)->MaxRtrAdvInterval)
 #define DFLT_AdvManagedFlag 0
