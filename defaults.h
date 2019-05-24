@@ -59,6 +59,7 @@
 #define DFLT_AdvOnLinkFlag 1
 #define DFLT_AdvPreferredLifetime 14400 /* seconds */
 #define DFLT_AdvAutonomousFlag 1
+#define DFLT_AdvSendPrefix 1
 #define DFLT_DeprecatePrefixFlag 0
 #define DFLT_DecrementLifetimesFlag 0
 

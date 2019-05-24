@@ -328,7 +328,7 @@ static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *s
 						      struct in6_addr const *dest)
 {
 	while (prefix) {
-		if ((!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0)) {
+		if ((!prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0) && prefix->AdvSendPrefix) {
 			struct in6_addr zero = {};
 			if (prefix->if6to4[0] || prefix->if6[0] || 0 == memcmp(&prefix->Prefix, &zero, sizeof(zero))) {
 				if (prefix->if6to4[0]) {
