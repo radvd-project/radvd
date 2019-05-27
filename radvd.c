@@ -18,6 +18,8 @@
 #include "includes.h"
 #include "pathnames.h"
 
+#define SERVER_PATH "/tmp/radvd.sock"
+
 #ifdef HAVE_NETLINK
 #include "netlink.h"
 #endif
@@ -27,8 +29,6 @@
 #include <sys/file.h>
 
 #ifdef HAVE_GETOPT_LONG
-
-#define SERVER_PATH "/tmp/radvd.sock"
 
 /* clang-format off */
 static char usage_str[] = {
@@ -538,9 +538,9 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 			ts.tv_nsec = (timeout - 1000 * ts.tv_sec) * 1000000;
 			tsp = &ts;
 
-			if(next_iface_to_expire->props.name[0] != '\0') {
+			if (next_iface_to_expire->props.name[0] != '\0') {
 				dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
-			    next_iface_to_expire->props.name);
+				     next_iface_to_expire->props.name);
 			}
 			dlog(LOG_DEBUG, 1, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
 			     next_iface_to_expire->props.cdb_name);
@@ -611,8 +611,8 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 		if (sighup_received) {
 			dlog(LOG_INFO, 3, "sig hup received");
 			// ifaces = reload_config(sock, ifaces, conf_path);
-			if(ifaces != NULL && sock < 0)
-			setup_iface(sock, ifaces);
+			if (ifaces != NULL && sock < 0)
+				setup_iface(sock, ifaces);
 			sighup_received = 0;
 		}
 
@@ -947,7 +947,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 {
 	char buffer[4096];
 	ssize_t rc = recv(sock, buffer, 4096, MSG_WAITALL);
-	if(rc < 0) {
+	if (rc < 0) {
 		flog(LOG_ERR, "Error on recv %s", strerror(errno));
 		return ifaces;
 	}
@@ -963,7 +963,6 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 	char *iface_cdb_name;
 	char *addr_str;
 
-
 	if (!(cjson_ra_config = cJSON_Parse(buffer))) {
 		dlog(LOG_DEBUG, 1, "cJSON Parsing error");
 		return ifaces;
@@ -978,7 +977,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
-	if(!(iface_cdb_name = cJSON_GetStringValue(cjson_cdb_name))) {
+	if (!(iface_cdb_name = cJSON_GetStringValue(cjson_cdb_name))) {
 		dlog(LOG_DEBUG, 1, "cJSON interface cdb_name is not a string");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
@@ -986,8 +985,8 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 
 	cjson_destructive_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "destructive");
 
-	if(cjson_destructive_iface){
-		if(cJSON_IsTrue(cjson_destructive_iface)) {
+	if (cjson_destructive_iface) {
+		if (cJSON_IsTrue(cjson_destructive_iface)) {
 			dlog(LOG_DEBUG, 1, "cJSON destroying interface");
 			ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
 			return ifaces;
@@ -1015,13 +1014,14 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 
 	iface = update_iface(iface, cjson_interface);
 
-	if(!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
+	if (!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
 		dlog(LOG_DEBUG, 1, "cJSON prefixes error");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
 
-	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes) {
+	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes)
+	{
 		cjson_destructive_prefix = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "destructive");
 		struct in6_addr addr6;
 
@@ -1037,8 +1037,8 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			dlog(LOG_DEBUG, 1, "Invalid IPV6 prefix");
 			continue;
 		}
-		if(cjson_destructive_prefix) {
-			if(cJSON_IsTrue(cjson_destructive_prefix)) {
+		if (cjson_destructive_prefix) {
+			if (cJSON_IsTrue(cjson_destructive_prefix)) {
 				dlog(LOG_DEBUG, 1, "cJSON destroying prefix");
 				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr_str);
 				continue;

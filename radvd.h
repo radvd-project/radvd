@@ -73,7 +73,7 @@ struct Interface {
 	} state_info;
 
 	struct properties {
-		char name[IFNAMSIZ]; /* interface name */
+		char name[IFNAMSIZ];	/* interface name */
 		char cdb_name[IFCDBNAMSIZ]; /* CDB interface name */
 		unsigned int if_index;
 		struct in6_addr if_addr;   /* the first link local addr */
@@ -146,6 +146,7 @@ struct AdvPrefix {
 
 	int AdvOnLinkFlag;
 	int AdvAutonomousFlag;
+	int AdvSendPrefix;
 	uint32_t AdvValidLifetime;
 	uint32_t AdvPreferredLifetime;
 	int DeprecatePrefixFlag;
@@ -309,8 +310,8 @@ struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface);
 struct AdvPrefix *create_prefix(const char *addr6_str);
 struct AdvPrefix *find_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6);
 struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_prefix);
-struct Interface * delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name);
-struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str);
+struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name);
+struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);

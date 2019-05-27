@@ -115,6 +115,7 @@ void prefix_init_defaults(struct AdvPrefix *prefix)
 
 	prefix->AdvOnLinkFlag = DFLT_AdvOnLinkFlag;
 	prefix->AdvAutonomousFlag = DFLT_AdvAutonomousFlag;
+	prefix->AdvSendPrefix = DFLT_AdvSendPrefix;
 	prefix->AdvRouterAddr = DFLT_AdvRouterAddr;
 	prefix->AdvValidLifetime = DFLT_AdvValidLifetime;
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
@@ -526,7 +527,7 @@ struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface)
 	cJSON *cjson_ptr;
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "name"))) {
-		const char * iface_name = cJSON_GetStringValue(cjson_ptr);
+		const char *iface_name = cJSON_GetStringValue(cjson_ptr);
 		strncpy(iface->props.name, iface_name, IFNAMSIZ);
 		iface->props.name[IFNAMSIZ - 1] = '\0';
 		dlog(LOG_DEBUG, 1, "cJSON name %s", iface->props.name);
@@ -575,18 +576,22 @@ struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_pre
 		dlog(LOG_DEBUG, 1, "cJSON adv_on_link %d", prefix->AdvOnLinkFlag);
 	}
 
+	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_send_prefix"))) {
+		prefix->AdvSendPrefix = cJSON_IsTrue(cjson_ptr);
+		dlog(LOG_DEBUG, 1, "cJSON adv_send_prefix %d", prefix->AdvSendPrefix);
+	}
+	
 	return prefix;
 }
 
-struct Interface * delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name)
+struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name)
 {
 	struct Interface *current = ifaces;
 	struct Interface *previous = NULL;
 
-
-	while(current) {
-		if(!strcmp(current->props.cdb_name, if_name)) {
-			if(previous) {
+	while (current) {
+		if (!strcmp(current->props.cdb_name, if_name)) {
+			if (previous) {
 				previous->next = current->next;
 			} else {
 				ifaces = current->next;
@@ -597,14 +602,13 @@ struct Interface * delete_iface_by_cdb_name(struct Interface *ifaces, const char
 		}
 		previous = current;
 		current = current->next;
-
 	}
 
 	dlog(LOG_DEBUG, 1, "iface not found");
 	return ifaces;
 }
 
-struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str)
+struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str)
 {
 	struct AdvPrefix *current = prefix_list;
 	struct AdvPrefix *previous = NULL;
@@ -612,14 +616,14 @@ struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, co
 	struct in6_addr addr6;
 	memset(&addr6, 0, sizeof(addr6));
 
-	while(current) {
+	while (current) {
 		memset(&addr6, 0, sizeof(addr6));
-		if(!inet_pton(AF_INET6, addr6_str, &addr6)) {
+		if (!inet_pton(AF_INET6, addr6_str, &addr6)) {
 			flog(LOG_CRIT, "inet_pton failed: %s", strerror(errno));
 			return prefix_list;
 		}
-		if(ipv6_addr_equal(&current->Prefix, &addr6)) {
-			if(previous) {
+		if (ipv6_addr_equal(&current->Prefix, &addr6)) {
+			if (previous) {
 				previous->next = current->next;
 			} else {
 				prefix_list = current->next;
@@ -630,7 +634,6 @@ struct AdvPrefix * delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, co
 		}
 		previous = current;
 		current = current->next;
-
 	}
 	dlog(LOG_DEBUG, 1, "prefix not found");
 	return prefix_list;
