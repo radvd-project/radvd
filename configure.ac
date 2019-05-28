@@ -235,11 +235,12 @@ AS_IF([test "x$with_systemdsystemunitdir" != "xno"],
       [AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
 AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$with_systemdsystemunitdir" != "xno"])
 
-CJSON_LOCATION=../cjson-*
+RADVD_DEPS=../radvd-deps
+CJSON_LIB="$RADVD_DEPS/usr/local/lib"
+CJSON_INCLUDE="$RADVD_DEPS/usr/local/include"
 
-CFLAGS="$CFLAGS -I$CJSON_LOCATION"
-CJSON_LIB="$CJSON_LOCATION/libcjson.so"
-AC_SUBST(CJSON_LIB)
+CFLAGS="$CFLAGS -I$CJSON_INCLUDE"
+LDFLAGS="$LDFLAGS -L$CJSON_LIB"
 
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(

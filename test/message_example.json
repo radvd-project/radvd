@@ -1,32 +1,34 @@
 {
-    "interface":    {
-            "destructive":  false,
-            "name": "wlp1",
-            "cdb_name":     "cdb_wlp1",
-            "adv_send_advert":      true,
-            "max_rtr_interval":     650.5,
-            "min_rtr_interval":     350.5,
-            "adv_default_lifetime": 1301,
-            "prefixes":     [{
-                            "destructive":  false,
-                            "addr": "cafe::1",
-                            "adv_autonomous":       true,
-                            "adv_on_link":  true,
-                            "adv_send_prefix":      true
-
-                    }, {
-                            "destructive":  false,
-                            "addr": "2020::1",
-                            "adv_autonomous":       true,
-                            "adv_on_link":  true,
-                            "adv_send_prefix":      true
-
-                    }, {
-                            "destructive":  false,
-                            "addr": "abcd::1",
-                            "adv_autonomous":       true,
-                            "adv_on_link":  true,
-                            "adv_send_prefix":      false
-                    }]
-    }
+        "interface": {
+                "destructive": false,
+                "name": "wlp1",
+                "cdb_name": "cdb_wlp1",
+                "adv_send_advert": true,
+                "max_rtr_interval": 650.5,
+                "min_rtr_interval": 350.5,
+                "adv_default_lifetime": 1301,
+                "prefixes": [
+                        {
+                                "ref": true,
+                                "addr": "cafe::",
+                                "adv_autonomous": true,
+                                "adv_on_link": true,
+                                "adv_send_prefix": true
+                        },
+                        {
+                                "ref": false,
+                                "addr": "2020::",
+                                "adv_autonomous": true,
+                                "adv_on_link": true,
+                                "adv_send_prefix": true
+                        },
+                        {
+                                "ref": true,
+                                "addr": "abcd::",
+                                "adv_autonomous": true,
+                                "adv_on_link": true,
+                                "adv_send_prefix": false
+                        }
+                ]
+        }
 }

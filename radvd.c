@@ -75,6 +75,9 @@ static char usage_str[] = {
 
 #endif
 
+const struct in6_addr DFLT_Netmask64 = {
+    .s6_addr = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}};
+
 static volatile int sighup_received = 0;
 static volatile int sigint_received = 0;
 static volatile int sigterm_received = 0;
@@ -89,6 +92,7 @@ static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
 static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path);
 static struct Interface *process_command(int sock, struct Interface *ifaces);
 // static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
+static void apply_64_netmask(struct in6_addr *addr6);
 static void check_pid_file(char const *daemon_pid_file_ident);
 static void config_interface(struct Interface *iface);
 static void kickoff_adverts(int sock, struct Interface *iface);
@@ -105,7 +109,6 @@ static void stop_adverts(int sock, struct Interface *ifaces);
 static void timer_handler(int sock, struct Interface *iface);
 static void usage(char const *pname);
 static void version(void);
-
 /* daemonize and write pid file.  The pid of the daemon child process
  * will be written to the pid file from the *parent* process.  This
  * insures there is no race condition as described in redhat bug 664783. */
@@ -955,7 +958,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 	cJSON *cjson_ra_config = NULL;
 	cJSON *cjson_destructive_iface = NULL;
 	cJSON *cjson_interface = NULL;
-	cJSON *cjson_destructive_prefix = NULL;
+	cJSON *cjson_prefix_ref = NULL;
 	cJSON *cjson_prefix = NULL;
 	cJSON *cjson_prefixes = NULL;
 	cJSON *cjson_cdb_name = NULL;
@@ -1015,15 +1018,13 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 	iface = update_iface(iface, cjson_interface);
 
 	if (!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
-		dlog(LOG_DEBUG, 1, "cJSON prefixes error");
+		dlog(LOG_DEBUG, 1, "cJSON no prefixes set");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
 
 	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes)
 	{
-		cjson_destructive_prefix = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "destructive");
-		struct in6_addr addr6;
 
 		if (!(cjson_prefix_addr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "addr"))) {
 			dlog(LOG_DEBUG, 1, "cJSON prefix addr error");
@@ -1033,17 +1034,24 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			dlog(LOG_DEBUG, 1, "cJSON prefix addr is not set");
 			continue;
 		}
+
+		struct in6_addr addr6;
+
 		if (!inet_pton(AF_INET6, addr_str, &addr6)) {
 			dlog(LOG_DEBUG, 1, "Invalid IPV6 prefix");
 			continue;
 		}
-		if (cjson_destructive_prefix) {
-			if (cJSON_IsTrue(cjson_destructive_prefix)) {
-				dlog(LOG_DEBUG, 1, "cJSON destroying prefix");
-				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr_str);
+
+		apply_64_netmask(&addr6);
+		if ((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref"))) {
+			if (cJSON_IsFalse(cjson_prefix_ref)) {
+				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
 				continue;
 			}
+		} else {
+			dlog(LOG_DEBUG, 1, "cJSON prefix ref counter is not set");
 		}
+
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
 		if (!prefix) {
@@ -1062,11 +1070,22 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			}
 		}
 		prefix = update_iface_prefix(prefix, cjson_prefix);
+		if (cJSON_IsTrue(cjson_prefix_ref)) {
+			prefix->ref++;
+			dlog(LOG_DEBUG, 1, "Prefix %s reference counter: %d", addr_str, prefix->ref);
+		}
 	}
 
 	cJSON_Delete(cjson_ra_config);
 
 	return ifaces;
+}
+
+void apply_64_netmask(struct in6_addr *addr6)
+{
+	for (unsigned i = 0; i < 16; i++) {
+		addr6->s6_addr[i] = addr6->s6_addr[i] & DFLT_Netmask64.s6_addr[i];
+	}
 }
 
 static void version(void)

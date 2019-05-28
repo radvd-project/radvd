@@ -143,6 +143,7 @@ struct Clients {
 struct AdvPrefix {
 	struct in6_addr Prefix;
 	uint8_t PrefixLen;
+	int ref;
 
 	int AdvOnLinkFlag;
 	int AdvAutonomousFlag;
@@ -311,7 +312,7 @@ struct AdvPrefix *create_prefix(const char *addr6_str);
 struct AdvPrefix *find_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6);
 struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_prefix);
 struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name);
-struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str);
+struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list,  const struct in6_addr addr6);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);
