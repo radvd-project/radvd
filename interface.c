@@ -113,6 +113,8 @@ void prefix_init_defaults(struct AdvPrefix *prefix)
 {
 	memset(prefix, 0, sizeof(struct AdvPrefix));
 
+	prefix->ref = 0;
+
 	prefix->AdvOnLinkFlag = DFLT_AdvOnLinkFlag;
 	prefix->AdvAutonomousFlag = DFLT_AdvAutonomousFlag;
 	prefix->AdvSendPrefix = DFLT_AdvSendPrefix;
@@ -262,7 +264,7 @@ int check_iface(struct Interface *iface)
 
 		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime) {
 			flog(LOG_ERR, "AdvValidLifetime for %s (%u) must be "
-				      "greater than AdvPreferredLifetime for",
+			              "greater than AdvPreferredLifetime for",
 			     iface->props.name, prefix->AdvValidLifetime);
 			res = -1;
 		}
@@ -580,7 +582,7 @@ struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_pre
 		prefix->AdvSendPrefix = cJSON_IsTrue(cjson_ptr);
 		dlog(LOG_DEBUG, 1, "cJSON adv_send_prefix %d", prefix->AdvSendPrefix);
 	}
-	
+
 	return prefix;
 }
 
@@ -608,28 +610,33 @@ struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char 
 	return ifaces;
 }
 
-struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const char *addr6_str)
+struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6)
 {
 	struct AdvPrefix *current = prefix_list;
 	struct AdvPrefix *previous = NULL;
 
-	struct in6_addr addr6;
-	memset(&addr6, 0, sizeof(addr6));
-
 	while (current) {
-		memset(&addr6, 0, sizeof(addr6));
-		if (!inet_pton(AF_INET6, addr6_str, &addr6)) {
-			flog(LOG_CRIT, "inet_pton failed: %s", strerror(errno));
-			return prefix_list;
-		}
 		if (ipv6_addr_equal(&current->Prefix, &addr6)) {
-			if (previous) {
-				previous->next = current->next;
-			} else {
-				prefix_list = current->next;
+			current->ref--;
+			if (current->ref < 0) {
+				flog(LOG_WARNING, "Prefix reference counter is negative");
 			}
-			dlog(LOG_DEBUG, 1, "prefix found, deleting");
-			free(current);
+
+			dlog(LOG_DEBUG, 1, "Decreasing prefix reference counter: %d", current->ref);
+
+			if (current->ref == 0) {
+				if (previous) {
+					previous->next = current->next;
+				} else {
+					prefix_list = current->next;
+				}
+				
+				char addr_str[INET6_ADDRSTRLEN];
+				addrtostr(&addr6, addr_str, sizeof(addr_str));
+				
+				dlog(LOG_DEBUG, 1, "Deleting prefix %s", addr_str);
+				free(current);
+			}
 			return prefix_list;
 		}
 		previous = current;

@@ -14,15 +14,26 @@ addons:
   apt:
     packages:
       - check
+      - bison
+      - flex
   homebrew:
     packages:
       - check
+
+before_script:
+  - cd "$TRAVIS_BUILD_DIR" && cd ..
+  - wget https://github.com/DaveGamble/cJSON/archive/v1.7.11.tar.gz -O /tmp/cjson.tar.gz
+  - tar -xvf /tmp/cjson.tar.gz -C .
+  - cd cJSON-1.7.11 && cmake . && make 
+  - make DESTDIR=../radvd-deps install
+  - cd .. && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/radvd-deps/usr/local/lib
 
 script:
   - cd "$TRAVIS_BUILD_DIR"
   - ./autogen.sh
   - ./configure --with-check
-  - make -j
+  - make
   - make check
   - make dist-xz
+  - ldd radvd | grep radvd-deps/usr/local/lib/libcjson.so
   - sudo make install
