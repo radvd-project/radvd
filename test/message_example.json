@@ -28,6 +28,13 @@
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
                                 "adv_send_prefix": false
+                        },
+                        {
+                                "ref": true,
+                                "addr": "cafe:2020:6969:abcd:abcd:6969:2020:cafe",
+                                "adv_autonomous": true,
+                                "adv_on_link": true,
+                                "adv_send_prefix": false
                         }
                 ]
         }

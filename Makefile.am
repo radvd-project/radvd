@@ -168,7 +168,9 @@ EXTRA_DIST = \
 	test/send.c \
 	test/test1.conf \
 	test/test_rdnss.conf \
-	test/util.c
+	test/util.c \
+	test/cjson_support.c \
+	test/cjson_support.h
 
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
 HASHES = sha1 sha256 sha512
@@ -261,6 +263,8 @@ EXTRA_check_all_SOURCES = \
 check_all_SOURCES = \
 	test/print_safe_buffer.h \
 	test/print_safe_buffer.c \
+	test/cjson_support.h \
+	test/cjson_support.c \
 	test/check.c \
 	device-common.c \
 	interface.c \
@@ -271,7 +275,8 @@ check_all_SOURCES = \
 
 check_all_CFLAGS = \
 	@CHECK_CFLAGS@ \
-	-DUNIT_TEST
+	-DUNIT_TEST \
+	-lcjson
 
 check_all_LDADD = \
 	@CHECK_LIBS@ \

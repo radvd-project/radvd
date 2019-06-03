@@ -308,7 +308,7 @@ struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
 struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface);
-struct AdvPrefix *create_prefix(const char *addr6_str);
+struct AdvPrefix *create_prefix(const struct in6_addr addr6);
 struct AdvPrefix *find_prefix_by_addr(struct AdvPrefix *prefix_list, const struct in6_addr addr6);
 struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_prefix);
 struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char *if_name);
