@@ -1019,8 +1019,6 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 
 	if (!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
 		dlog(LOG_DEBUG, 1, "cJSON no prefixes set");
-		cJSON_Delete(cjson_ra_config);
-		return ifaces;
 	}
 
 	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes)
@@ -1056,7 +1054,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 
 		if (!prefix) {
 			dlog(LOG_DEBUG, 1, "Creating prefix list");
-			prefix = create_prefix(addr_str);
+			prefix = create_prefix(addr6);
 			if (!iface->AdvPrefixList) {
 				dlog(LOG_DEBUG, 1, "Creating ifaces list");
 				iface->AdvPrefixList = prefix;
@@ -1072,6 +1070,8 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 		prefix = update_iface_prefix(prefix, cjson_prefix);
 		if (cJSON_IsTrue(cjson_prefix_ref)) {
 			prefix->ref++;
+			char addr_str[INET6_ADDRSTRLEN];
+			addrtostr(&addr6, addr_str, sizeof(addr_str));
 			dlog(LOG_DEBUG, 1, "Prefix %s reference counter: %d", addr_str, prefix->ref);
 		}
 	}

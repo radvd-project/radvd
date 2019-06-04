@@ -475,7 +475,7 @@ struct Interface *create_iface(const char *iface_name)
 	return iface;
 }
 
-struct AdvPrefix *create_prefix(const char *addr6_str)
+struct AdvPrefix *create_prefix(const struct in6_addr addr6)
 {
 	struct AdvPrefix *prefix = malloc(sizeof(struct AdvPrefix));
 
@@ -486,11 +486,7 @@ struct AdvPrefix *create_prefix(const char *addr6_str)
 
 	prefix_init_defaults(prefix);
 
-	if (!inet_pton(AF_INET6, addr6_str, &prefix->Prefix)) // success!
-	{
-		flog(LOG_CRIT, "inet_pton failed: %s", strerror(errno));
-		return NULL;
-	}
+	prefix->Prefix = addr6;
 
 	prefix->PrefixLen = 64;
 

@@ -1,0 +1,13 @@
+{
+        "interface": {
+                "destructive": false,
+                "name": "iface1",
+                "cdb_name": "cdb_iface1",
+                "prefixes": [
+                        {
+                                "ref": false,
+                                "addr": "cafe:2020:6969:abcd:abcd:6969:2020:cafe"
+                        }
+                ]
+        }
+}

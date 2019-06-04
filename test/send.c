@@ -1,6 +1,8 @@
 
+#include "test/cjson_support.h"
 #include "test/print_safe_buffer.h"
 #include <check.h>
+#include <math.h>
 
 /*
  * http://check.sourceforge.net/doc/check_html/check_3.html
@@ -345,6 +347,150 @@ START_TEST(test_add_ra_option_abro)
 }
 END_TEST
 
+START_TEST(test_json_configure_one_iface_default_without_prefixes)
+{
+	static struct Interface *iface = 0;
+	const double eps = 1e-6;
+	char *msg = load_json_file("test/test_msg_iface_with_default_config.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_str_eq("iface1", iface->props.name);
+	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
+	ck_assert(iface->AdvSendAdvert);
+	ck_assert(fabs(DFLT_MaxRtrAdvInterval - iface->MaxRtrAdvInterval) < eps);
+	ck_assert_int_eq(-1, iface->ra_header_info.AdvDefaultLifetime);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
+START_TEST(test_json_delete_configured_iface)
+{
+	static struct Interface *iface = 0;
+	char *msg = load_json_file("test/test_msg_iface_with_default_config.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	free(msg);
+	msg = load_json_file("test/test_msg_destroy_iface.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_eq(0, iface);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
+START_TEST(test_json_configure_one_iface_without_prefixes)
+{
+	static struct Interface *iface = 0;
+	const double eps = 1e-6;
+	char *msg = load_json_file("test/test_msg_configured_iface.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_str_eq("iface1", iface->props.name);
+	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
+	ck_assert_int_eq(0, iface->AdvSendAdvert);
+	ck_assert(fabs(650.5 - iface->MaxRtrAdvInterval) < eps);
+	ck_assert(fabs(350.5 - iface->MinRtrAdvInterval) < eps);
+	ck_assert_int_eq(1301, iface->ra_header_info.AdvDefaultLifetime);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
+START_TEST(test_json_configure_one_iface_with_one_prefix)
+{
+	static struct Interface *iface = 0;
+	char *msg = load_json_file("test/test_msg_default_iface_with_one_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_str_eq("iface1", iface->props.name);
+	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	char addr_str[INET6_ADDRSTRLEN];
+	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
+	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
+	ck_assert_int_eq(1, prefix->AdvAutonomousFlag);
+	ck_assert_int_eq(1, prefix->AdvOnLinkFlag);
+	ck_assert_int_eq(0, prefix->AdvSendPrefix);
+	ck_assert_int_eq(1, prefix->ref);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
+START_TEST(test_json_delete_configured_prefix)
+{
+	static struct Interface *iface = 0;
+	char *msg = load_json_file("test/test_msg_default_iface_with_one_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_str_eq("iface1", iface->props.name);
+	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	char addr_str[INET6_ADDRSTRLEN];
+	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
+	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
+	ck_assert_int_eq(1, prefix->ref);
+	free(msg);
+	
+	msg = load_json_file("test/test_msg_delete_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_ptr_eq(0, iface->AdvPrefixList);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
+START_TEST(test_json_check_reference_counter)
+{
+	static struct Interface *iface = 0;
+	char *msg = load_json_file("test/test_msg_default_iface_with_one_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	ck_assert_str_eq("iface1", iface->props.name);
+	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
+	
+	iface = process_command(msg, iface);
+	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	char addr_str[INET6_ADDRSTRLEN];
+	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
+	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
+	ck_assert_int_eq(2, prefix->ref);
+	free(msg);
+
+	msg = load_json_file("test/test_msg_delete_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	prefix = iface->AdvPrefixList;
+	ck_assert_ptr_ne(0, prefix);
+	ck_assert_int_eq(1, prefix->ref);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	prefix = iface->AdvPrefixList;
+	ck_assert_ptr_eq(0, prefix);
+	free_ifaces(iface);
+	free(msg);
+}
+END_TEST
+
 Suite *send_suite(void)
 {
 	TCase *tc_update = tcase_create("update");
@@ -362,7 +508,13 @@ Suite *send_suite(void)
 	tcase_add_test(tc_build, test_add_ra_option_sllao);
 	tcase_add_test(tc_build, test_add_ra_option_lowpanco);
 	tcase_add_test(tc_build, test_add_ra_option_abro);
-
+	tcase_add_test(tc_build, test_json_configure_one_iface_default_without_prefixes);
+	tcase_add_test(tc_build, test_json_delete_configured_iface);
+	tcase_add_test(tc_build, test_json_configure_one_iface_without_prefixes);
+	tcase_add_test(tc_build, test_json_configure_one_iface_with_one_prefix);
+	tcase_add_test(tc_build, test_json_delete_configured_prefix);
+	tcase_add_test(tc_build, test_json_check_reference_counter);
+	
 	Suite *s = suite_create("send");
 	suite_add_tcase(s, tc_update);
 	suite_add_tcase(s, tc_build);
