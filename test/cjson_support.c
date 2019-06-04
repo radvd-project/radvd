@@ -19,15 +19,16 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 	char *buffer = strdup(json_message);
 
 	cJSON *cjson_ra_config = NULL;
-	cJSON *cjson_destructive_iface = NULL;
+	cJSON *cjson_action_iface = NULL;
 	cJSON *cjson_interface = NULL;
 	cJSON *cjson_prefix_ref = NULL;
 	cJSON *cjson_prefix = NULL;
 	cJSON *cjson_prefixes = NULL;
 	cJSON *cjson_cdb_name = NULL;
 	cJSON *cjson_prefix_addr = NULL;
-	char *iface_cdb_name;
-	char *addr_str;
+	char *iface_cdb_name = NULL;
+	char *addr_str = NULL;
+	char *action_str = NULL;
 
 	if (!(cjson_ra_config = cJSON_Parse(buffer))) {
 		return ifaces;
@@ -45,18 +46,26 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 		return ifaces;
 	}
 
-	cjson_destructive_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "destructive");
+	cjson_action_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "action");
 
-	if (cjson_destructive_iface) {
-		if (cJSON_IsTrue(cjson_destructive_iface)) {
-			ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
+	if (cjson_action_iface) {
+		if (!(action_str = cJSON_GetStringValue(cjson_action_iface))) {
+			cJSON_Delete(cjson_ra_config);
 			return ifaces;
 		}
+	} else {
+		action_str = "";
+	}
+
+	if (!strcmp(action_str, "DESTROY")) {
+		ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
 	}
 
 	struct Interface *iface = find_iface_by_cdb_name(ifaces, iface_cdb_name);
 
-	if (!iface) {
+	if (!iface && !strcmp(action_str, "CREATE")) {
 		iface = create_iface(iface_cdb_name);
 
 		if (!ifaces) {
@@ -70,11 +79,14 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 		}
 	}
 
+	if (!iface) {
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
+	}
+
 	iface = update_iface(iface, cjson_interface);
 
 	if (!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
-		cJSON_Delete(cjson_ra_config);
-		return ifaces;
 	}
 
 	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes)
@@ -99,12 +111,12 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
 				continue;
 			}
+		} else {
 		}
 
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
 		if (!prefix) {
-			dlog(LOG_DEBUG, 1, "Creating prefix list");
 			prefix = create_prefix(addr6);
 			if (!iface->AdvPrefixList) {
 				iface->AdvPrefixList = prefix;

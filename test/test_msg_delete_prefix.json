@@ -1,6 +1,5 @@
 {
         "interface": {
-                "destructive": false,
                 "name": "iface1",
                 "cdb_name": "cdb_iface1",
                 "prefixes": [

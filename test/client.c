@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	char *data = NULL;
 
 	/* open in read binary mode */
-	f = fopen("message_example.json", "rb");
+	f = fopen(argv[1], "rb");
 	/* get the length */
 	fseek(f, 0, SEEK_END);
 	len = ftell(f);

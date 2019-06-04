@@ -416,6 +416,7 @@ START_TEST(test_json_configure_one_iface_with_one_prefix)
 	ck_assert_str_eq("iface1", iface->props.name);
 	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	ck_assert_ptr_ne(0, prefix);
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
 	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
@@ -439,6 +440,7 @@ START_TEST(test_json_delete_configured_prefix)
 	ck_assert_str_eq("iface1", iface->props.name);
 	ck_assert_str_eq("cdb_iface1", iface->props.cdb_name);
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	ck_assert_ptr_ne(0, prefix);
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
 	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
@@ -468,6 +470,7 @@ START_TEST(test_json_check_reference_counter)
 	
 	iface = process_command(msg, iface);
 	struct AdvPrefix *prefix = iface->AdvPrefixList;
+	ck_assert_ptr_ne(0, prefix);
 	char addr_str[INET6_ADDRSTRLEN];
 	addrtostr(&prefix->Prefix, addr_str, sizeof(addr_str));
 	ck_assert_str_eq("cafe:2020:6969:abcd::", addr_str);
