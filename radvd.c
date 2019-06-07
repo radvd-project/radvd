@@ -99,7 +99,7 @@ static void kickoff_adverts(int sock, struct Interface *iface);
 static void reset_prefix_lifetimes(struct Interface *ifaces);
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void setup_iface_foo(struct Interface *iface, void *data);
-static void setup_ifaces(int sock, struct Interface *ifaces);
+// static void setup_ifaces(int sock, struct Interface *ifaces);
 static void sighup_handler(int sig);
 static void sigint_handler(int sig);
 static void sigterm_handler(int sig);
@@ -588,10 +588,6 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 				flog(LOG_WARNING, "socket error on fds[2].fd");
 			} else if (fds[2].revents & POLLIN) {
 				ifaces = process_command(fds[2].fd, ifaces);
-				if (ifaces) {
-					setup_ifaces(sock, ifaces);
-					flog(LOG_INFO, "resuming normal operation");
-				}
 			}
 
 		} else if (rc == 0) {
@@ -823,7 +819,7 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 	kickoff_adverts(sock, iface);
 }
 
-static void setup_ifaces(int sock, struct Interface *ifaces) { for_each_iface(ifaces, setup_iface_foo, &sock); }
+// static void setup_ifaces(int sock, struct Interface *ifaces) { for_each_iface(ifaces, setup_iface_foo, &sock); }
 
 /*
  * Brief cJSON messages are used for communication to update configurations.
@@ -956,87 +952,102 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 	}
 	buffer[rc] = '\0';
 	cJSON *cjson_ra_config = NULL;
-	cJSON *cjson_destructive_iface = NULL;
+	cJSON *cjson_action_iface = NULL;
 	cJSON *cjson_interface = NULL;
 	cJSON *cjson_prefix_ref = NULL;
 	cJSON *cjson_prefix = NULL;
 	cJSON *cjson_prefixes = NULL;
 	cJSON *cjson_cdb_name = NULL;
 	cJSON *cjson_prefix_addr = NULL;
-	char *iface_cdb_name;
-	char *addr_str;
+	char *iface_cdb_name = NULL;
+	char *addr_str = NULL;
+	char *action_str = NULL;
 
 	if (!(cjson_ra_config = cJSON_Parse(buffer))) {
-		dlog(LOG_DEBUG, 1, "cJSON Parsing error");
+		dlog(LOG_DEBUG, 3, "cJSON Parsing error");
 		return ifaces;
 	}
 	if (!(cjson_interface = cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "interface"))) {
-		dlog(LOG_DEBUG, 1, "cJSON interface error");
+		dlog(LOG_DEBUG, 3, "cJSON interface error");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
 	if (!(cjson_cdb_name = cJSON_GetObjectItemCaseSensitive(cjson_interface, "cdb_name"))) {
-		dlog(LOG_DEBUG, 1, "cJSON interface cdb_name error");
+		dlog(LOG_DEBUG, 3, "cJSON interface cdb_name error");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
 	if (!(iface_cdb_name = cJSON_GetStringValue(cjson_cdb_name))) {
-		dlog(LOG_DEBUG, 1, "cJSON interface cdb_name is not a string");
+		dlog(LOG_DEBUG, 3, "cJSON interface cdb_name is not a string");
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
 	}
 
-	cjson_destructive_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "destructive");
+	cjson_action_iface = cJSON_GetObjectItemCaseSensitive(cjson_interface, "action");
 
-	if (cjson_destructive_iface) {
-		if (cJSON_IsTrue(cjson_destructive_iface)) {
-			dlog(LOG_DEBUG, 1, "cJSON destroying interface");
-			ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
+	if (cjson_action_iface) {
+		if (!(action_str = cJSON_GetStringValue(cjson_action_iface))) {
+			flog(LOG_WARNING, "cJSON action is set but not configured, continuing");
+			cJSON_Delete(cjson_ra_config);
 			return ifaces;
 		}
+	} else {
+		action_str = "";
+	}
+
+	if (!strcmp(action_str, "DESTROY")) {
+		dlog(LOG_DEBUG, 3, "cJSON deleting interface");
+		ifaces = delete_iface_by_cdb_name(ifaces, iface_cdb_name);
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
 	}
 
 	struct Interface *iface = find_iface_by_cdb_name(ifaces, iface_cdb_name);
 
-	if (!iface) {
-		dlog(LOG_DEBUG, 1, "Creating iface %s", iface_cdb_name);
+	if (!iface && !strcmp(action_str, "CREATE")) {
+		dlog(LOG_DEBUG, 3, "Creating iface %s", iface_cdb_name);
 		iface = create_iface(iface_cdb_name);
 
 		if (!ifaces) {
-			dlog(LOG_DEBUG, 1, "Creating ifaces list");
+			dlog(LOG_DEBUG, 3, "Creating ifaces list");
 			ifaces = iface;
 		} else {
 			struct Interface *current = ifaces;
 			while (current->next) {
 				current = current->next;
 			}
-			dlog(LOG_DEBUG, 1, "Inserting iface in ifaces linked list");
+			dlog(LOG_DEBUG, 3, "Inserting iface in ifaces linked list");
 			current->next = iface;
 		}
+	}
+
+	if (!iface) {
+		dlog(LOG_DEBUG, 3, "Nothing to do on ifaces linked list, continuing");
+		cJSON_Delete(cjson_ra_config);
+		return ifaces;
 	}
 
 	iface = update_iface(iface, cjson_interface);
 
 	if (!(cjson_prefixes = cJSON_GetObjectItemCaseSensitive(cjson_interface, "prefixes"))) {
-		dlog(LOG_DEBUG, 1, "cJSON no prefixes set");
+		dlog(LOG_DEBUG, 3, "cJSON no prefixes set");
 	}
 
 	cJSON_ArrayForEach(cjson_prefix, cjson_prefixes)
 	{
-
 		if (!(cjson_prefix_addr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "addr"))) {
-			dlog(LOG_DEBUG, 1, "cJSON prefix addr error");
+			dlog(LOG_DEBUG, 4, "cJSON prefix addr error");
 			continue;
 		}
 		if (!(addr_str = cJSON_GetStringValue(cjson_prefix_addr))) {
-			dlog(LOG_DEBUG, 1, "cJSON prefix addr is not set");
+			dlog(LOG_DEBUG, 4, "cJSON prefix addr is not set");
 			continue;
 		}
 
 		struct in6_addr addr6;
 
 		if (!inet_pton(AF_INET6, addr_str, &addr6)) {
-			dlog(LOG_DEBUG, 1, "Invalid IPV6 prefix");
+			dlog(LOG_DEBUG, 4, "Invalid IPV6 prefix");
 			continue;
 		}
 
@@ -1047,23 +1058,23 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 				continue;
 			}
 		} else {
-			dlog(LOG_DEBUG, 1, "cJSON prefix ref counter is not set");
+			dlog(LOG_DEBUG, 4, "cJSON prefix ref counter is not set");
 		}
 
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
 		if (!prefix) {
-			dlog(LOG_DEBUG, 1, "Creating prefix list");
+			dlog(LOG_DEBUG, 3, "Creating prefix list");
 			prefix = create_prefix(addr6);
 			if (!iface->AdvPrefixList) {
-				dlog(LOG_DEBUG, 1, "Creating ifaces list");
+				dlog(LOG_DEBUG, 3, "Creating ifaces list");
 				iface->AdvPrefixList = prefix;
 			} else {
 				struct AdvPrefix *current = iface->AdvPrefixList;
 				while (current->next) {
 					current = current->next;
 				}
-				dlog(LOG_DEBUG, 1, "Inserting iface in ifaces linked list");
+				dlog(LOG_DEBUG, 3, "Inserting iface in ifaces linked list");
 				current->next = prefix;
 			}
 		}
@@ -1072,8 +1083,13 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			prefix->ref++;
 			char addr_str[INET6_ADDRSTRLEN];
 			addrtostr(&addr6, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 1, "Prefix %s reference counter: %d", addr_str, prefix->ref);
+			dlog(LOG_DEBUG, 5, "Prefix %s reference counter: %d", addr_str, prefix->ref);
 		}
+	}
+
+	if (iface && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "reload"))) {
+		setup_iface_foo(iface, &sock);
+		flog(LOG_INFO, "iface %s was setup", iface_cdb_name);
 	}
 
 	cJSON_Delete(cjson_ra_config);

@@ -1,6 +1,6 @@
 {
         "interface": {
-                "destructive": true,
+            "action": "DESTROY",
                 "cdb_name": "cdb_iface1"
         }
 }

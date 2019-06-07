@@ -1,0 +1,6 @@
+{
+    "interface": {
+            "cdb_name": "cdb_iface1",
+            "reload": true
+    }
+}

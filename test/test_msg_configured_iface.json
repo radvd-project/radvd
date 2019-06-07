@@ -1,6 +1,6 @@
 {
         "interface": {
-                "destructive": false,
+                "action": "CREATE",
                 "name": "iface1",
                 "cdb_name": "cdb_iface1",
                 "adv_send_advert": false,

@@ -1,6 +1,6 @@
 {
         "interface": {
-                "destructive": false,
+                "action": "CREATE",
                 "name": "wlp1",
                 "cdb_name": "cdb_wlp1",
                 "adv_send_advert": true,
