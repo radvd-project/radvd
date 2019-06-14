@@ -967,6 +967,13 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 		dlog(LOG_DEBUG, 3, "cJSON Parsing error");
 		return ifaces;
 	}
+	if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "flush"))) {
+		if (ifaces) {
+			free_ifaces(ifaces);
+		}
+		cJSON_Delete(cjson_ra_config);
+		return NULL;
+	}
 	if (!(cjson_interface = cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "interface"))) {
 		dlog(LOG_DEBUG, 3, "cJSON interface error");
 		cJSON_Delete(cjson_ra_config);

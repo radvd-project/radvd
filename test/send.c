@@ -494,6 +494,22 @@ START_TEST(test_json_check_reference_counter)
 }
 END_TEST
 
+START_TEST(test_json_msg_flush_ifaces)
+{
+	static struct Interface *iface = 0;
+	char *msg = load_json_file("test/test_msg_default_iface_with_one_prefix.json");
+	ck_assert_ptr_ne(0, msg);
+	
+	iface = process_command(msg, iface);
+	ck_assert_ptr_ne(0, iface);
+	msg = load_json_file("test/test_msg_flush_ifaces.json");
+	iface = process_command(msg, iface);
+	ck_assert_ptr_eq(0, iface);
+
+	free(msg);
+}
+END_TEST
+
 Suite *send_suite(void)
 {
 	TCase *tc_update = tcase_create("update");
@@ -517,6 +533,7 @@ Suite *send_suite(void)
 	tcase_add_test(tc_build, test_json_configure_one_iface_with_one_prefix);
 	tcase_add_test(tc_build, test_json_delete_configured_prefix);
 	tcase_add_test(tc_build, test_json_check_reference_counter);
+	tcase_add_test(tc_build, test_json_msg_flush_ifaces);
 	
 	Suite *s = suite_create("send");
 	suite_add_tcase(s, tc_update);

@@ -33,6 +33,13 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 	if (!(cjson_ra_config = cJSON_Parse(buffer))) {
 		return ifaces;
 	}
+	if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "flush"))) {
+		if (ifaces) {
+			free_ifaces(ifaces);
+		}
+		cJSON_Delete(cjson_ra_config);
+		return NULL;
+	}
 	if (!(cjson_interface = cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "interface"))) {
 		cJSON_Delete(cjson_ra_config);
 		return ifaces;
