@@ -542,13 +542,13 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 			tsp = &ts;
 
 			if (next_iface_to_expire->props.name[0] != '\0') {
-				dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
+				dlog(LOG_DEBUG, 2, "polling for %g second(s), next iface is %s", timeout / 1000.0,
 				     next_iface_to_expire->props.name);
 			}
-			dlog(LOG_DEBUG, 1, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
+			dlog(LOG_DEBUG, 2, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
 			     next_iface_to_expire->props.cdb_name);
 		} else {
-			dlog(LOG_DEBUG, 1, "no iface is next. Polling indefinitely");
+			dlog(LOG_DEBUG, 2, "no iface is next. Polling indefinitely");
 		}
 #ifdef HAVE_PPOLL
 		int rc = ppoll(fds, sizeof(fds) / sizeof(fds[0]), tsp, &sigempty);
@@ -736,7 +736,7 @@ static void check_pid_file(char const *daemon_pid_file_ident)
 
 static void timer_handler(int sock, struct Interface *iface)
 {
-	dlog(LOG_DEBUG, 1, "timer_handler called for %s", iface->props.name);
+	dlog(LOG_DEBUG, 2, "timer_handler called for %s", iface->props.name);
 
 	if (send_ra_forall(sock, iface, NULL) != 0) {
 		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->props.name);
