@@ -542,13 +542,13 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 			tsp = &ts;
 
 			if (next_iface_to_expire->props.name[0] != '\0') {
-				dlog(LOG_DEBUG, 1, "polling for %g second(s), next iface is %s", timeout / 1000.0,
+				dlog(LOG_DEBUG, 2, "polling for %g second(s), next iface is %s", timeout / 1000.0,
 				     next_iface_to_expire->props.name);
 			}
-			dlog(LOG_DEBUG, 1, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
+			dlog(LOG_DEBUG, 2, "polling for %g second(s), next cdb_iface is %s", timeout / 1000.0,
 			     next_iface_to_expire->props.cdb_name);
 		} else {
-			dlog(LOG_DEBUG, 1, "no iface is next. Polling indefinitely");
+			dlog(LOG_DEBUG, 2, "no iface is next. Polling indefinitely");
 		}
 #ifdef HAVE_PPOLL
 		int rc = ppoll(fds, sizeof(fds) / sizeof(fds[0]), tsp, &sigempty);
@@ -736,7 +736,7 @@ static void check_pid_file(char const *daemon_pid_file_ident)
 
 static void timer_handler(int sock, struct Interface *iface)
 {
-	dlog(LOG_DEBUG, 1, "timer_handler called for %s", iface->props.name);
+	dlog(LOG_DEBUG, 2, "timer_handler called for %s", iface->props.name);
 
 	if (send_ra_forall(sock, iface, NULL) != 0) {
 		dlog(LOG_DEBUG, 4, "send_ra_forall failed on interface %s", iface->props.name);
@@ -1012,7 +1012,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 	struct Interface *iface = find_iface_by_cdb_name(ifaces, iface_cdb_name);
 
 	if (!iface && !strcmp(action_str, "CREATE")) {
-		dlog(LOG_DEBUG, 3, "Creating iface %s", iface_cdb_name);
+		dlog(LOG_DEBUG, 1, "Creating iface %s", iface_cdb_name);
 		iface = create_iface(iface_cdb_name);
 
 		if (!ifaces) {
@@ -1058,11 +1058,12 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			continue;
 		}
 
+		int is_delete = 0;
 		apply_64_netmask(&addr6);
 		if ((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref"))) {
 			if (cJSON_IsFalse(cjson_prefix_ref)) {
 				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
-				continue;
+				is_delete = 1;
 			}
 		} else {
 			dlog(LOG_DEBUG, 4, "cJSON prefix ref counter is not set");
@@ -1071,17 +1072,19 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
 		if (!prefix) {
-			dlog(LOG_DEBUG, 3, "Creating prefix list");
+			if (is_delete) {
+				continue;
+			}
 			prefix = create_prefix(addr6);
 			if (!iface->AdvPrefixList) {
-				dlog(LOG_DEBUG, 3, "Creating ifaces list");
+				dlog(LOG_DEBUG, 1, "Creating prefix list");
 				iface->AdvPrefixList = prefix;
 			} else {
 				struct AdvPrefix *current = iface->AdvPrefixList;
 				while (current->next) {
 					current = current->next;
 				}
-				dlog(LOG_DEBUG, 3, "Inserting iface in ifaces linked list");
+				dlog(LOG_DEBUG, 1, "Inserting prefix in prefix linked list");
 				current->next = prefix;
 			}
 		}
@@ -1090,7 +1093,7 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 			prefix->ref++;
 			char addr_str[INET6_ADDRSTRLEN];
 			addrtostr(&addr6, addr_str, sizeof(addr_str));
-			dlog(LOG_DEBUG, 5, "Prefix %s reference counter: %d", addr_str, prefix->ref);
+			dlog(LOG_DEBUG, 1, "Prefix %s reference counter: %d", addr_str, prefix->ref);
 		}
 	}
 

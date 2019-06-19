@@ -525,7 +525,7 @@ struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface)
 	cJSON *cjson_ptr;
 
 	if (iface == NULL) {
-		dlog(LOG_DEBUG, 4, "Cannot update null iface");
+		dlog(LOG_DEBUG, 1, "Cannot update null iface");
 		return NULL;
 	}
 
@@ -533,33 +533,33 @@ struct Interface *update_iface(struct Interface *iface, cJSON *cjson_iface)
 		const char *iface_name = cJSON_GetStringValue(cjson_ptr);
 		strncpy(iface->props.name, iface_name, IFNAMSIZ);
 		iface->props.name[IFNAMSIZ - 1] = '\0';
-		dlog(LOG_DEBUG, 4, "cJSON name %s", iface->props.name);
+		dlog(LOG_DEBUG, 1, "cJSON name %s", iface->props.name);
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "max_rtr_interval"))) {
 		if (cJSON_IsNumber(cjson_ptr)) {
 			iface->MaxRtrAdvInterval = cjson_ptr->valuedouble;
-			dlog(LOG_DEBUG, 4, "cJSON max_rtr_interval %lf", iface->MaxRtrAdvInterval);
+			dlog(LOG_DEBUG, 1, "cJSON max_rtr_interval %lf", iface->MaxRtrAdvInterval);
 		}
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "min_rtr_interval"))) {
 		if (cJSON_IsNumber(cjson_ptr)) {
 			iface->MinRtrAdvInterval = cjson_ptr->valuedouble;
-			dlog(LOG_DEBUG, 4, "cJSON min_rtr_interval %lf", iface->MinRtrAdvInterval);
+			dlog(LOG_DEBUG, 1, "cJSON min_rtr_interval %lf", iface->MinRtrAdvInterval);
 		}
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "adv_default_lifetime"))) {
 		if (cJSON_IsNumber(cjson_ptr)) {
 			iface->ra_header_info.AdvDefaultLifetime = cjson_ptr->valueint;
-			dlog(LOG_DEBUG, 4, "cJSON adv_default_lifetime %d", iface->ra_header_info.AdvDefaultLifetime);
+			dlog(LOG_DEBUG, 1, "cJSON adv_default_lifetime %d", iface->ra_header_info.AdvDefaultLifetime);
 		}
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_iface, "adv_send_advert"))) {
 		iface->AdvSendAdvert = cJSON_IsTrue(cjson_ptr);
-		dlog(LOG_DEBUG, 4, "cJSON adv_send_advert %d", iface->AdvSendAdvert);
+		dlog(LOG_DEBUG, 1, "cJSON adv_send_advert %d", iface->AdvSendAdvert);
 	}
 
 	return iface;
@@ -571,17 +571,17 @@ struct AdvPrefix *update_iface_prefix(struct AdvPrefix *prefix, cJSON *cjson_pre
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_autonomous"))) {
 		prefix->AdvAutonomousFlag = cJSON_IsTrue(cjson_ptr);
-		dlog(LOG_DEBUG, 4, "cJSON adv_autonomous %d", prefix->AdvAutonomousFlag);
+		dlog(LOG_DEBUG, 1, "cJSON adv_autonomous %d", prefix->AdvAutonomousFlag);
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_on_link"))) {
 		prefix->AdvOnLinkFlag = cJSON_IsTrue(cjson_ptr);
-		dlog(LOG_DEBUG, 4, "cJSON adv_on_link %d", prefix->AdvOnLinkFlag);
+		dlog(LOG_DEBUG, 1, "cJSON adv_on_link %d", prefix->AdvOnLinkFlag);
 	}
 
 	if ((cjson_ptr = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "adv_send_prefix"))) {
 		prefix->AdvSendPrefix = cJSON_IsTrue(cjson_ptr);
-		dlog(LOG_DEBUG, 4, "cJSON adv_send_prefix %d", prefix->AdvSendPrefix);
+		dlog(LOG_DEBUG, 1, "cJSON adv_send_prefix %d", prefix->AdvSendPrefix);
 	}
 
 	return prefix;
@@ -599,7 +599,7 @@ struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char 
 			} else {
 				ifaces = current->next;
 			}
-			dlog(LOG_DEBUG, 5, "iface found, deleting");
+			dlog(LOG_DEBUG, 1, "iface found, deleting");
 			free(current);
 			return ifaces;
 		}
@@ -607,7 +607,7 @@ struct Interface *delete_iface_by_cdb_name(struct Interface *ifaces, const char 
 		current = current->next;
 	}
 
-	dlog(LOG_DEBUG, 5, "no iface to delete");
+	dlog(LOG_DEBUG, 1, "no iface to delete");
 	return ifaces;
 }
 
@@ -623,7 +623,7 @@ struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, con
 				flog(LOG_WARNING, "Prefix reference counter is negative");
 			}
 
-			dlog(LOG_DEBUG, 5, "Decreasing prefix reference counter: %d", current->ref);
+			dlog(LOG_DEBUG, 1, "Decreasing prefix reference counter: %d", current->ref);
 
 			if (current->ref == 0) {
 				if (previous) {
@@ -635,7 +635,7 @@ struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, con
 				char addr_str[INET6_ADDRSTRLEN];
 				addrtostr(&addr6, addr_str, sizeof(addr_str));
 				
-				dlog(LOG_DEBUG, 5, "Deleting prefix %s", addr_str);
+				dlog(LOG_DEBUG, 1, "Deleting prefix %s", addr_str);
 				free(current);
 			}
 			return prefix_list;
@@ -643,6 +643,6 @@ struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, con
 		previous = current;
 		current = current->next;
 	}
-	dlog(LOG_DEBUG, 4, "prefix not found");
+	dlog(LOG_DEBUG, 1, "prefix not found");
 	return prefix_list;
 }
