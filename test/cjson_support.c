@@ -14,6 +14,12 @@ void apply_64_netmask(struct in6_addr *addr6)
 	}
 }
 
+/*
+ * This function may have the same behavior of process_command
+ * implemented on radvd.c, the difference between them is that this one
+ * loads the configuration from a JSON file and the other one reads 
+ * the message from socket.
+ */
 struct Interface *process_command(char *json_message, struct Interface *ifaces)
 {
 	char *buffer = strdup(json_message);
@@ -112,11 +118,12 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 			continue;
 		}
 
+		int is_delete = 0;
 		apply_64_netmask(&addr6);
 		if ((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref"))) {
 			if (cJSON_IsFalse(cjson_prefix_ref)) {
 				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
-				continue;
+				is_delete = 1;
 			}
 		} else {
 		}
@@ -124,6 +131,9 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
 		if (!prefix) {
+			if (is_delete) {
+				continue;
+			}
 			prefix = create_prefix(addr6);
 			if (!iface->AdvPrefixList) {
 				iface->AdvPrefixList = prefix;
