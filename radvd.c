@@ -90,7 +90,7 @@ static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
 static pid_t daemonp(char const *daemon_pid_file_ident);
 static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
 static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path);
-static struct Interface *process_command(int sock, struct Interface *ifaces);
+static struct Interface *process_command(int command_sock, int ifaces_sock, struct Interface *ifaces);
 // static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void apply_64_netmask(struct in6_addr *addr6);
 static void check_pid_file(char const *daemon_pid_file_ident);
@@ -587,7 +587,7 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 			if (fds[2].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 				flog(LOG_WARNING, "socket error on fds[2].fd");
 			} else if (fds[2].revents & POLLIN) {
-				ifaces = process_command(fds[2].fd, ifaces);
+				ifaces = process_command(fds[2].fd, sock, ifaces);
 			}
 
 		} else if (rc == 0) {
@@ -942,10 +942,10 @@ static int drop_root_privileges(const char *username)
 // 	return 0;
 // }
 
-static struct Interface *process_command(int sock, struct Interface *ifaces)
+static struct Interface *process_command(int command_sock, int ifaces_sock, struct Interface *ifaces)
 {
 	char buffer[4096];
-	ssize_t rc = recv(sock, buffer, 4096, MSG_WAITALL);
+	ssize_t rc = recv(command_sock, buffer, 4096, MSG_WAITALL);
 	if (rc < 0) {
 		flog(LOG_ERR, "Error on recv %s", strerror(errno));
 		return ifaces;
@@ -1097,9 +1097,9 @@ static struct Interface *process_command(int sock, struct Interface *ifaces)
 		}
 	}
 
-	if (iface && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_ra_config, "reload"))) {
-		setup_iface_foo(iface, &sock);
-		flog(LOG_INFO, "iface %s was setup", iface_cdb_name);
+	if (iface && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_interface, "reload"))) {
+		setup_iface_foo(iface, &ifaces_sock);
+		dlog(LOG_DEBUG, 1, "iface %s was reloaded", iface_cdb_name);
 	}
 
 	cJSON_Delete(cjson_ra_config);
