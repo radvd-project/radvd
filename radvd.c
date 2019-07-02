@@ -1058,43 +1058,43 @@ static struct Interface *process_command(int command_sock, int ifaces_sock, stru
 			continue;
 		}
 
-		int is_delete = 0;
 		apply_64_netmask(&addr6);
-		if ((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref"))) {
-			if (cJSON_IsFalse(cjson_prefix_ref)) {
-				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
-				is_delete = 1;
-			}
-		} else {
-			dlog(LOG_DEBUG, 4, "cJSON prefix ref counter is not set");
-		}
 
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
-		if (!prefix) {
-			if (is_delete) {
-				continue;
-			}
-			prefix = create_prefix(addr6);
-			if (!iface->AdvPrefixList) {
-				dlog(LOG_DEBUG, 1, "Creating prefix list");
-				iface->AdvPrefixList = prefix;
-			} else {
-				struct AdvPrefix *current = iface->AdvPrefixList;
-				while (current->next) {
-					current = current->next;
+		if (((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref")) &&
+			 cJSON_IsNumber(cjson_prefix_ref))) {
+			dlog(LOG_DEBUG, 4, "cJSON prefix ref %d", cjson_prefix_ref->valueint);
+			if (!prefix) {
+				prefix = create_prefix(addr6);
+				if (!iface->AdvPrefixList) {
+					dlog(LOG_DEBUG, 1, "Creating prefix list");
+					iface->AdvPrefixList = prefix;
+				} else {
+					struct AdvPrefix *current = iface->AdvPrefixList;
+					while (current->next) {
+						current = current->next;
+					}
+					dlog(LOG_DEBUG, 1, "Inserting prefix in prefix linked list");
+					current->next = prefix;
 				}
-				dlog(LOG_DEBUG, 1, "Inserting prefix in prefix linked list");
-				current->next = prefix;
 			}
-		}
-		prefix = update_iface_prefix(prefix, cjson_prefix);
-		if (cJSON_IsTrue(cjson_prefix_ref)) {
-			prefix->ref++;
+			prefix->ref += cjson_prefix_ref->valueint;
 			char addr_str[INET6_ADDRSTRLEN];
 			addrtostr(&addr6, addr_str, sizeof(addr_str));
 			dlog(LOG_DEBUG, 1, "Prefix %s reference counter: %d", addr_str, prefix->ref);
+
+			if (prefix->ref == 0) {
+				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
+				continue;
+			}
+		} else {
+			dlog(LOG_DEBUG, 4, "cJSON prefix ref is not set");
+			if (!prefix) {
+				continue;
+			}
 		}
+		prefix = update_iface_prefix(prefix, cjson_prefix);
 	}
 
 	if (iface && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(cjson_interface, "reload"))) {

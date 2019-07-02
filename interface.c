@@ -618,26 +618,15 @@ struct AdvPrefix *delete_iface_prefix_by_addr(struct AdvPrefix *prefix_list, con
 
 	while (current) {
 		if (ipv6_addr_equal(&current->Prefix, &addr6)) {
-			current->ref--;
-			if (current->ref < 0) {
-				flog(LOG_WARNING, "Prefix reference counter is negative");
+			if (previous) {
+				previous->next = current->next;
+			} else {
+				prefix_list = current->next;
 			}
-
-			dlog(LOG_DEBUG, 1, "Decreasing prefix reference counter: %d", current->ref);
-
-			if (current->ref == 0) {
-				if (previous) {
-					previous->next = current->next;
-				} else {
-					prefix_list = current->next;
-				}
-				
-				char addr_str[INET6_ADDRSTRLEN];
-				addrtostr(&addr6, addr_str, sizeof(addr_str));
-				
-				dlog(LOG_DEBUG, 1, "Deleting prefix %s", addr_str);
-				free(current);
-			}
+			char addr_str[INET6_ADDRSTRLEN];
+			addrtostr(&addr6, addr_str, sizeof(addr_str));
+			dlog(LOG_DEBUG, 1, "Deleting prefix %s", addr_str);
+			free(current);
 			return prefix_list;
 		}
 		previous = current;

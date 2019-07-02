@@ -9,28 +9,28 @@
                 "adv_default_lifetime": 1301,
                 "prefixes": [
                         {
-                                "ref": true,
+                                "ref": 1,
                                 "addr": "cafe::",
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
                                 "adv_send_prefix": true
                         },
                         {
-                                "ref": false,
+                                "ref": 1,
                                 "addr": "2020::",
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
                                 "adv_send_prefix": true
                         },
                         {
-                                "ref": true,
+                                "ref": 3,
                                 "addr": "abcd::",
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
                                 "adv_send_prefix": false
                         },
                         {
-                                "ref": true,
+                                "ref": 4,
                                 "addr": "cafe:2020:6969:abcd:abcd:6969:2020:cafe",
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
