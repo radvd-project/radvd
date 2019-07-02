@@ -118,39 +118,38 @@ struct Interface *process_command(char *json_message, struct Interface *ifaces)
 			continue;
 		}
 
-		int is_delete = 0;
 		apply_64_netmask(&addr6);
-		if ((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref"))) {
-			if (cJSON_IsFalse(cjson_prefix_ref)) {
-				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
-				is_delete = 1;
-			}
-		} else {
-		}
 
 		struct AdvPrefix *prefix = find_prefix_by_addr(iface->AdvPrefixList, addr6);
 
-		if (!prefix) {
-			if (is_delete) {
+		if (((cjson_prefix_ref = cJSON_GetObjectItemCaseSensitive(cjson_prefix, "ref")) &&
+			 cJSON_IsNumber(cjson_prefix_ref))) {
+			if (!prefix) {
+				prefix = create_prefix(addr6);
+				if (!iface->AdvPrefixList) {
+					iface->AdvPrefixList = prefix;
+				} else {
+					struct AdvPrefix *current = iface->AdvPrefixList;
+					while (current->next) {
+						current = current->next;
+					}
+					current->next = prefix;
+				}
+			}
+			prefix->ref += cjson_prefix_ref->valueint;
+			char addr_str[INET6_ADDRSTRLEN];
+			addrtostr(&addr6, addr_str, sizeof(addr_str));
+
+			if (prefix->ref == 0) {
+				iface->AdvPrefixList = delete_iface_prefix_by_addr(iface->AdvPrefixList, addr6);
 				continue;
 			}
-			prefix = create_prefix(addr6);
-			if (!iface->AdvPrefixList) {
-				iface->AdvPrefixList = prefix;
-			} else {
-				struct AdvPrefix *current = iface->AdvPrefixList;
-				while (current->next) {
-					current = current->next;
-				}
-				current->next = prefix;
+		} else {
+			if (!prefix) {
+				continue;
 			}
 		}
 		prefix = update_iface_prefix(prefix, cjson_prefix);
-		if (cJSON_IsTrue(cjson_prefix_ref)) {
-			prefix->ref++;
-			char addr_str[INET6_ADDRSTRLEN];
-			addrtostr(&addr6, addr_str, sizeof(addr_str));
-		}
 	}
 
 	cJSON_Delete(cjson_ra_config);

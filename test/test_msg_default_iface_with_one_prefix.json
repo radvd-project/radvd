@@ -5,7 +5,7 @@
                 "cdb_name": "cdb_iface1",
                 "prefixes": [
                         {
-                                "ref": true,
+                                "ref": 1,
                                 "addr": "cafe:2020:6969:abcd:abcd:6969:2020:cafe",
                                 "adv_autonomous": true,
                                 "adv_on_link": true,
