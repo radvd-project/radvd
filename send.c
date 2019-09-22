@@ -289,7 +289,12 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 
 		if (strncmp(ifa->ifa_name, ifname, IFNAMSIZ))
 			continue;
-
+		
+		if (ifa->ifa_addr == NULL) {
+			flog(LOG_WARNING, "ifa_addr == NULL for dev %s !? Ignoring in add_auto_prefixes", ifname);
+			continue;
+                }
+		
 		if (ifa->ifa_addr->sa_family != AF_INET6)
 			continue;
 
