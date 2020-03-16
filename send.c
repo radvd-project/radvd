@@ -227,12 +227,7 @@ static void add_ra_option_prefix(struct safe_buffer *sb, struct AdvPrefix const 
 	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
 
 	if (cease_adv && prefix->DeprecatePrefixFlag) {
-		/* RFC4862, 5.5.3, step e) */
-		if (prefix->curr_validlft < MIN_AdvValidLifetime) {
-			pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);
-		} else {
-			pinfo.nd_opt_pi_valid_time = htonl(MIN_AdvValidLifetime);
-		}
+		pinfo.nd_opt_pi_valid_time = 0;
 		pinfo.nd_opt_pi_preferred_time = 0;
 	} else {
 		pinfo.nd_opt_pi_valid_time = htonl(prefix->curr_validlft);

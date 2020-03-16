@@ -79,6 +79,9 @@ int setup_iface(int sock, struct Interface *iface)
 		return -1;
 	}
 
+	/* Set config-dependent defaults */
+	update_config_dependent_defaults(iface);
+
 	/* Make sure the settings in the config file for this interface are ok (this depends
 	 * on iface->max_mtu already being set). */
 	if (check_iface(iface) < 0) {
@@ -149,6 +152,31 @@ void dnssl_init_defaults(struct AdvDNSSL *dnssl, struct Interface *iface)
 
 	dnssl->AdvDNSSLLifetime = DFLT_AdvDNSSLLifetime(iface);
 	dnssl->FlushDNSSLFlag = DFLT_FlushDNSSLFlag;
+}
+
+
+void update_config_dependent_defaults(struct Interface *iface)
+{
+	struct AdvPrefix *prefix;
+
+	prefix = iface->AdvPrefixList;
+
+	/* AdvPreferredLifetime should default to the Router Lifetime. If prefix defaults were not
+	   changed from the default value, set the Preferred Lifetime to the Router Lifetime, and
+	   the Valid Lifetime to 48 * Preferred Lifetime */
+	while (prefix) {
+		if (prefix->AdvPreferredLifetime == DFLT_AdvPreferredLifetime && 
+		    prefix->AdvValidLifetime == DFLT_AdvValidLifetime && 
+		    iface->ra_header_info.AdvDefaultLifetime != DFLT_AdvPreferredLifetime)
+		{
+			prefix->AdvPreferredLifetime = iface->ra_header_info.AdvDefaultLifetime;
+			prefix->AdvValidLifetime = DFLT_PreferredLifetimeMult * prefix->AdvPreferredLifetime;
+			prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
+			prefix->curr_validlft = prefix->AdvValidLifetime;
+		}
+
+		prefix = prefix->next;
+	}
 }
 
 int check_iface(struct Interface *iface)

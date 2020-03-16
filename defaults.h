@@ -55,9 +55,10 @@
 
 /* Each prefix has an associated: */
 
-#define DFLT_AdvValidLifetime 86400 /* seconds */
+#define DFLT_AdvPreferredLifetime 1800 /* seconds */
+#define DFLT_PreferredLifetimeMult 48
+#define DFLT_AdvValidLifetime (DFLT_AdvPreferredLifetime * DFLT_PreferredLifetimeMult) /* seconds */
 #define DFLT_AdvOnLinkFlag 1
-#define DFLT_AdvPreferredLifetime 14400 /* seconds */
 #define DFLT_AdvAutonomousFlag 1
 #define DFLT_DeprecatePrefixFlag 0
 #define DFLT_DecrementLifetimesFlag 0
@@ -134,7 +135,6 @@
 #define MAX_PrefixLen 128
 
 /* SLAAC (RFC4862) Constants and Derived Values */
-#define MIN_AdvValidLifetime 7200 /* 2 hours in secs */
 
 /*
  * Mobile IPv6 extensions, off by default

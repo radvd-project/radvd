@@ -300,6 +300,7 @@ struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
+void update_config_dependent_defaults(struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);
 void iface_init_defaults(struct Interface *);

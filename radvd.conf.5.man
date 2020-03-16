@@ -13,7 +13,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "4 Jan 2011" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "16 March 2020" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd
@@ -433,13 +433,14 @@ determination.  The symbolic value
 represents infinity (i.e. a value of all one bits (0xffffffff)).
 The valid lifetime is also used by RFC 4862.
 
-Note that clients will ignore AdvValidLifetime of an existing prefix
+Note that legacy clients will ignore AdvValidLifetime of an existing prefix
 if the lifetime is below two hours, as required in RFC 4862 Section 5.5.3
 point e).
 
 Note: RFC4861's suggested default value is significantly longer: 30 days.
+Please see IETF I-D draft-gont-6man-slaac-renum.
 
-Default: 86400 seconds (1 day)
+Default: 48 * AdvDefaultLifetime seconds (typically 1 day)
 
 .TP
 .BR "AdvPreferredLifetime " seconds "" | infinity
@@ -453,8 +454,9 @@ represents infinity (i.e. a value of all one bits (0xffffffff)).
 See RFC 4862.
 
 Note: RFC4861's suggested default value is significantly longer: 7 days.
+Please see IETF I-D draft-gont-6man-slaac-renum.
 
-Default: 14400 seconds (4 hours)
+Default: AdvDefaultLifetime seconds (typically 30 minutes)
 
 .TP
 .BR DeprecatePrefix " " on | off
