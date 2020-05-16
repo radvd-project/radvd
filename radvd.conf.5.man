@@ -109,6 +109,8 @@ The definitions are of the form:
 .B };
 .fi
 
+Clients can be prefixed with "!" to ignore them completely and never send advertisements to them.
+
 By default radvd will use the first link-local address for the interface as the
 source address for route advertisements. This can be overwritten by manually
 setting the list of acceptable source addresses. If done, radvd will use the

@@ -100,6 +100,15 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 		if (dest != NULL && memcmp(dest, &current->Address, sizeof(struct in6_addr)) != 0)
 			continue;
 
+		/* Clients that should be ignored */
+		if (current->ignored) {
+			/* Don't allow fallback to UnrestrictedUnicast for direct queries */
+			if (dest != NULL)
+				return 0;
+
+			continue;
+		}
+
 		send_ra(sock, iface, &(current->Address));
 
 		/* If we should only send the RA to a specific address, we are done */
