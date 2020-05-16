@@ -110,6 +110,11 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 	if (dest == NULL)
 		return 0;
 
+	/* Reply with advertisement to unlisted clients */
+	if (iface->UnrestrictedUnicast) {
+		return send_ra(sock, iface, dest);
+	}
+
 	/* If we refused a client's solicitation, log it if debugging is high enough */
 	if (get_debuglevel() >= 5) {
 		char address_text[INET6_ADDRSTRLEN] = {""};

@@ -92,6 +92,7 @@
 %token		T_Base6Interface
 %token		T_Base6to4Interface
 %token		T_UnicastOnly
+%token		T_UnrestrictedUnicast
 %token		T_AdvRASolicitedUnicast
 
 %token		T_HomeAgentPreference
@@ -332,6 +333,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_UnicastOnly SWITCH ';'
 		{
 			iface->UnicastOnly = $2;
+		}
+		| T_UnrestrictedUnicast SWITCH ';'
+		{
+			iface->UnrestrictedUnicast = $2;
 		}
 		| T_AdvRASolicitedUnicast SWITCH ';'
 		{

@@ -79,6 +79,7 @@ AdvHomeAgentFlag	{ return T_AdvHomeAgentFlag; }
 AdvIntervalOpt		{ return T_AdvIntervalOpt; }
 AdvHomeAgentInfo	{ return T_AdvHomeAgentInfo; }
 UnicastOnly		{ return T_UnicastOnly; }
+UnrestrictedUnicast	{ return T_UnrestrictedUnicast; }
 AdvRASolicitedUnicast	{ return T_AdvRASolicitedUnicast; }
 
 Base6Interface		{ return T_Base6Interface; }

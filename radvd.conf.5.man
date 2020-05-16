@@ -96,7 +96,8 @@ DNSSL (DNS Search List) definitions are of the form:
 By default radvd will send multicast route advertisements so that every node on the link can use them.
 The list of clients (IPv6 address) to advertise to, and accept route solicitations from can be configured.
 If done, radvd does not send send messages to the multicast addresses but
-to the configured unicast addresses only.  Solicitations from other addresses are refused.
+to the configured unicast addresses only.  Solicitations from other addresses are refused unless
+UnrestrictedUnicast is enabled.
 This is similar to UnicastOnly but includes periodic messages and incoming client access
 configuration.  See examples section for a use case of this.
 
@@ -169,6 +170,18 @@ This will prevent unsolicited advertisements from being sent, and
 will cause solicited advertisements to be unicast to the
 soliciting node.  This option is necessary for non-broadcast,
 multiple-access links, such as ISATAP.
+
+Default: off
+
+.TP
+.BR UnrestrictedUnicast " " on | off
+
+A flag indicating whether or not to respond to router
+solicitations when there is a list of clients configured.
+
+This allows regular unsolicited advertisements to be sent
+to some clients without ignoring router solicitations from
+unknown clients.
 
 Default: off
 
