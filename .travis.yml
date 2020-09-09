@@ -1,3 +1,7 @@
+arch:
+  - amd64
+  - ppc64le
+
 language: c
 
 os:
@@ -14,6 +18,7 @@ addons:
   apt:
     packages:
       - check
+      - make
   homebrew:
     packages:
       - check
@@ -21,7 +26,12 @@ addons:
 script:
   - cd "$TRAVIS_BUILD_DIR"
   - ./autogen.sh
-  - ./configure --with-check
+  - |
+    if [[ "$TRAVIS_CPU_ARCH" == "ppc64le" ]]; then
+      ./configure --with-check --without-stack-protector
+    else
+      ./configure --with-check  
+    fi
   - make -j
   - make check
   - make dist-xz
