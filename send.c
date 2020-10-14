@@ -16,6 +16,7 @@
 #include "config.h"
 #include "includes.h"
 #include "radvd.h"
+#include "netlink.h"
 
 static int really_send(int sock, struct in6_addr const *dest, struct properties const *props, struct safe_buffer const *sb);
 static int send_ra(int sock, struct Interface *iface, struct in6_addr const *dest);
@@ -27,6 +28,7 @@ static void update_iface_times(struct Interface *iface);
 
 // Option helpers
 static size_t serialize_domain_names(struct safe_buffer *safe_buffer, struct AdvDNSSL const *dnssl);
+static int get_prefix_lifetimes(struct AdvPrefix const *prefix, unsigned int *valid_lft, unsigned int *preferred_lft);
 
 // Options that only need a single block
 static void add_ra_header(struct safe_buffer *sb, struct ra_header_info const *ra_header_info, int cease_adv);
@@ -246,6 +248,21 @@ static void add_ra_option_prefix(struct safe_buffer *sb, struct AdvPrefix const 
 	safe_buffer_append(sb, &pinfo, sizeof(pinfo));
 }
 
+static int get_prefix_lifetimes (struct AdvPrefix const *prefix, unsigned int *valid_lft, unsigned int *preferred_lft) {
+	unsigned int preferred = 0;
+	unsigned int valid = 0;
+	int ret = 0;
+
+#ifdef HAVE_NETLINK
+	/* Retrieve valid and current lifetimes of the prefix */
+	ret = netlink_get_address_lifetimes (prefix, &preferred, &valid);
+#endif
+
+	*valid_lft = valid;
+	*preferred_lft = preferred;
+	return ret;
+}
+
 static struct safe_buffer_list *add_auto_prefixes_6to4(struct safe_buffer_list *sbl, struct Interface const *iface,
 						       char const *ifname, struct AdvPrefix const *prefix, int cease_adv,
 						       struct in6_addr const *dest)
@@ -253,6 +270,9 @@ static struct safe_buffer_list *add_auto_prefixes_6to4(struct safe_buffer_list *
 #ifdef HAVE_IFADDRS_H
 	struct AdvPrefix xprefix = *prefix;
 	unsigned int dst;
+	unsigned int preferred = 0;
+	unsigned int valid = 0;
+
 	if (get_v4addr(prefix->if6to4, &dst) < 0) {
 		flog(LOG_ERR, "Base6to4interface %s has no IPv4 addresses", prefix->if6to4);
 	} else {
@@ -264,9 +284,13 @@ static struct safe_buffer_list *add_auto_prefixes_6to4(struct safe_buffer_list *
 		addrtostr(&xprefix.Prefix, pfx_str, sizeof(pfx_str));
 		dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s", pfx_str, xprefix.PrefixLen, ifname);
 
-		/* TODO: Something must be done with these. */
-		(void)xprefix.curr_validlft;
-		(void)xprefix.curr_preferredlft;
+		/* Retrieve valid and current lifetimes of the prefix */
+		int ret = get_prefix_lifetimes (&xprefix, &valid, &preferred);
+
+		if (ret && valid < xprefix.curr_validlft && preferred < xprefix.curr_preferredlft) {
+			xprefix.curr_validlft = valid;
+			xprefix.curr_preferredlft = preferred;
+		}
 
 		if (cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
 			sbl = safe_buffer_list_append(sbl);
@@ -283,6 +307,8 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 #ifdef HAVE_IFADDRS_H
 	struct AdvPrefix xprefix;
 	struct ifaddrs *ifap = 0, *ifa = 0;
+	unsigned int preferred = 0;
+	unsigned int valid = 0;
 
 	if (getifaddrs(&ifap) != 0)
 		flog(LOG_ERR, "getifaddrs failed: %s", strerror(errno));
@@ -314,9 +340,12 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 		addrtostr(&xprefix.Prefix, pfx_str, sizeof(pfx_str));
 		dlog(LOG_DEBUG, 3, "auto-selected prefix %s/%d on interface %s", pfx_str, xprefix.PrefixLen, ifname);
 
-		/* TODO: Something must be done with these. */
-		(void)xprefix.curr_validlft;
-		(void)xprefix.curr_preferredlft;
+		/* Retrieve valid and current lifetimes of the prefix */
+		int ret = get_prefix_lifetimes (&xprefix, &valid, &preferred);
+		if (ret && valid < xprefix.curr_validlft && preferred < xprefix.curr_preferredlft) {
+			xprefix.curr_validlft = valid;
+			xprefix.curr_preferredlft = preferred;
+		}
 
 		if (cease_adv || schedule_option_prefix(dest, iface, &xprefix)) {
 			sbl = safe_buffer_list_append(sbl);
@@ -353,7 +382,19 @@ static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *s
 			} else {
 				if (cease_adv || schedule_option_prefix(dest, iface, prefix)) {
 					sbl = safe_buffer_list_append(sbl);
-					add_ra_option_prefix(sbl->sb, prefix, cease_adv);
+
+					/** We want to get the lowest value out of the configured lifetime (from /etc/radvd.conf) and the maximum lifetime on
+					 *  any address that is part of that prefix in the kernel to avoid advertising a prefix that might expire too soon */
+					unsigned int valid;
+					unsigned int preferred;
+					struct AdvPrefix xprefix = *prefix;
+
+					int ret = get_prefix_lifetimes (&xprefix, &valid, &preferred);
+					if (ret && valid < xprefix.curr_validlft && preferred < xprefix.curr_preferredlft) {
+						xprefix.curr_validlft = valid;
+						xprefix.curr_preferredlft = preferred;
+					}
+					add_ra_option_prefix(sbl->sb, &xprefix, cease_adv);
 				}
 			}
 		}
