@@ -1,15 +1,34 @@
+# Generated files
+gram.c
+gram.dot
+gram.h
 libradvd-parser.a
+radvd
+radvd.8
+radvd.conf.5
+radvdump
+radvdump.8
+redhat/radvd.spec
+redhat/systemd/radvd.spec
+redhat/SysV/radvd.spec
+scanner.c
+scanner.h
+
+# Coverage
 cov
 coverage.info
 *.gcda
 *.gcno
 tags
+
+# Build artifacts
 .deps
 *.o
-Makefile
-Makefile.in
+
+# autotools files
 aclocal.m4
 autom4te.cache/
+compile
 config.guess
 config.h
 config.h.in
@@ -18,19 +37,14 @@ config.status
 config.sub
 configure
 depcomp
-gram.c
-gram.h
-gram.dot
 install-sh
+Makefile
+Makefile.in
 missing
-radvd
-radvd.8
-radvd.conf.5
-radvdump
-radvdump.8
-redhat/radvd.spec
-scanner.c
-scanner.h
 stamp-h1
+test-driver
 ylwrap
+
+# Editor droppings
+*~
 *.swp
