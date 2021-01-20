@@ -147,30 +147,36 @@ indent:
 	clang-format -i *.c *.h test/*.c test/*.h
 
 EXTRA_DIST = \
+	autogen.sh \
 	CHANGES \
+	.clang-format \
+	contrib/95-radvd-gen \
+	contrib/unset_addrs.sh \
 	COPYRIGHT \
-	INTRO.html \
 	copyright.blurb \
+	.gitignore \
+	INTRO.html \
 	radvd.8.man \
 	radvd.conf.5.man \
 	radvd.conf.example \
 	radvd.service.in \
 	radvdump.8.man \
-	redhat/SysV/radvd-tmpfs.conf \
+	redhat/systemd/radvd.service \
+	redhat/systemd/radvd.spec \
+	redhat/systemd/radvd-tmpfs.conf \
 	redhat/SysV/radvd.conf.empty \
 	redhat/SysV/radvd.init \
 	redhat/SysV/radvd.spec \
 	redhat/SysV/radvd.sysconfig \
-	redhat/systemd/radvd-tmpfs.conf \
-	redhat/systemd/radvd.service \
-	redhat/systemd/radvd.spec \
+	redhat/SysV/radvd-tmpfs.conf \
 	test/check.c \
 	test/print_safe_buffer.c \
 	test/print_safe_buffer.h \
 	test/send.c \
 	test/test1.conf \
 	test/test_rdnss.conf \
-	test/util.c
+	test/util.c \
+	.travis.yml
 
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
 HASHES = sha1 sha256 sha512
