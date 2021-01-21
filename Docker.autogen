@@ -1,0 +1,10 @@
+FROM ubuntu:18.04
+RUN apt-get update && \
+	apt-get install -qy \
+		autoconf \
+		automake \
+		gettext \
+		libtool \
+		pkg-config
+VOLUME /workdir
+ENTRYPOINT cd /workdir && /bin/sh autogen.sh && ./configure -C && make distclean

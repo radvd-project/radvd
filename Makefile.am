@@ -147,6 +147,7 @@ indent:
 	clang-format -i *.c *.h test/*.c test/*.h
 
 EXTRA_DIST = \
+	autogen-container.sh \
 	autogen.sh \
 	CHANGES \
 	.clang-format \
@@ -154,6 +155,7 @@ EXTRA_DIST = \
 	contrib/unset_addrs.sh \
 	COPYRIGHT \
 	copyright.blurb \
+	Docker.autogen \
 	.gitignore \
 	INTRO.html \
 	radvd.8.man \
