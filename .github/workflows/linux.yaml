@@ -15,6 +15,11 @@ jobs:
         env:
           CC: ${{ matrix.compiler }}
         run: |
+          sudo apt update
+          sudo apt install check
           ./autogen.sh
-          ./configure
-          make
+          ./configure --with-check
+          make -j
+          make check
+          make dist-xz
+          sudo make install
