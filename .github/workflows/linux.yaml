@@ -1,0 +1,17 @@
+name: Linux
+on: [push, pull_request]
+
+jobs:
+  ubuntu_18_04:
+    name: Ubuntu 18.04
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          pwd
+          ls -lah
+          ./autogen.sh
+          ./configure
+          make
