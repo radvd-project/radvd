@@ -93,6 +93,7 @@
 %token		T_Base6to4Interface
 %token		T_UnicastOnly
 %token		T_AdvRASolicitedUnicast
+%token		T_AdvCaptivePortalAPI
 
 %token		T_HomeAgentPreference
 %token		T_HomeAgentLifetime
@@ -336,6 +337,40 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_AdvRASolicitedUnicast SWITCH ';'
 		{
 			iface->AdvRASolicitedUnicast = $2;
+		}
+		| T_AdvCaptivePortalAPI STRING ';'
+		{
+			const char *source = $2;
+			size_t len = strlen(source);
+
+			if (iface->AdvCaptivePortalAPI) {
+				flog(LOG_WARNING, "warning: AdvCaptivePortalAPI specified twice for interface "
+					"%s in %s, line %d", iface->props.name, filename, num_lines);
+
+				free(iface->AdvCaptivePortalAPI);
+				iface->AdvCaptivePortalAPI = NULL;
+			}
+
+			/* trim double-quotes from start and end of string */
+			if ((len > 0) && (source[0] == '"')) {
+				source++;
+				len--;
+			}
+			if ((len > 0) && (source[len-1] == '"')) {
+				len--;
+			}
+
+			if (len <= 0) {
+				flog(LOG_ERR, "AdvCaptivePortalAPI empty URL specified for interface %s.", iface->props.name);
+				ABORT;
+			}
+
+			iface->AdvCaptivePortalAPI = strndup(source, len);
+
+			if (!iface->AdvCaptivePortalAPI) {
+				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
 		}
 		| T_AdvMobRtrSupportFlag SWITCH ';'
 		{

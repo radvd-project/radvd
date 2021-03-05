@@ -60,6 +60,7 @@ struct Interface {
 	int AdvSourceLLAddress;
 	int UnicastOnly;
 	int AdvRASolicitedUnicast;
+	char *AdvCaptivePortalAPI;
 	struct Clients *ClientList;
 
 	struct state_info {

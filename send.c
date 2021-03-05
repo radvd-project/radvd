@@ -37,6 +37,7 @@ static void add_ra_option_mipv6_rtr_adv_interval(struct safe_buffer *sb, double 
 static void add_ra_option_mipv6_home_agent_info(struct safe_buffer *sb, struct mipv6 const *mipv6);
 static void add_ra_option_lowpanco(struct safe_buffer *sb, struct AdvLowpanCo const *lowpanco);
 static void add_ra_option_abro(struct safe_buffer *sb, struct AdvAbro const *abroo);
+static void add_ra_option_capport(struct safe_buffer *sb, const char *captive_portal);
 
 // Options that generate 0 or more blocks
 static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
@@ -61,6 +62,7 @@ static int schedule_option_mipv6_rtr_adv_interval(struct in6_addr const *dest, s
 static int schedule_option_mipv6_home_agent_info(struct in6_addr const *dest, struct Interface const *iface);
 static int schedule_option_lowpanco(struct in6_addr const *dest, struct Interface const *iface);
 static int schedule_option_abro(struct in6_addr const *dest, struct Interface const *iface);
+static int schedule_option_capport(struct in6_addr const *dest, struct Interface const *iface);
 
 #ifdef UNIT_TEST
 #include "test/send.c"
@@ -648,6 +650,20 @@ static void add_ra_option_abro(struct safe_buffer *sb, struct AdvAbro const *abr
 	safe_buffer_append(sb, &abro, sizeof(abro));
 }
 
+static void add_ra_option_capport(struct safe_buffer *sb, const char *captive_portal)
+{
+	/* +2 for the ND_OPT_CAPTIVE_PORTAL and the length (each occupy one byte) */
+	size_t const capport_strlen = strlen(captive_portal);
+	size_t const capport_bytes = capport_strlen + 2;
+	size_t const capport_len = (capport_bytes + 7) / 8;
+
+	uint8_t buff[2] = {ND_OPT_CAPTIVE_PORTAL, (uint8_t)capport_len};
+	safe_buffer_append(sb, buff, sizeof(buff));
+
+	safe_buffer_append(sb, captive_portal, capport_strlen);
+	safe_buffer_pad(sb, (capport_len * 8) - capport_bytes);
+}
+
 static struct safe_buffer_list *build_ra_options(struct Interface const *iface, struct in6_addr const *dest)
 {
 	struct safe_buffer_list *sbl = new_safe_buffer_list();
@@ -706,6 +722,12 @@ static struct safe_buffer_list *build_ra_options(struct Interface const *iface, 
 		cur->next = new_safe_buffer_list();
 		cur = cur->next;
 		add_ra_option_abro(cur->sb, iface->AdvAbroList);
+	}
+
+	if (iface->AdvCaptivePortalAPI != NULL && schedule_option_capport(dest, iface)) {
+		cur->next = new_safe_buffer_list();
+		cur = cur->next;
+		add_ra_option_capport(cur->sb, iface->AdvCaptivePortalAPI);
 	}
 
 	// Return the root of the list
@@ -904,6 +926,11 @@ static int schedule_option_lowpanco(struct in6_addr const *dest, struct Interfac
 static int schedule_option_abro(struct in6_addr const *dest, struct Interface const *iface)
 {
 	return schedule_helper(dest, iface, iface->AdvAbroList->ValidLifeTime);
+}
+
+static int schedule_option_capport(struct in6_addr const *dest, struct Interface const *iface)
+{
+	return schedule_helper(dest, iface, iface->ra_header_info.AdvDefaultLifetime);
 }
 
 static int schedule_helper(struct in6_addr const *dest, struct Interface const *iface, int option_lifetime)

@@ -222,6 +222,12 @@ struct nd_opt_dnssl_info_local {
 #endif
 #endif
 
+/* Captive Portal RFC 8910 */
+
+#ifndef ND_OPT_CAPTIVE_PORTAL
+#define ND_OPT_CAPTIVE_PORTAL 37
+#endif
+
 /* Configurable values */
 
 #define DFLT_HomeAgentPreference 0
