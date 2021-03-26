@@ -391,6 +391,19 @@ the advertised interval is ( MaxRtrAdvInterval + 20ms ).
 
 Default: off
 
+.TP
+.BR AdvCaptivePortalAPI " " \[dq] URL \[dq]
+
+When set, advertise RFC8908 Captive-Portal API URL.
+
+See RFC8952 Captive Portal Architecture, RFC8910 Captive-Portal
+Identification in DHCP and Router Advertisements (RAs) and
+RFC8908 Captive Portal API for more information.
+
+Most likely you do not need this.
+
+Default: not included
+
 .SH PREFIX SPECIFIC OPTIONS
 
 .TP

@@ -244,6 +244,15 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 				printf("\tHomeAgentLifetime %hu;\n", ntohs(ha_info->lifetime));
 			break;
 		}
+		case ND_OPT_CAPTIVE_PORTAL: {
+			char *opt_captive_portal = (char *)opt_str+2;
+			char *captive_portal = strndup(opt_captive_portal, optlen-2);
+
+			printf("\tAdvCaptivePortalAPI \"%s\";\n", captive_portal);
+
+			free(captive_portal);
+			break;
+		}
 		case ND_OPT_TARGET_LINKADDR:
 		case ND_OPT_REDIRECTED_HEADER:
 			flog(LOG_ERR, "invalid option %d in RA", (int)*opt_str);

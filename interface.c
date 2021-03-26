@@ -429,6 +429,8 @@ static void free_iface_list(struct Interface *iface)
 
 		free(iface->props.if_addrs);
 
+		free(iface->AdvCaptivePortalAPI);
+
 		free(iface);
 		iface = next_iface;
 	}
