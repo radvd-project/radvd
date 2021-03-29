@@ -1,0 +1,18 @@
+name: Linux
+on: [push, pull_request]
+
+jobs:
+  linux:
+    strategy:
+      matrix:
+        ubuntu_version: [ubuntu-18.04, ubuntu-20.04]
+        compiler: [clang, gcc]
+    runs-on: ${{ matrix.ubuntu_version }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          test/test_build.sh ubuntu
