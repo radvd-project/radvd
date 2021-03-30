@@ -2,7 +2,22 @@ name: Linux
 on: [push, pull_request]
 
 jobs:
-  linux:
+  alpine:
+    strategy:
+      matrix:
+        compiler: [clang, gcc]
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          test/test_build.sh alpine
+
+  ubuntu:
     strategy:
       matrix:
         ubuntu_version: [ubuntu-18.04, ubuntu-20.04]
