@@ -1,0 +1,47 @@
+name: Buildroot
+on: [push, pull_request]
+
+jobs:
+  buildroot:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        defconfig_name: [qemu_x86_defconfig, qemu_x86_64_defconfig, raspberrypi4_defconfig, raspberrypi4_64_defconfig, qemu_ppc64le_pseries_defconfig, qemu_mips32r2_malta_defconfig, qemu_mips64_malta_defconfig]
+        libc_name: [glibc, uclibc, musl]
+    steps:
+      - name: Checkout Buildroot sources
+        # Builroot 2021.02 is the first stable version to natively support radvd 2.19, this avoids a lot of package modifications
+        run: git clone --depth=1 --branch=2021.02 https://git.busybox.net/buildroot
+      - name: Select latest radvd development version
+        working-directory: buildroot/package/radvd
+        run: |
+          # Do not check for package hash, so there is no need to compute it
+          rm radvd.hash
+          # Get package sources from head of master branch
+          sed -i "/RADVD_VERSION =/c\\RADVD_VERSION = ${GITHUB_SHA}" radvd.mk
+          sed -i '/RADVD_SITE =/c\\RADVD_SITE = https://github.com/radvd-project/radvd' radvd.mk
+          sed -i '9iRADVD_SITE_METHOD = git' radvd.mk
+          # Autotools "configure" script is missing, tell Buildroot to generate it before building
+          sed -i '18iRADVD_AUTORECONF = YES' radvd.mk
+      - name: Enable radvd build
+        working-directory: buildroot
+        run: |
+          echo "BR2_PACKAGE_RADVD=y" >> configs/${{ matrix.defconfig_name }}
+      - name: Select glibc
+        if: ${{ matrix.libc_name == 'glibc' }}
+        working-directory: buildroot
+        run: echo "BR2_TOOLCHAIN_BUILDROOT_GLIBC=y" >> configs/${{ matrix.defconfig_name }}
+      - name: Select uClibc
+        if: ${{ matrix.libc_name == 'uclibc' }}
+        working-directory: buildroot
+        run: echo "BR2_TOOLCHAIN_BUILDROOT_UCLIBC=y" >> configs/${{ matrix.defconfig_name }}
+      - name: Select musl
+        if: ${{ matrix.libc_name == 'musl' }}
+        working-directory: buildroot
+        run: echo "BR2_TOOLCHAIN_BUILDROOT_MUSL=y" >> configs/${{ matrix.defconfig_name }}
+      - name: Configure Buildroot
+        working-directory: buildroot
+        run: make ${{ matrix.defconfig_name }}
+      - name: Build
+        working-directory: buildroot
+        run: make
