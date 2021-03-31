@@ -126,7 +126,18 @@ ret:
 	return -1;
 }
 
-int setup_allrouters_membership(int sock, struct Interface *iface) { return 0; }
+int setup_allrouters_membership(int sock, struct Interface *iface)
+{
+	return 0;
+
+	/* Qouting:
+	https://github.com/radvd-project/radvd/issues/145#issuecomment-810466476
+
+	OK, it will be up to FreeBSD guys to show up
+	if they want to upstream their patches.
+
+	*/
+}
 
 int set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
