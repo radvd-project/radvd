@@ -32,6 +32,21 @@ jobs:
         run: |
           test/test_build.sh fedora
 
+  opensuse:
+    strategy:
+      matrix:
+        compiler: [clang, gcc]
+    runs-on: ubuntu-latest
+    container: opensuse/leap:latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1 # Action checkout@v2 triggers an error about non existing "tar" command
+      - name: Build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          test/test_build.sh opensuse
+
   ubuntu:
     strategy:
       matrix:
