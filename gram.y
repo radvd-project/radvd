@@ -707,17 +707,6 @@ rdnssparms	: T_AdvRDNSSPreference NUMBER ';'
 		}
 		| T_AdvRDNSSLifetime number_or_infinity ';'
 		{
-			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "warning: AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster");
-			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
-				flog(LOG_ERR, "AdvRDNSSLifetime must be at least MaxRtrAdvInterval");
-				rdnss->AdvRDNSSLifetime = iface->MaxRtrAdvInterval;
-			} else {
-				rdnss->AdvRDNSSLifetime = $2;
-			}
-			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "warning: (%s:%d) AdvRDNSSLifetime <= 2*MaxRtrAdvInterval would allow stale DNS servers to be deleted faster", filename, num_lines);
-
 			rdnss->AdvRDNSSLifetime = $2;
 		}
 		| T_FlushRDNSS SWITCH ';'
@@ -799,14 +788,7 @@ dnsslplist	: dnsslplist dnsslparms
 
 dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 		{
-			if ($2 > 2*(iface->MaxRtrAdvInterval))
-				flog(LOG_WARNING, "warning: AdvDNSSLLifetime <= 2*MaxRtrAdvInterval would allow stale DNS suffixes to be deleted faster");
-			if ($2 < iface->MaxRtrAdvInterval && $2 != 0) {
-				flog(LOG_ERR, "AdvDNSSLLifetime must be at least MaxRtrAdvInterval");
-				dnssl->AdvDNSSLLifetime = iface->MaxRtrAdvInterval;
-			} else {
-				dnssl->AdvDNSSLLifetime = $2;
-			}
+			dnssl->AdvDNSSLLifetime = $2;
 
 		}
 		| T_FlushDNSSL SWITCH ';'

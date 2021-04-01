@@ -68,12 +68,30 @@
 #define DFLT_AdvRoutePreference 0 /* medium */
 #define DFLT_RemoveRouteFlag 1
 
-/* RDNSS */
-#define DFLT_AdvRDNSSLifetime(iface) (iface)->MaxRtrAdvInterval
+/* RDNSS
+ * https://tools.ietf.org/html/rfc8106#section-5.1
+ * "The value of Lifetime SHOULD by default be at least 3 * MaxRtrAdvInterval"
+ * RFC8106 does NOT specify bounds
+ *
+ * Note: RFC6106 handled this differently:
+ * https://tools.ietf.org/html/rfc6106#section-5.1
+ * Specifies bounds of MaxRtrAdvInterval <= Lifetime <= 2*MaxRtrAdvInterval
+ * but does NOT specify a default value
+ */
+#define DFLT_AdvRDNSSLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
 #define DFLT_FlushRDNSSFlag 1
 
-/* DNSSL */
-#define DFLT_AdvDNSSLLifetime(iface) (iface)->MaxRtrAdvInterval
+/* DNSSL
+ * https://tools.ietf.org/html/rfc8106#section-5.2
+ * "Lifetime SHOULD by default be at least 3 * MaxRtrAdvInterval"
+ * RFC8106 does NOT specify bounds
+ *
+ * Note: RFC6106 handled this differently:
+ * https://tools.ietf.org/html/rfc6106#section-5.2
+ * Specifies bounds of MaxRtrAdvInterval <= Lifetime <= 2*MaxRtrAdvInterval
+ * but does NOT specify a default value
+ */
+#define DFLT_AdvDNSSLLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
 #define DFLT_FlushDNSSLFlag 1
 
 /* Protocol (RFC4861) constants: */
