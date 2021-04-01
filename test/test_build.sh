@@ -10,6 +10,7 @@ then
 	echo "'build-distro-name' is the Linux distribution name your are building radvd on."
 	echo "Currently supported distributions are:"
 	echo "  alpine"
+	echo "  fedora"
 	echo "  ubuntu"
 fi
 
@@ -18,7 +19,10 @@ echo "Installing required dependencies for distribution '${1}'..."
 case $1 in
 	alpine)
 		apk update
-		apk add alpine-sdk autoconf automake bison check-dev clang flex gettext git libtool linux-headers sudo xz
+		apk add alpine-sdk autoconf automake bison check-dev clang flex gettext libtool linux-headers sudo xz
+		;;
+	fedora)
+		sudo dnf install -y autoconf automake bison check-devel clang flex gettext libtool make pkgconfig xz
 		;;
 	ubuntu)
 		sudo apt update
