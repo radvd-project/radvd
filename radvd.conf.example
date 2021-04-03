@@ -127,7 +127,7 @@ interface lo
 # RFC8908 Captive Portal API for more information.
 #
 
-	# AdvCaptivePortal "https://portal.example.net/api/capport.json";
+	# AdvCaptivePortalAPI "https://portal.example.net/api/capport.json";
 
 };
 
