@@ -47,6 +47,7 @@
 #define DFLT_AdvDefaultPreference 0
 #define DFLT_AdvRAMTU RFC2460_MIN_MTU
 #define DFLT_UnicastOnly 0
+#define DFLT_UnrestrictedUnicast 0
 #define DFLT_AdvRASolicitedUnicast 1
 
 /* Options sent with RA */

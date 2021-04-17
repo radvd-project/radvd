@@ -59,6 +59,7 @@
 %token	<dec>	DECIMAL
 %token	<num>	SWITCH
 %token	<addr>	IPV6ADDR
+%token	<addr>	NOT_IPV6ADDR
 %token 		INFINITY
 
 %token		T_IgnoreIfMissing
@@ -92,6 +93,7 @@
 %token		T_Base6Interface
 %token		T_Base6to4Interface
 %token		T_UnicastOnly
+%token		T_UnrestrictedUnicast
 %token		T_AdvRASolicitedUnicast
 %token		T_AdvCaptivePortalAPI
 
@@ -334,6 +336,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		{
 			iface->UnicastOnly = $2;
 		}
+		| T_UnrestrictedUnicast SWITCH ';'
+		{
+			iface->UnrestrictedUnicast = $2;
+		}
 		| T_AdvRASolicitedUnicast SWITCH ';'
 		{
 			iface->AdvRASolicitedUnicast = $2;
@@ -393,6 +399,19 @@ v6addrlist_clients	: IPV6ADDR ';'
 			}
 
 			memcpy(&(new->Address), $1, sizeof(struct in6_addr));
+			new->ignored = 0;
+			$$ = new;
+		}
+		| NOT_IPV6ADDR ';'
+		{
+			struct Clients *new = calloc(1, sizeof(struct Clients));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Address), $1, sizeof(struct in6_addr));
+			new->ignored = 1;
 			$$ = new;
 		}
 		| v6addrlist_clients IPV6ADDR ';'
@@ -404,6 +423,20 @@ v6addrlist_clients	: IPV6ADDR ';'
 			}
 
 			memcpy(&(new->Address), $2, sizeof(struct in6_addr));
+			new->ignored = 0;
+			new->next = $1;
+			$$ = new;
+		}
+		| v6addrlist_clients NOT_IPV6ADDR ';'
+		{
+			struct Clients *new = calloc(1, sizeof(struct Clients));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Address), $2, sizeof(struct in6_addr));
+			new->ignored = 1;
 			new->next = $1;
 			$$ = new;
 		}

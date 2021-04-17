@@ -59,6 +59,7 @@ struct Interface {
 	double MinDelayBetweenRAs;
 	int AdvSourceLLAddress;
 	int UnicastOnly;
+	int UnrestrictedUnicast;
 	int AdvRASolicitedUnicast;
 	char *AdvCaptivePortalAPI;
 	struct Clients *ClientList;
@@ -134,6 +135,7 @@ struct Interface {
 
 struct Clients {
 	struct in6_addr Address;
+	int ignored;
 	struct Clients *next;
 };
 

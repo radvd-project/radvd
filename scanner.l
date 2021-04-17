@@ -34,6 +34,7 @@ addr1		{hexdigit}{1,4}":"({hexdigit}{1,4}":")*(":"{hexdigit}{1,4})+
 addr2		{hexdigit}{1,4}(":"{hexdigit}{1,4})*"::"
 addr3		({hexdigit}{1,4}":"){7}{hexdigit}{1,4}
 addr		({addr1}|{addr2}|{addr3}|"::")
+naddr		("!"{addr})
 whitespace	([ \t])+
 string		[a-zA-Z0-9`~!@#$%\^&*()_\-+=:\[\]<>,\.?\\]+|L?\"(\\.|[^\\"])*\"
 %%
@@ -79,6 +80,7 @@ AdvHomeAgentFlag	{ return T_AdvHomeAgentFlag; }
 AdvIntervalOpt		{ return T_AdvIntervalOpt; }
 AdvHomeAgentInfo	{ return T_AdvHomeAgentInfo; }
 UnicastOnly		{ return T_UnicastOnly; }
+UnrestrictedUnicast	{ return T_UnrestrictedUnicast; }
 AdvRASolicitedUnicast	{ return T_AdvRASolicitedUnicast; }
 AdvCaptivePortalAPI	{ return T_AdvCaptivePortalAPI; }
 
@@ -123,6 +125,16 @@ Adv6LBRaddress		{ return T_Adv6LBRaddress; }
 
 			yylval.addr = &addr;
 			return IPV6ADDR;
+		}
+
+{naddr}		{
+			static struct in6_addr addr;
+			if (inet_pton(AF_INET6, &yytext[1], &addr) < 1) {
+				return T_BAD_TOKEN;
+			}
+
+			yylval.addr = &addr;
+			return NOT_IPV6ADDR;
 		}
 
 {number}	{
