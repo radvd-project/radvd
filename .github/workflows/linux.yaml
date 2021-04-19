@@ -17,6 +17,21 @@ jobs:
         run: |
           test/test_build.sh alpine
 
+  debian:
+    strategy:
+      matrix:
+        compiler: [clang, gcc]
+    runs-on: ubuntu-latest
+    container: debian:stable
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          test/test_build.sh debian
+
   fedora:
     strategy:
       matrix:
