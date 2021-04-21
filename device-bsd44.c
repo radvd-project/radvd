@@ -130,7 +130,7 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 {
 	return 0;
 
-	/* Qouting:
+	/* Quoting:
 	https://github.com/radvd-project/radvd/issues/145#issuecomment-810466476
 
 	OK, it will be up to FreeBSD guys to show up
