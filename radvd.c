@@ -514,10 +514,10 @@ static struct Interface * main_loop(int sock, struct Interface *ifaces, char con
 
 		if (rc > 0) {
 #ifdef HAVE_NETLINK
-			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-				flog(LOG_WARNING, "socket error on fds[1].fd");
-			} else if (fds[1].revents & POLLIN) {
+			if (fds[1].revents & POLLIN) {
 				process_netlink_msg(fds[1].fd, ifaces);
+			} else if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				flog(LOG_WARNING, "socket error on fds[1].fd");
 			}
 #endif
 
