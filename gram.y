@@ -77,6 +77,7 @@
 %token		T_AdvDefaultLifetime
 %token		T_AdvDefaultPreference
 %token		T_AdvSourceLLAddress
+%token		T_RemoveAdvOnExit
 
 %token		T_AdvOnLink
 %token		T_AdvAutonomous
@@ -307,6 +308,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_AdvCurHopLimit NUMBER ';'
 		{
 			iface->ra_header_info.AdvCurHopLimit = $2;
+		}
+		| T_RemoveAdvOnExit SWITCH ';'
+		{
+			iface->RemoveAdvOnExit = $2;
 		}
 		| T_AdvSourceLLAddress SWITCH ';'
 		{

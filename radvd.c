@@ -741,7 +741,7 @@ static void kickoff_adverts(int sock, struct Interface *iface)
 
 static void stop_advert_foo(struct Interface *iface, void *data)
 {
-	if (!iface->UnicastOnly) {
+	if (!iface->UnicastOnly && !iface->RemoveAdvOnExit) {
 		/* send a final advertisement with zero Router Lifetime */
 		dlog(LOG_DEBUG, 4, "stopping all adverts on %s", iface->props.name);
 		iface->state_info.cease_adv = 1;

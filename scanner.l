@@ -67,6 +67,7 @@ AdvCurHopLimit		{ return T_AdvCurHopLimit; }
 AdvDefaultLifetime	{ return T_AdvDefaultLifetime; }
 AdvDefaultPreference	{ return T_AdvDefaultPreference; }
 AdvSourceLLAddress	{ return T_AdvSourceLLAddress; }
+RemoveAdvOnExit		{ return T_RemoveAdvOnExit; }
 
 AdvOnLink		{ return T_AdvOnLink; }
 AdvAutonomous		{ return T_AdvAutonomous; }
