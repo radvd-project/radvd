@@ -95,7 +95,7 @@ DNSSL (DNS Search List) definitions are of the form:
 
 By default radvd will send multicast route advertisements so that every node on the link can use them.
 The list of clients (IPv6 address) to advertise to, and accept route solicitations from can be configured.
-If done, radvd does not send send messages to the multicast addresses but
+If done, radvd does not send messages to the multicast addresses but
 to the configured unicast addresses only.  Solicitations from other addresses are refused unless
 UnrestrictedUnicast is enabled.
 This is similar to UnicastOnly but includes periodic messages and incoming client access
@@ -264,7 +264,7 @@ Default: off
 .TP
 .BR "AdvLinkMTU " integer
 
-The MTU option is used in  router advertisement messages to insure
+The MTU option is used in  router advertisement messages to ensure
 that all nodes on a link use the same MTU value in those cases where
 the link MTU is not well known.
 
