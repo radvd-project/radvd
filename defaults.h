@@ -49,6 +49,7 @@
 #define DFLT_UnicastOnly 0
 #define DFLT_UnrestrictedUnicast 0
 #define DFLT_AdvRASolicitedUnicast 1
+#define DFLT_RemoveAdvOnExit 1
 
 /* Options sent with RA */
 

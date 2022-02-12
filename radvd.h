@@ -58,6 +58,7 @@ struct Interface {
 	double MinRtrAdvInterval;
 	double MinDelayBetweenRAs;
 	int AdvSourceLLAddress;
+	int RemoveAdvOnExit;
 	int UnicastOnly;
 	int UnrestrictedUnicast;
 	int AdvRASolicitedUnicast;
