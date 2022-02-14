@@ -17,6 +17,12 @@
 #include "config.h"
 #include "includes.h"
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define bswap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y>>32))
+#else
+#define bswap64(y) (y)
+#endif
+
 static char usage_str[] = "[-vhfe] [-d level]";
 
 #ifdef HAVE_GETOPT_LONG
@@ -251,6 +257,20 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			printf("\tAdvCaptivePortalAPI \"%s\";\n", captive_portal);
 
 			free(captive_portal);
+			break;
+		}
+		case ND_OPT_TIMESTAMP: {
+			char *opt_timestamp = (char *)opt_str+8; //tl + 6 bytes of resv
+			unsigned short fracs;
+			uint64_t secs;
+			uint64_t ts;
+
+			memcpy(&ts, opt_timestamp, sizeof(ts));
+			ts = bswap64(ts);
+			secs = ts >> 16;
+			fracs = ts & 0xffff;
+
+			printf("\tAdvTimestamp \"%lu secs, %hu fracs\";\n", secs, fracs);
 			break;
 		}
 		case ND_OPT_TARGET_LINKADDR:

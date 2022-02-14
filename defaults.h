@@ -247,6 +247,12 @@ struct nd_opt_dnssl_info_local {
 #define ND_OPT_CAPTIVE_PORTAL 37
 #endif
 
+/* Secure ND Timestamp RFC 3971 */
+#ifndef ND_OPT_TIMESTAMP
+#define ND_OPT_TIMESTAMP 13
+#endif
+
+
 /* Configurable values */
 
 #define DFLT_HomeAgentPreference 0
