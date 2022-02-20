@@ -865,13 +865,6 @@ static int check_conffile_perm(const char *username, const char *conf_file)
 	}
 	fclose(fp);
 
-	if (!username)
-		username = "root";
-
-	struct passwd *pw = getpwnam(username);
-	if (!pw) {
-		return -1;
-	}
 
 	struct stat stbuf;
 	if (0 != stat(conf_file, &stbuf)) {
@@ -883,11 +876,19 @@ static int check_conffile_perm(const char *username, const char *conf_file)
 		return -1;
 	}
 
-	/* for non-root: must not be writable by self/own group */
-	if (strncmp(username, "root", 5) != 0 && ((stbuf.st_mode & S_IWGRP && pw->pw_gid == stbuf.st_gid) ||
-						  (stbuf.st_mode & S_IWUSR && pw->pw_uid == stbuf.st_uid))) {
-		flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
-		return -1;
+	if(username != NULL && strncmp(username, "root", 5) != 0) {
+		struct passwd *pw = getpwnam(username);
+		if (!pw) {
+			return -1;
+		}
+
+		/* for non-root: must not be writable by self/own group */
+		/* TODO: this should check supplementary groups as well, via getgroups and looping */
+		if ((stbuf.st_mode & S_IWGRP && pw->pw_gid == stbuf.st_gid) ||
+			(stbuf.st_mode & S_IWUSR && pw->pw_uid == stbuf.st_uid)) {
+			flog(LOG_ERR, "Insecure file permissions (writable by self/group): %s", conf_file);
+			return -1;
+		}
 	}
 
 	return 0;
