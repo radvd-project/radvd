@@ -29,6 +29,7 @@ void iface_init_defaults(struct Interface *iface)
 	iface->AdvSendAdvert = DFLT_AdvSendAdv;
 	iface->MaxRtrAdvInterval = DFLT_MaxRtrAdvInterval;
 	iface->AdvSourceLLAddress = DFLT_AdvSourceLLAddress;
+	iface->RemoveAdvOnExit = DFLT_RemoveAdvOnExit;
 	iface->MinDelayBetweenRAs = DFLT_MinDelayBetweenRAs;
 	iface->MinRtrAdvInterval = -1;
 	iface->UnicastOnly = DFLT_UnicastOnly;

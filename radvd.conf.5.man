@@ -339,6 +339,13 @@ included in the RA.
 Default: on
 
 .TP
+.BR RemoveAdvOnExit " " on | off
+
+Upon shutdown, send a final advertisement with zero Router Lifetime. This should cause the router and routes to be immediately removed from the receiving end-nodes' route table. This may need to be disabled ("off") in an vrrp or carp setup.
+
+Default: on
+
+.TP
 .BR AdvHomeAgentFlag " " on | off
 
 When set, indicates that sending router is able to serve as Mobile
