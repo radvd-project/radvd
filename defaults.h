@@ -248,6 +248,16 @@ struct nd_opt_dnssl_info_local {
 #define ND_OPT_CAPTIVE_PORTAL 37
 #endif
 
+/* TODO Secure ND CGA RFC 3971, 5.1 */
+/* TODO Secure ND RSA Signature RFC 3971, 5.2 */
+
+/* Secure ND Timestamp RFC 3971, 5.3.1 */
+#ifndef ND_OPT_TIMESTAMP
+#define ND_OPT_TIMESTAMP 13
+#endif
+
+/* TODO Secure ND Nonce RFC 3971, 5.3.2 */
+
 /* Configurable values */
 
 #define DFLT_HomeAgentPreference 0
