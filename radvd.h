@@ -290,6 +290,7 @@ int set_interface_linkmtu(const char *, uint32_t);
 int set_interface_reachtime(const char *, uint32_t);
 int set_interface_retranstimer(const char *, uint32_t);
 int setup_allrouters_membership(int sock, struct Interface *);
+int cleanup_allrouters_membership(int sock, struct Interface *iface);
 int setup_iface_addrs(struct Interface *);
 int update_device_index(struct Interface *iface);
 int update_device_info(int sock, struct Interface *);
@@ -300,6 +301,7 @@ int get_iface_addrs(char const *name, struct in6_addr *if_addr, /* the first lin
 /* interface.c */
 int check_iface(struct Interface *);
 int setup_iface(int sock, struct Interface *iface);
+int cleanup_iface(int sock, struct Interface *iface);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
