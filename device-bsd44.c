@@ -139,6 +139,19 @@ int setup_allrouters_membership(int sock, struct Interface *iface)
 	*/
 }
 
+int cleanup_allrouters_membership(int sock, struct Interface *iface)
+{
+	return 0;
+
+	/* Quoting:
+	https://github.com/radvd-project/radvd/issues/145#issuecomment-810466476
+
+	OK, it will be up to FreeBSD guys to show up
+	if they want to upstream their patches.
+
+	*/
+}
+
 int set_interface_linkmtu(const char *iface, uint32_t mtu)
 {
 	dlog(LOG_DEBUG, 4, "setting LinkMTU (%u) for %s is not supported", mtu, iface);

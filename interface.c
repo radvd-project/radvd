@@ -111,6 +111,12 @@ int setup_iface(int sock, struct Interface *iface)
 	return 0;
 }
 
+int cleanup_iface(int sock, struct Interface *iface)
+{
+	/* leave the allrouters multicast group */
+	cleanup_allrouters_membership(sock, iface);
+	return 0;
+}
 void prefix_init_defaults(struct AdvPrefix *prefix)
 {
 	memset(prefix, 0, sizeof(struct AdvPrefix));

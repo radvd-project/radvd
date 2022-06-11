@@ -93,6 +93,7 @@ static void reset_prefix_lifetimes(struct Interface *ifaces);
 static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data);
 static void setup_iface_foo(struct Interface *iface, void *data);
 static void setup_ifaces(int sock, struct Interface *ifaces);
+static void cleanup_ifaces(int sock, struct Interface *ifaces);
 static void sighup_handler(int sig);
 static void sigint_handler(int sig);
 static void sigterm_handler(int sig);
@@ -435,6 +436,8 @@ int main(int argc, char *argv[])
 	setup_ifaces(sock, ifaces);
 	ifaces = main_loop(sock, ifaces, conf_path);
 	stop_adverts(sock, ifaces);
+	cleanup_ifaces(sock, ifaces);
+	close(sock);
 
 	flog(LOG_INFO, "removing %s", daemon_pid_file_ident);
 	unlink(daemon_pid_file_ident);
@@ -778,10 +781,18 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 	kickoff_adverts(sock, iface);
 }
 
+static void cleanup_iface_foo(struct Interface *iface, void *data)
+{
+	int sock = *(int *)data;
+	cleanup_iface(sock, iface);
+}
+
 static void setup_ifaces(int sock, struct Interface *ifaces) { for_each_iface(ifaces, setup_iface_foo, &sock); }
+static void cleanup_ifaces(int sock, struct Interface *ifaces) { for_each_iface(ifaces, cleanup_iface_foo, &sock); }
 
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path)
 {
+	cleanup_ifaces(sock, ifaces);
 	free_ifaces(ifaces);
 
 	flog(LOG_INFO, "attempting to reread config file");
