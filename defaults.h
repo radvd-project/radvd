@@ -64,6 +64,9 @@
 #define DFLT_DeprecatePrefixFlag 0
 #define DFLT_DecrementLifetimesFlag 0
 
+/* NAT64 prefix has an associated: */
+#define DFLT_NAT64AdvValidLifetime 65528 /* seconds */
+
 /* Each route has an associated: */
 #define DFLT_AdvRouteLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
 

@@ -46,6 +46,9 @@ static void add_ra_option_capport(struct safe_buffer *sb, const char *captive_po
 static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
 						      char const *ifname, struct AdvPrefix const *prefix, int cease_adv,
 						      struct in6_addr const *dest);
+static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
+						      char const *ifname, struct NAT64Prefix const *prefix, int cease_adv,
+						      struct in6_addr const *dest);
 static struct safe_buffer_list *add_ra_options_route(struct safe_buffer_list *sbl, struct Interface const *iface,
 						     struct AdvRoute const *route, int cease_adv, struct in6_addr const *dest);
 static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sbl, struct Interface const *iface,
@@ -288,6 +291,70 @@ static void limit_prefix_lifetimes(struct AdvPrefix *prefix) {
   }
 }
 
+static void add_ra_option_nat64prefix(struct safe_buffer *sb, struct NAT64Prefix const *prefix, int cease_adv)
+{
+	struct nd_opt_nat64prefix_info pinfo;
+	uint8_t prefix_length_code = 0;
+
+	memset(&pinfo, 0, sizeof(pinfo));
+
+	pinfo.nd_opt_pi_type = ND_OPT_PREF64;
+	pinfo.nd_opt_pi_len = 2;
+	/*
+	   PLC (Prefix Length Code):  3-bit unsigned integer.  This field
+          encodes the NAT64 Prefix Length defined in [RFC6052].  The PLC
+          field values 0, 1, 2, 3, 4, and 5 indicate the NAT64 prefix length
+          of 96, 64, 56, 48, 40, and 32 bits, respectively.  The receiver
+          MUST ignore the PREF64 option if the Prefix Length Code field is
+          not set to one of those values.
+	*/
+	switch (prefix->PrefixLen) {
+		case 96:
+			prefix_length_code = 0;
+			break;
+		case 64:
+			prefix_length_code = 1;
+			break;
+		case 56:
+			prefix_length_code = 2;
+			break;
+		case 48:
+			prefix_length_code = 3;
+			break;
+		case 40:
+			prefix_length_code = 4;
+			break;
+		case 32:
+			prefix_length_code = 5;
+			break;
+	}
+
+	/*
+       Scaled Lifetime:  13-bit unsigned integer.  The maximum time in units
+          of 8 seconds over which this NAT64 prefix MAY be used.  See
+          Section 4.1 for the Scaled Lifetime field processing rules.
+
+       Router vendors SHOULD allow administrators to specify nonzero
+         lifetime values that are not divisible by 8.  In such cases, the
+         router SHOULD round the provided value up to the nearest integer that
+         is divisible by 8 and smaller than 65536, then divide the result by 8
+         (or perform a logical right shift by 3) and set the Scaled Lifetime
+         field to the resulting value.  If a nonzero lifetime value that is to
+         be divided by 8 (or subjected to a logical right shift by 3) is less
+         than 8, then the Scaled Lifetime field SHOULD be set to 1.  This last
+         step ensures that lifetimes under 8 seconds are encoded as a nonzero
+         Scaled Lifetime.
+	*/
+	pinfo.nd_opt_pi_lifetime_preflen = htons(
+		((prefix->curr_validlft + 7) & 0xFFF8) |
+		(prefix_length_code & 0x7));
+
+	/* Only copy 96 bits of the prefix */
+	memcpy(&pinfo.nd_opt_pi_nat64prefix, &prefix->Prefix, 12);
+
+	safe_buffer_append(sb, &pinfo, sizeof(pinfo));
+}
+
 static struct safe_buffer_list *add_auto_prefixes_6to4(struct safe_buffer_list *sbl, struct Interface const *iface,
 						       char const *ifname, struct AdvPrefix const *prefix, int cease_adv,
 						       struct in6_addr const *dest)
@@ -372,6 +439,20 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 	if (ifap)
 		freeifaddrs(ifap);
 #endif
+	return sbl;
+}
+
+static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
+						      char const *ifname, struct NAT64Prefix const *prefix, int cease_adv,
+						      struct in6_addr const *dest)
+{
+	while (prefix) {
+		sbl = safe_buffer_list_append(sbl);
+		add_ra_option_nat64prefix(sbl->sb, prefix, cease_adv);
+
+		prefix = prefix->next;
+	}
+
 	return sbl;
 }
 
@@ -723,6 +804,11 @@ static struct safe_buffer_list *build_ra_options(struct Interface const *iface, 
 	if (iface->AdvPrefixList) {
 		cur =
 		    add_ra_options_prefix(cur, iface, iface->props.name, iface->AdvPrefixList, iface->state_info.cease_adv, dest);
+	}
+
+	if (iface->NAT64PrefixList) {
+		cur =
+		    add_ra_options_nat64prefix(cur, iface, iface->props.name, iface->NAT64PrefixList, iface->state_info.cease_adv, dest);
 	}
 
 	if (iface->AdvRouteList) {
