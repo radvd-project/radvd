@@ -1,4 +1,4 @@
- /*
+/*
  *
  *   Authors:
  *    Pedro Roque		<roque@di.fc.ul.pt>
