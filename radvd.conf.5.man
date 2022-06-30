@@ -586,9 +586,11 @@ Default: on
 
 .TP
 .BR "AdvRDNSSLifetime " seconds | infinity
-The maximum duration how long the RDNSS entries are used for name resolution. A value of 0 means the nameserver must no longer be used. The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale RDNSS info gets removed in a timely fashion, this should not be greater than 2*MaxRtrAdvInterval.
+The maximum duration how long the RDNSS entries are used for name resolution.
+A value of 0 means the nameserver must no longer be used.
+As described in RFC8106, the use of default value or a larger value ensures the reliability of an entry even under the loss of RAs on links with a relatively high rate of packet loss.
 
-Default: 2*MaxRtrAdvInterval
+Default: 3*MaxRtrAdvInterval
 
 .TP
 .BR FlushRDNSS " " on | off
@@ -603,11 +605,9 @@ Default: on
 .BR "AdvDNSSLLifetime " seconds | infinity;
 The maximum duration how long the DNSSL entries are used for name resolution.
 A value of 0 means the suffix should no longer be used.
-The value, if not 0, must be at least MaxRtrAdvInterval.  To ensure stale
-DNSSL info gets removed in a timely fashion, this should not be greater than
-2*MaxRtrAdvInterval.
+As described in RFC8106, the use of default value or a larger value ensures the reliability of an entry even under the loss of RAs on links with a relatively high rate of packet loss.
 
-Default: 2*MaxRtrAdvInterval
+Default: 3*MaxRtrAdvInterval
 
 .TP
 .BR FlushDNSSL " " on | off
@@ -787,9 +787,6 @@ RFC 3775, June 2004.
 Devarapalli, V., Wakikawa, R., Petrescu, A., and P. Thubert "Network Mobility (NEMO) Basic Support Protocol",
 RFC 3963, January 2005.
 .PP
-J. Jeong, S. Park, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Options for DNS Configuration",
-RFC 6106, November 2010.
-.PP
 Z. Shelby, S. Chakrabarti, E. Nordmark and  C. Bormann " Neighbor Discovery Optimization for IPv6 over Low-Power 
 Wireless Personal Area Networks (6LoWPANs)", RFC 6775, November 2012.
 .PP
@@ -798,6 +795,9 @@ RFC 6980, August 2013.
 .PP
 Yourtchenko, A. and Colitti, L. "Reducing Energy Consumption of Router Advertisements",
 RFC 7772, February 2016.
+.PP
+J. Jeong, S. Park, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Options for DNS Configuration",
+RFC 8106, March 2017.
 
 .SH "SEE ALSO"
 
