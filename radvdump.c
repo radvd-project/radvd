@@ -479,8 +479,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			/* Only copy 96 bits of the prefix */
 			memset(&nat64prefix, 0, sizeof(nat64prefix));
 			memcpy(&nat64prefix, &pinfo->nd_opt_pi_nat64prefix, 12);
-
 			addrtostr(&nat64prefix, prefix_str, sizeof(prefix_str));
+
 			switch (prefix_length_code) {
 				case 0:
 					prefix_size = 96;

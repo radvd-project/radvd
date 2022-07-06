@@ -487,11 +487,11 @@ nat64prefixdef	: nat64prefixhead optional_nat64prefixplist ';'
 		{
 			if (nat64prefix) {
 
-				if (nat64prefix->AdvValidLifetime > DFLT_NAT64MaxValidLifetime)
+				if (nat64prefix->AdvValidLifetime > 65528)
 				{
 					flog(LOG_ERR, "AdvValidLifeTime must be "
-						"smaller or equal to %d in %s, line %d",
-						DFLT_NAT64MaxValidLifetime, filename, num_lines);
+						"smaller or equal to 65528 in %s, line %d",
+						filename, num_lines);
 					ABORT;
 				}
 				nat64prefix->curr_validlft = nat64prefix->AdvValidLifetime;
@@ -506,11 +506,12 @@ nat64prefixhead	: T_NAT64PREFIX IPV6ADDR '/' NUMBER
 			struct in6_addr zeroaddr;
 			memset(&zeroaddr, 0, sizeof(zeroaddr));
 
+#ifndef HAVE_IFADDRS_H	// all-zeros is not a valid for NAT64 prefix
 			if (!memcmp($2, &zeroaddr, sizeof(struct in6_addr))) {
-				flog(LOG_ERR, "invalid all-zeros nat64prefix in %s, line %d", filename, num_lines);
+				flog(LOG_ERR, "invalid all-zeros prefix in %s, line %d", filename, num_lines);
 				ABORT;
 			}
-
+#endif
 			nat64prefix = malloc(sizeof(struct NAT64Prefix));
 
 			if (nat64prefix == NULL) {
@@ -518,29 +519,32 @@ nat64prefixhead	: T_NAT64PREFIX IPV6ADDR '/' NUMBER
 				ABORT;
 			}
 
-			nat64prefix_init_defaults(nat64prefix, iface);
+			nat64prefix_init_defaults(nat64prefix);
 
 			if ($4 > MAX_PrefixLen)
 			{
 				flog(LOG_ERR, "invalid prefix length in %s, line %d", filename, num_lines);
 				ABORT;
 			}
-
-			/* RFC8781, section 4: only prefix lengths of 96, 64, 56, 48, 40, and 32 bits are valid */
-			switch ($4) {
-			case 32:
-			case 40:
-			case 48:
-			case 56:
-			case 64:
-			case 96:
-				break;
-			default:
+			if (
+				($4 != 32) &&
+				($4 != 40) &&
+				($4 != 48) &&
+				($4 != 56) &&
+				($4 != 64) &&
+				($4 != 96)
+			) {
 				flog(LOG_ERR, "only /96, /64, /56, /48, /40 and /32 are allowed for "
-					"nat64prefix in %s:%d", filename, num_lines);
+					"NAT64Prefix. %s:%d", filename, num_lines);
 				ABORT;
 			}
 			nat64prefix->PrefixLen = $4;
+
+			if (3*(iface->MaxRtrAdvInterval) > DFLT_NAT64AdvValidLifetime) {
+				nat64prefix->AdvValidLifetime = DFLT_NAT64AdvValidLifetime;
+			} else {
+				nat64prefix->AdvValidLifetime = 3*(iface->MaxRtrAdvInterval);
+			}
 
 			memcpy(&nat64prefix->Prefix, $2, sizeof(struct in6_addr));
 		}
@@ -557,10 +561,10 @@ nat64prefixplist : nat64prefixplist nat64prefixparms
 
 nat64prefixparms : T_AdvValidLifetime NUMBER ';'
 		{
-			if ($2 > DFLT_NAT64MaxValidLifetime)
+			if ($2 > DFLT_NAT64AdvValidLifetime)
 			{
 				flog(LOG_ERR, "maximum for NAT64 AdvValidLifetime is %d (in %s, line %d)",
-					DFLT_NAT64MaxValidLifetime, filename, num_lines);
+					DFLT_NAT64AdvValidLifetime, filename, num_lines);
 				ABORT;
 			}
 			if (nat64prefix) {
