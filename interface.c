@@ -133,12 +133,11 @@ void prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->curr_preferredlft = prefix->AdvPreferredLifetime;
 }
 
-void nat64prefix_init_defaults(struct NAT64Prefix *prefix)
+void nat64prefix_init_defaults(struct NAT64Prefix *prefix, struct Interface *iface)
 {
 	memset(prefix, 0, sizeof(struct NAT64Prefix));
 
-	// This is the non-scaled value (8191 << 3).
-	prefix->AdvValidLifetime = DFLT_NAT64AdvValidLifetime;
+	prefix->AdvValidLifetime = min(DFLT_NAT64MaxValidLifetime, 3*(iface->MaxRtrAdvInterval));
 
 	prefix->curr_validlft = prefix->AdvValidLifetime;
 }

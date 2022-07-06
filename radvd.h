@@ -282,7 +282,7 @@ struct nd_opt_6co {
 	struct in6_addr nd_opt_6co_con_prefix;
 }; /*Added by Bhadram */
 
-/* Pref64 option type (rfc8781#section-4) */
+/* Pref64 option type (RFC8781, section 4) */
 #ifndef ND_OPT_PREF64
 #define ND_OPT_PREF64 38
 #endif
@@ -333,7 +333,7 @@ struct Interface *find_iface_by_time(struct Interface *iface_list);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);
-void nat64prefix_init_defaults(struct NAT64Prefix *);
+void nat64prefix_init_defaults(struct NAT64Prefix *, struct Interface *);
 void iface_init_defaults(struct Interface *);
 void prefix_init_defaults(struct AdvPrefix *);
 void rdnss_init_defaults(struct AdvRDNSS *, struct Interface *);
