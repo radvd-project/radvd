@@ -528,17 +528,17 @@ nat64prefixhead	: T_NAT64PREFIX IPV6ADDR '/' NUMBER
 
 			/* RFC8781, section 4: only prefix lengths of 96, 64, 56, 48, 40, and 32 bits are valid */
 			switch ($4) {
-				case 32:
-				case 40:
-				case 48:
-				case 56:
-				case 64:
-				case 96:
-					break;
-				default:
-					flog(LOG_ERR, "only /96, /64, /56, /48, /40 and /32 are allowed for "
-							"nat64prefix in %s:%d", filename, num_lines);
-					ABORT;
+			case 32:
+			case 40:
+			case 48:
+			case 56:
+			case 64:
+			case 96:
+				break;
+			default:
+				flog(LOG_ERR, "only /96, /64, /56, /48, /40 and /32 are allowed for "
+						"nat64prefix in %s:%d", filename, num_lines);
+				ABORT;
 			}
 			nat64prefix->PrefixLen = $4;
 

@@ -309,24 +309,24 @@ static void add_ra_option_nat64prefix(struct safe_buffer *sb, struct NAT64Prefix
           not set to one of those values.
 	*/
 	switch (prefix->PrefixLen) {
-		case 96:
-			prefix_length_code = 0;
-			break;
-		case 64:
-			prefix_length_code = 1;
-			break;
-		case 56:
-			prefix_length_code = 2;
-			break;
-		case 48:
-			prefix_length_code = 3;
-			break;
-		case 40:
-			prefix_length_code = 4;
-			break;
-		case 32:
-			prefix_length_code = 5;
-			break;
+	case 96:
+		prefix_length_code = 0;
+		break;
+	case 64:
+		prefix_length_code = 1;
+		break;
+	case 56:
+		prefix_length_code = 2;
+		break;
+	case 48:
+		prefix_length_code = 3;
+		break;
+	case 40:
+		prefix_length_code = 4;
+		break;
+	case 32:
+		prefix_length_code = 5;
+		break;
 	}
 
 	/*

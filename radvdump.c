@@ -482,26 +482,26 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			addrtostr(&nat64prefix, prefix_str, sizeof(prefix_str));
 
 			switch (prefix_length_code) {
-				case 0:
-					prefix_size = 96;
-					break;
-				case 1:
-					prefix_size = 64;
-					break;
-				case 2:
-					prefix_size = 56;
-					break;
-				case 3:
-					prefix_size = 48;
-					break;
-				case 4:
-					prefix_size = 40;
-					break;
-				case 5:
-					prefix_size = 32;
-					break;
-				default:
-					flog(LOG_ERR, "Invalid (reserved) prefix length code %d received", prefix_length_code);
+			case 0:
+				prefix_size = 96;
+				break;
+			case 1:
+				prefix_size = 64;
+				break;
+			case 2:
+				prefix_size = 56;
+				break;
+			case 3:
+				prefix_size = 48;
+				break;
+			case 4:
+				prefix_size = 40;
+				break;
+			case 5:
+				prefix_size = 32;
+				break;
+			default:
+				flog(LOG_ERR, "Invalid (reserved) prefix length code %d received", prefix_length_code);
 			}
 
 			printf("\n\tnat64prefix %s/%d\n\t{\n", prefix_str, prefix_size);
