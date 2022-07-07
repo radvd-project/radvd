@@ -46,9 +46,7 @@ static void add_ra_option_capport(struct safe_buffer *sb, const char *captive_po
 static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
 						      char const *ifname, struct AdvPrefix const *prefix, int cease_adv,
 						      struct in6_addr const *dest);
-static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
-						      char const *ifname, struct NAT64Prefix const *prefix, int cease_adv,
-						      struct in6_addr const *dest);
+static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct NAT64Prefix const *prefix);
 static struct safe_buffer_list *add_ra_options_route(struct safe_buffer_list *sbl, struct Interface const *iface,
 						     struct AdvRoute const *route, int cease_adv, struct in6_addr const *dest);
 static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sbl, struct Interface const *iface,
@@ -291,7 +289,7 @@ static void limit_prefix_lifetimes(struct AdvPrefix *prefix) {
   }
 }
 
-static void add_ra_option_nat64prefix(struct safe_buffer *sb, struct NAT64Prefix const *prefix, int cease_adv)
+static void add_ra_option_nat64prefix(struct safe_buffer *sb, struct NAT64Prefix const *prefix)
 {
 	struct nd_opt_nat64prefix_info pinfo;
 	uint8_t prefix_length_code = 0;
@@ -442,13 +440,11 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 	return sbl;
 }
 
-static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct Interface const *iface,
-						      char const *ifname, struct NAT64Prefix const *prefix, int cease_adv,
-						      struct in6_addr const *dest)
+static struct safe_buffer_list *add_ra_options_nat64prefix(struct safe_buffer_list *sbl, struct NAT64Prefix const *prefix)
 {
 	while (prefix) {
 		sbl = safe_buffer_list_append(sbl);
-		add_ra_option_nat64prefix(sbl->sb, prefix, cease_adv);
+		add_ra_option_nat64prefix(sbl->sb, prefix);
 
 		prefix = prefix->next;
 	}
@@ -808,7 +804,7 @@ static struct safe_buffer_list *build_ra_options(struct Interface const *iface, 
 
 	if (iface->NAT64PrefixList) {
 		cur =
-		    add_ra_options_nat64prefix(cur, iface, iface->props.name, iface->NAT64PrefixList, iface->state_info.cease_adv, dest);
+		    add_ra_options_nat64prefix(cur, iface->NAT64PrefixList);
 	}
 
 	if (iface->AdvRouteList) {
