@@ -469,6 +469,11 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			break;
 		}
 		case ND_OPT_PREF64: {
+			if (optlen != sizeof(struct nd_opt_nat64prefix_info)) {
+				flog(LOG_ERR, "incorrect pref64 option length in RA from %s, skipping", addr_str);
+				break;
+			}
+
 			struct nd_opt_nat64prefix_info *pinfo = (struct nd_opt_nat64prefix_info *)opt_str;
 			uint16_t lifetime_preflen = ntohs(pinfo->nd_opt_pi_lifetime_preflen);
 			uint8_t prefix_length_code = lifetime_preflen & 7;
@@ -476,7 +481,7 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			int prefix_size = -1;
 			struct in6_addr nat64prefix;
 
-			/* Only copy 96 bits of the prefix */
+			/* The option only contains the first 96 bits of the prefix */
 			memset(&nat64prefix, 0, sizeof(nat64prefix));
 			memcpy(&nat64prefix, &pinfo->nd_opt_pi_nat64prefix, 12);
 			addrtostr(&nat64prefix, prefix_str, sizeof(prefix_str));
@@ -501,7 +506,7 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 				prefix_size = 32;
 				break;
 			default:
-				flog(LOG_ERR, "Invalid (reserved) prefix length code %d received", prefix_length_code);
+				flog(LOG_ERR, "Invalid (reserved) nat64prefix length code %d received", prefix_length_code);
 			}
 
 			printf("\n\tnat64prefix %s/%d\n\t{\n", prefix_str, prefix_size);
