@@ -803,8 +803,7 @@ static struct safe_buffer_list *build_ra_options(struct Interface const *iface, 
 	}
 
 	if (iface->NAT64PrefixList) {
-		cur =
-		    add_ra_options_nat64prefix(cur, iface->NAT64PrefixList);
+		cur = add_ra_options_nat64prefix(cur, iface->NAT64PrefixList);
 	}
 
 	if (iface->AdvRouteList) {
