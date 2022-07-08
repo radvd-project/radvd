@@ -32,6 +32,7 @@ The file contains one or more interface definitions of the form:
 	list of RDNSS definitions
 	list of DNSSL definitions
 	list of ABRO definitions
+	list of NAT64 pref64 definitions
 	list of acceptable RA source addresses
 .B };
 .fi
@@ -130,6 +131,18 @@ ABRO (Authoritative Border Router Option) definitions are of the form:
         list of abro specific options
 .B };
 .fi
+
+NAT64 pref64 (the NAT64 prefix included in the router advertisements):
+
+.nf
+.BR "nat64prefix " prefix / "length " {
+	list of NAT64 prefix specific options
+.B };
+.fi
+
+The value of
+.B length
+can only be one of /32, /40, /48, /56, /64, or /96.
 
 .SH INTERFACE SPECIFIC OPTIONS
 
@@ -627,6 +640,18 @@ A value of all zero bits assumes a default value of 10,000(~one week).
 .BR "AdvVersionLow, AdvVersionHigh " unsigned integer
 Both forms 32-bit unsigned version number corresponding to the set of information contained in RA message.
 
+.SH NAT64 PREF64 SPECIFIC OPTIONS
+
+.TP
+.BR "AdvValidLifetime " seconds ""
+
+The length of time in seconds (relative to the time the packet is
+sent) that the prefix is valid for the purpose of NAT64 existence
+determination. In case the value is not a multiple of 8, the validity
+is rounded up to the next multiple of 8. The maximum is 65528 seconds.
+
+Default: the lesser value of 3 * MaxRtrAdvInterval, or 65528
+
 .SH EXAMPLES
 
 .nf
@@ -746,6 +771,23 @@ interface lowpan0
 	};
 };
 
+The NAT64 pref64 support
+.nf
+interface eth0
+{
+	prefix 2001:db8:100::/64 {
+		AdvOnLink on;
+		AdvAutonomous on;
+		AdvRouterAddr on;
+	};
+	nat64prefix 64:ff9b::/96 {
+		AdvValidLifeTime 1800;
+	};
+	RDNSS 2001:db8:100::64 {
+		AdvRDNSSLifetime 1800;
+	};
+};
+
 .SH FILES
 
 .nf
@@ -798,6 +840,8 @@ RFC 7772, February 2016.
 .PP
 J. Jeong, S. Park, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Options for DNS Configuration",
 RFC 8106, March 2017.
+L. Colitti, and J. Linkova, "Discovering PREF64 in Router Advertisements",
+RFC 8781, April 2020.
 
 .SH "SEE ALSO"
 

@@ -285,6 +285,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			break;
 		case ND_OPT_DNSSL_INFORMATION:
 			break;
+		case ND_OPT_PREF64:
+			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA", (int)*opt_str);
 			break;
@@ -464,6 +466,53 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 				printf("\t\tAdvDNSSLLifetime %u;\n", ntohl(dnssl_info->nd_opt_dnssli_lifetime));
 
 			printf("\t}; # End of DNSSL definition\n\n");
+			break;
+		}
+		case ND_OPT_PREF64: {
+			if (optlen != sizeof(struct nd_opt_nat64prefix_info)) {
+				flog(LOG_ERR, "incorrect pref64 option length in RA from %s, skipping", addr_str);
+				break;
+			}
+
+			struct nd_opt_nat64prefix_info *pinfo = (struct nd_opt_nat64prefix_info *)opt_str;
+			uint16_t lifetime_preflen = ntohs(pinfo->nd_opt_pi_lifetime_preflen);
+			uint8_t prefix_length_code = lifetime_preflen & 7;
+			uint16_t prefix_lifetime = lifetime_preflen & 0xFFF8;
+			int prefix_size = -1;
+			struct in6_addr nat64prefix;
+
+			/* The option only contains the first 96 bits of the prefix */
+			memset(&nat64prefix, 0, sizeof(nat64prefix));
+			memcpy(&nat64prefix, &pinfo->nd_opt_pi_nat64prefix, 12);
+			addrtostr(&nat64prefix, prefix_str, sizeof(prefix_str));
+
+			switch (prefix_length_code) {
+			case 0:
+				prefix_size = 96;
+				break;
+			case 1:
+				prefix_size = 64;
+				break;
+			case 2:
+				prefix_size = 56;
+				break;
+			case 3:
+				prefix_size = 48;
+				break;
+			case 4:
+				prefix_size = 40;
+				break;
+			case 5:
+				prefix_size = 32;
+				break;
+			default:
+				flog(LOG_ERR, "Invalid (reserved) nat64prefix length code %d received", prefix_length_code);
+			}
+
+			printf("\n\tnat64prefix %s/%d\n\t{\n", prefix_str, prefix_size);
+			printf("\t\tAdvValidLifetime %u;\n", prefix_lifetime);
+			printf("\t}; # End of nat64prefix definition\n\n");
+
 			break;
 		}
 		default:

@@ -64,6 +64,9 @@
 #define DFLT_DeprecatePrefixFlag 0
 #define DFLT_DecrementLifetimesFlag 0
 
+/* RFC8781 section 4.1; this is the non-scaled value (8191 << 3) */
+#define DFLT_NAT64MaxValidLifetime 65528 /* seconds */
+
 /* Each route has an associated: */
 #define DFLT_AdvRouteLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
 

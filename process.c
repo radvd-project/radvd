@@ -412,6 +412,9 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			}
 			break;
 		}
+		case ND_OPT_PREF64:
+			/* not checked */
+			break;
 		default:
 			dlog(LOG_DEBUG, 1, "unknown option %d in RA on %s from %s", (int)*opt_str, iface->props.name, addr_str);
 			break;
