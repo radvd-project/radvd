@@ -781,7 +781,7 @@ interface eth0
 		AdvRouterAddr on;
 	};
 	nat64prefix 64:ff9b::/96 {
-		AdvValidLifeTime 1800;
+		AdvValidLifetime 1800;
 	};
 	RDNSS 2001:db8:100::64 {
 		AdvRDNSSLifetime 1800;

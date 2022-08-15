@@ -489,7 +489,7 @@ nat64prefixdef	: nat64prefixhead optional_nat64prefixplist ';'
 
 				if (nat64prefix->AdvValidLifetime > DFLT_NAT64MaxValidLifetime)
 				{
-					flog(LOG_ERR, "AdvValidLifeTime must be "
+					flog(LOG_ERR, "AdvValidLifetime must be "
 						"smaller or equal to %d in %s, line %d",
 						DFLT_NAT64MaxValidLifetime, filename, num_lines);
 					ABORT;
