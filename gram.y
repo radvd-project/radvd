@@ -576,7 +576,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 				if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
 				{
 					flog(LOG_ERR, "AdvValidLifeTime must be "
-						"greater than AdvPreferredLifetime in %s, line %d",
+						"greater than or equal to AdvPreferredLifetime in %s, line %d",
 						filename, num_lines);
 					ABORT;
 				}

@@ -278,7 +278,7 @@ int check_iface(struct Interface *iface)
 
 		if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime) {
 			flog(LOG_ERR, "AdvValidLifetime for %s (%u) must be "
-				      "greater than AdvPreferredLifetime for",
+				      "greater than or equal to AdvPreferredLifetime for",
 			     iface->props.name, prefix->AdvValidLifetime);
 			res = -1;
 		}
