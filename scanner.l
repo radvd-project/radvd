@@ -13,7 +13,7 @@
  *
  */
 
-%option nounput noinput noyywrap yylineno
+%option nounput noinput noyywrap yylineno caseless
 
 %{
 #include "config.h"
