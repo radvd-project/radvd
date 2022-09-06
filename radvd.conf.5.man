@@ -38,7 +38,7 @@ The file contains one or more interface definitions of the form:
 .fi
 
 All the possible interface specific options are detailed below.  Each
-option has to be terminated by a semicolon.
+option has to be terminated by a semicolon. Options are not case sensitive.
 
 Prefix definitions are of the form:
 
