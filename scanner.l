@@ -117,7 +117,6 @@ AdvContextPrefix	{ return T_AdvContextPrefix; }
 
 AdvVersionLow		{ return T_AdvVersionLow; }
 AdvVersionHigh		{ return T_AdvVersionHigh; }
-AdvValidLifeTime	{ return T_AdvValidLifeTime; }
 Adv6LBRaddress		{ return T_Adv6LBRaddress; }
 
 {addr}		{

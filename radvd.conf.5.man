@@ -632,7 +632,7 @@ Default: on
 .SH ABRO SPECIFIC OPTIONS
 
 .TP
-.BR "AdvValidLifeTime " seconds
+.BR "AdvValidLifetime " seconds
 The time in units of that the set of border router information is valid.
 A value of all zero bits assumes a default value of 10,000(~one week).
 
@@ -767,7 +767,7 @@ interface lowpan0
 	abro fe80::a200:0:0:1/64 {
 		AdvVersionLow 10;
 		AdvVersionHigh 2;
-		AdvValidLifeTime 2;
+		AdvValidLifetime 2;
 	};
 };
 
@@ -781,7 +781,7 @@ interface eth0
 		AdvRouterAddr on;
 	};
 	nat64prefix 64:ff9b::/96 {
-		AdvValidLifeTime 1800;
+		AdvValidLifetime 1800;
 	};
 	RDNSS 2001:db8:100::64 {
 		AdvRDNSSLifetime 1800;
