@@ -124,7 +124,6 @@
 
 %token		T_AdvVersionLow
 %token		T_AdvVersionHigh
-%token		T_AdvValidLifeTime
 %token		T_Adv6LBRaddress
 
 %token		T_BAD_TOKEN
@@ -489,7 +488,7 @@ nat64prefixdef	: nat64prefixhead optional_nat64prefixplist ';'
 
 				if (nat64prefix->AdvValidLifetime > DFLT_NAT64MaxValidLifetime)
 				{
-					flog(LOG_ERR, "AdvValidLifeTime must be "
+					flog(LOG_ERR, "AdvValidLifetime must be "
 						"smaller or equal to %d in %s, line %d",
 						DFLT_NAT64MaxValidLifetime, filename, num_lines);
 					ABORT;
@@ -575,7 +574,7 @@ prefixdef	: prefixhead optional_prefixplist ';'
 
 				if (prefix->AdvPreferredLifetime > prefix->AdvValidLifetime)
 				{
-					flog(LOG_ERR, "AdvValidLifeTime must be "
+					flog(LOG_ERR, "AdvValidLifetime must be "
 						"greater than or equal to AdvPreferredLifetime in %s, line %d",
 						filename, num_lines);
 					ABORT;
@@ -1031,7 +1030,7 @@ abroparms	: T_AdvVersionLow NUMBER ';'
 		{
 			abro->Version[0] = $2;
 		}
-		| T_AdvValidLifeTime NUMBER ';'
+		| T_AdvValidLifetime NUMBER ';'
 		{
 			abro->ValidLifeTime = $2;
 		}
