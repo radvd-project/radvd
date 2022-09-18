@@ -137,7 +137,7 @@
 #define MAX_MinRtrAdvInterval(iface) (0.75 * (iface)->MaxRtrAdvInterval)
 
 #define MIN_AdvDefaultLifetime(iface) (MAX2(1, (iface)->MaxRtrAdvInterval))
-#define MAX_AdvDefaultLifetime 9000
+#define MAX_AdvDefaultLifetime 65535
 
 #define MIN_AdvLinkMTU RFC2460_MIN_MTU
 #define MAX_AdvLinkMTU 131072
