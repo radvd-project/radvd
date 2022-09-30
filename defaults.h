@@ -131,7 +131,7 @@
 /* MAX and MIN (RFC4861), Mobile IPv6 extensions will override if in use */
 
 #define MIN_MaxRtrAdvInterval 4
-#define MAX_MaxRtrAdvInterval 1800
+#define MAX_MaxRtrAdvInterval 65535
 
 #define MIN_MinRtrAdvInterval 3
 #define MAX_MinRtrAdvInterval(iface) (0.75 * (iface)->MaxRtrAdvInterval)
