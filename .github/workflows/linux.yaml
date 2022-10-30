@@ -65,7 +65,7 @@ jobs:
   ubuntu:
     strategy:
       matrix:
-        ubuntu_version: [ubuntu-18.04, ubuntu-20.04]
+        ubuntu_version: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
         compiler: [clang, gcc]
     runs-on: ${{ matrix.ubuntu_version }}
     steps:
