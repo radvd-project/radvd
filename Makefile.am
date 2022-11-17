@@ -66,9 +66,6 @@ radvd_LDADD = \
 scanner.c: gram.h
 gram.h: gram.c
 
-libradvd_parser_a_CFLAGS = \
-	-Wno-implicit-function-declaration
-
 libradvd_parser_a_SOURCES = \
 	gram.h \
 	gram.y \
