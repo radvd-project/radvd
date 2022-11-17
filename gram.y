@@ -20,6 +20,10 @@
 
 #define YYERROR_VERBOSE 1
 
+int yylex (void);
+void yyset_in (FILE * _in_str);
+int yylex_destroy (void);
+
 #if 0 /* no longer necessary? */
 #ifndef HAVE_IN6_ADDR_S6_ADDR
 # ifdef __FreeBSD__
