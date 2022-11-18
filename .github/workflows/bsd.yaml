@@ -8,7 +8,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v2
     - name: Build
-      uses: vmactions/freebsd-vm@v0.2.3
+      uses: vmactions/freebsd-vm@v0.3.0
       with:
         run: |
           pkg update
