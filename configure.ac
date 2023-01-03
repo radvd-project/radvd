@@ -92,6 +92,8 @@ AC_MSG_RESULT(no)
 
 dnl clock_gettime is in librt for glibc <2.17
 AC_SEARCH_LIBS(clock_gettime, rt)
+dnl strlcpy is in libbsd
+AC_SEARCH_LIBS(strlcpy, bsd)
 
 dnl Needed for normal compile
 AC_PROG_INSTALL
