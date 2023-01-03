@@ -3,8 +3,8 @@
 #include <check.h>
 
 /*
- * http://check.sourceforge.net/doc/check_html/check_3.html
- *
+ * https://libcheck.github.io/check/
+ * https://libcheck.github.io/check/doc/check_html/check_3.html
  * http://entrenchant.blogspot.com/2010/08/unit-testing-in-c.html
  */
 
