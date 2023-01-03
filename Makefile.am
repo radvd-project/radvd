@@ -113,10 +113,21 @@ radvdump_SOURCES = \
 
 ### coverage ###
 
+if HAVE_CHECK
 cov: check
 	gcov *.c *.h *.l *.y
 	lcov --capture --directory . --output-file coverage.info
 	genhtml coverage.info --output-directory cov
+else
+cov:
+	$(error libcheck not available)
+endif
+
+if HAVE_CHECK
+else
+check:
+	$(error libcheck not available)
+endif
 
 ### man pages ###
 

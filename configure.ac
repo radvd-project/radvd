@@ -60,6 +60,7 @@ AS_IF([test "x$with_check" = "xyes"], [
         PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
     ])
 ])
+AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
