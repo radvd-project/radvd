@@ -39,7 +39,7 @@ int update_device_info(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, iface->props.name, IFNAMSIZ - 1);
+	strlcpy(ifr.ifr_name, iface->props.name, sizeof(ifr.ifr_name));
 
 	if (ioctl(sock, SIOCGIFMTU, &ifr) < 0) {
 		flog(LOG_ERR, "ioctl(SIOCGIFMTU) failed on %s: %s", iface->props.name, strerror(errno));

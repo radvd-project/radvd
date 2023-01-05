@@ -60,6 +60,7 @@ AS_IF([test "x$with_check" = "xyes"], [
         PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
     ])
 ])
+AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
@@ -92,6 +93,8 @@ AC_MSG_RESULT(no)
 
 dnl clock_gettime is in librt for glibc <2.17
 AC_SEARCH_LIBS(clock_gettime, rt)
+dnl strlcpy is in libbsd
+AC_SEARCH_LIBS(strlcpy, bsd)
 
 dnl Needed for normal compile
 AC_PROG_INSTALL

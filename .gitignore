@@ -24,9 +24,11 @@ tags
 # Build artifacts
 .deps
 *.o
+*.Po
 
 # autotools files
 aclocal.m4
+ar-lib
 autom4te.cache/
 compile
 config.guess
@@ -48,3 +50,5 @@ ylwrap
 # Editor droppings
 *~
 *.swp
+*.rej
+*.orig

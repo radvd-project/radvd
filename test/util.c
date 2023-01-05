@@ -2,8 +2,8 @@
 #include <check.h>
 
 /*
- * http://check.sourceforge.net/doc/check_html/check_3.html
- *
+ * https://libcheck.github.io/check/
+ * https://libcheck.github.io/check/doc/check_html/check_3.html
  * http://entrenchant.blogspot.com/2010/08/unit-testing-in-c.html
  */
 
@@ -14,7 +14,7 @@ START_TEST(test_safe_buffer)
 	ck_assert_int_eq(0, sb.allocated);
 	ck_assert_int_eq(0, sb.used);
 	ck_assert_int_eq(0, sb.should_free);
-	safe_buffer_free(&sb);
+	// safe_buffer_free(&sb); // Do not free non-malloc'd
 
 	struct safe_buffer *sbptr = new_safe_buffer();
 	ck_assert_ptr_eq(0, sbptr->buffer);
@@ -27,50 +27,50 @@ END_TEST
 
 START_TEST(test_safe_buffer_resize)
 {
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	struct safe_buffer *sb = new_safe_buffer();
 	for (int i = 0; i < 5000; i += 17) {
-		safe_buffer_resize(&sb, i);
-		ck_assert_int_ge(sb.allocated, i);
+		safe_buffer_resize(sb, i);
+		ck_assert_int_ge(sb->allocated, i);
 	}
-	safe_buffer_free(&sb);
+	safe_buffer_free(sb);
 }
 END_TEST
 
 START_TEST(test_safe_buffer_append)
 {
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	struct safe_buffer *sb = new_safe_buffer();
 	char array[] = {"This is a test"};
-	safe_buffer_append(&sb, array, sizeof(array));
-	ck_assert_str_eq(sb.buffer, array);
-	ck_assert_int_eq(sb.used, sizeof(array));
-	safe_buffer_free(&sb);
+	safe_buffer_append(sb, array, sizeof(array));
+	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_int_eq(sb->used, sizeof(array));
+	safe_buffer_free(sb);
 }
 END_TEST
 
 START_TEST(test_safe_buffer_append2)
 {
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	struct safe_buffer *sb = new_safe_buffer();
 	char array[] = {"This is a test"};
-	safe_buffer_append(&sb, array, sizeof(array));
-	safe_buffer_append(&sb, array, sizeof(array));
-	ck_assert_str_eq(sb.buffer, array);
-	ck_assert_str_eq(sb.buffer + sizeof(array), array);
-	ck_assert_int_eq(sb.used, 2 * sizeof(array));
+	safe_buffer_append(sb, array, sizeof(array));
+	safe_buffer_append(sb, array, sizeof(array));
+	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_str_eq(sb->buffer + sizeof(array), array);
+	ck_assert_int_eq(sb->used, 2 * sizeof(array));
 
-	safe_buffer_free(&sb);
+	safe_buffer_free(sb);
 }
 END_TEST
 
 START_TEST(test_safe_buffer_pad)
 {
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	struct safe_buffer *sb = new_safe_buffer();
 	char array[] = {"This is a test"};
-	safe_buffer_append(&sb, array, sizeof(array));
-	safe_buffer_pad(&sb, 10);
-	ck_assert_str_eq(sb.buffer, array);
-	ck_assert_int_eq(sb.used, 10 + sizeof(array));
+	safe_buffer_append(sb, array, sizeof(array));
+	safe_buffer_pad(sb, 10);
+	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_int_eq(sb->used, 10 + sizeof(array));
 
-	safe_buffer_free(&sb);
+	safe_buffer_free(sb);
 }
 END_TEST
 
@@ -88,20 +88,20 @@ END_TEST
 START_TEST(test_safe_buffer_list_to_safe_buffer)
 {
 	struct safe_buffer_list *sbl = new_safe_buffer_list();
-	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	struct safe_buffer *sb = new_safe_buffer();
 	char array[] = {"This is a test"};
 
 	safe_buffer_append(sbl->sb, array, sizeof(array));
 	sbl->next = new_safe_buffer_list();
 	safe_buffer_append(sbl->next->sb, array, sizeof(array));
 
-	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_to_safe_buffer(sbl, sb);
 
-	ck_assert_str_eq(sb.buffer, array);
-	ck_assert_str_eq(sb.buffer + sizeof(array), array);
-	ck_assert_int_eq(sb.used, 2 * sizeof(array));
+	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_str_eq(sb->buffer + sizeof(array), array);
+	ck_assert_int_eq(sb->used, 2 * sizeof(array));
 
-	safe_buffer_free(&sb);
+	safe_buffer_free(sb);
 	safe_buffer_list_free(sbl);
 }
 END_TEST
