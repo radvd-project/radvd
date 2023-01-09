@@ -34,11 +34,50 @@ static void iface_teardown(void)
 	iface = 0;
 }
 
-START_TEST(test_add_ra_header)
+START_TEST(test_add_ra_header_cease_adv0)
 {
 
 	struct safe_buffer sb = SAFE_BUFFER_INIT;
-	add_ra_header(&sb, &iface->ra_header_info, iface->state_info.cease_adv);
+	add_ra_header(&sb, &iface->ra_header_info, 0);
+
+#ifdef PRINT_SAFE_BUFFER
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n// ra_header_info->AdvDefaultLifetime = %x\n%s", iface->ra_header_info.AdvDefaultLifetime, &buf);
+#else
+	// Lifetime should be -1/ffff in this case, because we have not set it to anything else.
+	// interface.c:40:iface->ra_header_info.AdvDefaultLifetime = -1;
+	unsigned char expected[] = {
+		// nd_ra_type
+		// nd_ra_code
+	    0x86, 0x00,
+		// nd_ra_cksum
+		0x00, 0x00,
+		// nd_ra_curhoplimit
+		0x40,
+		// nd_ra_flags_reserved
+		0x00,
+		// nd_ra_router_lifetime
+		0xff, 0xff,
+		// nd_ra_reachable
+		0x00, 0x00, 0x00, 0x00,
+		// nd_ra_retransmit
+		0x00, 0x00, 0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used));
+#endif
+
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+START_TEST(test_add_ra_header_cease_adv1)
+{
+
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+	add_ra_header(&sb, &iface->ra_header_info, 1);
 
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
@@ -46,7 +85,21 @@ START_TEST(test_add_ra_header)
 	ck_assert_msg(0, "\n%s", &buf);
 #else
 	unsigned char expected[] = {
-	    0x86, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// nd_ra_type
+		// nd_ra_code
+		0x86, 0x00,
+		// nd_ra_cksum
+		0x00, 0x00,
+		// nd_ra_curhoplimit
+		0x40,
+		// nd_ra_flags_reserved
+		0x00,
+		// nd_ra_router_lifetime
+		0x00, 0x00,
+		// nd_ra_reachable
+		0x00, 0x00, 0x00, 0x00,
+		// nd_ra_retransmit
+		0x00, 0x00, 0x00, 0x00,
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
@@ -352,7 +405,8 @@ Suite *send_suite(void)
 
 	TCase *tc_build = tcase_create("build");
 	tcase_add_unchecked_fixture(tc_build, iface_setup, iface_teardown);
-	tcase_add_test(tc_build, test_add_ra_header);
+	tcase_add_test(tc_build, test_add_ra_header_cease_adv0);
+	tcase_add_test(tc_build, test_add_ra_header_cease_adv1);
 	tcase_add_test(tc_build, test_add_ra_options_prefix);
 	tcase_add_test(tc_build, test_add_ra_options_route);
 	tcase_add_test(tc_build, test_add_ra_options_rdnss);

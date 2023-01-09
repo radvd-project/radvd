@@ -217,12 +217,7 @@ static void add_ra_header(struct safe_buffer *sb, struct ra_header_info const *r
 	/* Mobile IPv6 ext */
 	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
 
-	if (cease_adv) {
-		radvert.nd_ra_router_lifetime = 0;
-	} else {
-		/* if forwarding is disabled, send zero router lifetime */
-		radvert.nd_ra_router_lifetime = !check_ip6_forwarding() ? htons(ra_header_info->AdvDefaultLifetime) : 0;
-	}
+	radvert.nd_ra_router_lifetime = cease_adv ? 0 : htons(ra_header_info->AdvDefaultLifetime);
 	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
 
 	radvert.nd_ra_reachable = htonl(ra_header_info->AdvReachableTime);
@@ -888,7 +883,10 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 	// Build RA header
 	struct safe_buffer *ra_hdr = new_safe_buffer();
-	add_ra_header(ra_hdr, &iface->ra_header_info, iface->state_info.cease_adv);
+	// if forwarding is disabled, send zero router lifetime
+	// the check_ip6 function is hoisted here to enable testing of add_ra_header
+	int cease_adv = iface->state_info.cease_adv || !check_ip6_forwarding();
+	add_ra_header(ra_hdr, &iface->ra_header_info, cease_adv);
 	// Build RA option list
 	struct safe_buffer_list *ra_opts = build_ra_options(iface, dest);
 
