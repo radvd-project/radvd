@@ -16,8 +16,7 @@ size_t snprint_safe_buffer(char *s, size_t size, struct safe_buffer const *sb)
 {
 	size_t count = 0;
 
-	count += snprintf((s + count), (size - count), "unsigned char expected[] = {");
-	count--;
+	count += snprintf((s + count), (size - count), "unsigned char expected[] = { /* sb.allocated = %ld, sb.used = %ld */", sb->allocated, sb->used);
 
 	for (size_t i = 0; i < sb->used; ++i) {
 		if (i % 8 == 0) {
