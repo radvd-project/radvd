@@ -109,11 +109,7 @@ END_TEST
 START_TEST(test_addrtostr)
 {
 	char buffer[INET6_ADDRSTRLEN] = {""};
-	struct in6_addr addr = {
-	    {
-		0xfe, 0x80, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x12, 0x34,
-	    },
-	};
+	struct in6_addr addr = {{{0xfe, 0x80, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x12, 0x34}}};
 	addrtostr(&addr, buffer, sizeof(buffer));
 	ck_assert_str_eq(buffer, "fe80:fe80::ff00:1234");
 }
@@ -122,11 +118,7 @@ END_TEST
 START_TEST(test_addrtostr_overflow)
 {
 	char buffer[18] = {""};
-	struct in6_addr addr = {
-	    {
-		0xfe, 0x80, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x12, 0x34,
-	    },
-	};
+	struct in6_addr addr = {{{0xfe, 0x80, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x12, 0x34}}};
 	addrtostr(&addr, buffer, sizeof(buffer));
 	ck_assert_str_eq(buffer, "[invalid address]");
 }
@@ -213,20 +205,20 @@ START_TEST(test_check_rdnss_presence)
 	int rc;
 
 	/* The next three should be found */
-	addr = (struct in6_addr){0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+	addr = (struct in6_addr){{{0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}}};
 	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
-	addr = (struct in6_addr){0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2};
+	addr = (struct in6_addr){{{0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2}}};
 	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
-	addr = (struct in6_addr){0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3};
+	addr = (struct in6_addr){{{0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3}}};
 	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_ne(0, rc);
 
 	/* The next one should *not* be found */
-	addr = (struct in6_addr){0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6};
+	addr = (struct in6_addr){{{0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6}}};
 	rc = check_rdnss_presence(iface->AdvRDNSSList, &addr);
 	ck_assert_int_eq(0, rc);
 }
