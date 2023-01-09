@@ -275,8 +275,8 @@ Suite *util_suite(void)
 	tcase_add_test(tc_safe_buffer, test_safe_buffer_pad);
 
 	TCase *tc_safe_buffer_list = tcase_create("safe_buffer_list");
-	tcase_add_test(tc_safe_buffer, test_safe_buffer_list);
-	tcase_add_test(tc_safe_buffer, test_safe_buffer_list_to_safe_buffer);
+	tcase_add_test(tc_safe_buffer_list, test_safe_buffer_list);
+	tcase_add_test(tc_safe_buffer_list, test_safe_buffer_list_to_safe_buffer);
 
 	TCase *tc_str = tcase_create("str");
 	tcase_add_test(tc_str, test_addrtostr);
@@ -298,6 +298,7 @@ Suite *util_suite(void)
 
 	Suite *s = suite_create("util");
 	suite_add_tcase(s, tc_safe_buffer);
+	suite_add_tcase(s, tc_safe_buffer_list);
 	suite_add_tcase(s, tc_str);
 	suite_add_tcase(s, tc_ion);
 	suite_add_tcase(s, tc_presence);
