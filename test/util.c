@@ -39,9 +39,9 @@ END_TEST
 START_TEST(test_safe_buffer_append)
 {
 	struct safe_buffer *sb = new_safe_buffer();
-	char array[] = {"This is a test"};
+	const char array[] = {"This is a test"};
 	safe_buffer_append(sb, array, sizeof(array));
-	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_str_eq((const char*)(sb->buffer), array);
 	ck_assert_int_eq(sb->used, sizeof(array));
 	safe_buffer_free(sb);
 }
@@ -53,8 +53,8 @@ START_TEST(test_safe_buffer_append2)
 	char array[] = {"This is a test"};
 	safe_buffer_append(sb, array, sizeof(array));
 	safe_buffer_append(sb, array, sizeof(array));
-	ck_assert_str_eq(sb->buffer, array);
-	ck_assert_str_eq(sb->buffer + sizeof(array), array);
+	ck_assert_str_eq((const char*)(sb->buffer), array);
+	ck_assert_str_eq((const char*)(sb->buffer + sizeof(array)), array);
 	ck_assert_int_eq(sb->used, 2 * sizeof(array));
 
 	safe_buffer_free(sb);
@@ -67,7 +67,7 @@ START_TEST(test_safe_buffer_pad)
 	char array[] = {"This is a test"};
 	safe_buffer_append(sb, array, sizeof(array));
 	safe_buffer_pad(sb, 10);
-	ck_assert_str_eq(sb->buffer, array);
+	ck_assert_str_eq((const char*)(sb->buffer), array);
 	ck_assert_int_eq(sb->used, 10 + sizeof(array));
 
 	safe_buffer_free(sb);
@@ -97,8 +97,8 @@ START_TEST(test_safe_buffer_list_to_safe_buffer)
 
 	safe_buffer_list_to_safe_buffer(sbl, sb);
 
-	ck_assert_str_eq(sb->buffer, array);
-	ck_assert_str_eq(sb->buffer + sizeof(array), array);
+	ck_assert_str_eq((const char*)(sb->buffer), array);
+	ck_assert_str_eq((const char*)(sb->buffer + sizeof(array)), array);
 	ck_assert_int_eq(sb->used, 2 * sizeof(array));
 
 	safe_buffer_free(sb);
