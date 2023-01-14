@@ -24,8 +24,9 @@ size_t snprint_safe_buffer(char *s, size_t size, struct safe_buffer const *sb)
 		} else {
 			count += snprintf((s + count), (size - count), " 0x%02x,", sb->buffer[i]);
 		}
-		count--;
 	}
+	/* Do not remove the final byte's comma. Only JSON requires the comma is
+	 * removed, and this is not JSON. */
 
 	count += snprintf((s + count), (size - count), "\n};\n");
 	return count;
