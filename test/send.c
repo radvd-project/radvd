@@ -43,7 +43,7 @@ START_TEST(test_add_ra_header_cease_adv0)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n// ra_header_info->AdvDefaultLifetime = %x\n%s", iface->ra_header_info.AdvDefaultLifetime, &buf);
+	ck_assert_msg(0, "\n// ra_header_info->AdvDefaultLifetime = %x\n%s", iface->ra_header_info.AdvDefaultLifetime, (char*)&buf);
 #else
 	// Lifetime should be -1/ffff in this case, because we have not set it to anything else.
 	// interface.c:40:iface->ra_header_info.AdvDefaultLifetime = -1;
@@ -82,7 +82,7 @@ START_TEST(test_add_ra_header_cease_adv1)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		// nd_ra_type
@@ -125,7 +125,7 @@ START_TEST(test_add_ra_options_prefix)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x03, 0x04, 0x40, 0xe0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
@@ -159,7 +159,7 @@ START_TEST(test_add_ra_options_route)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x18, 0x03, 0x30, 0x18, 0x00, 0x00, 0x27, 0x10, 0xfe, 0x80, 0x00, 0x0f, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
@@ -190,7 +190,7 @@ START_TEST(test_add_ra_options_rdnss)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x19, 0x07, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2, 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -224,7 +224,7 @@ START_TEST(test_add_ra_options_rdnss2)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x19, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2d, 0x12, 0x34, 0x04, 0x23,
@@ -254,7 +254,7 @@ START_TEST(test_add_ra_options_dnssl)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x1f, 0x09, 0x00, 0x00, 0x00, 0x00, 0x03, 0xe8, 0x06, 0x6f, 0x66, 0x66, 0x69, 0x63, 0x65, 0x06, 0x62, 0x72, 0x61,
@@ -288,7 +288,7 @@ START_TEST(test_add_ra_option_mtu)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2,
@@ -314,7 +314,7 @@ START_TEST(test_add_ra_option_sllao)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected48[] = {
 		0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
@@ -335,7 +335,7 @@ START_TEST(test_add_ra_option_sllao)
 
 #ifdef PRINT_SAFE_BUFFER
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected64[] = {
 		0x01, 0x02, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -359,7 +359,7 @@ START_TEST(test_add_ra_option_lowpanco)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x22, 0x03, 0x32, 0x14, 0x00, 0x00, 0x03, 0xe8, 0x00, 0x00, 0x00, 0x00,
@@ -383,7 +383,7 @@ START_TEST(test_add_ra_option_abro)
 #ifdef PRINT_SAFE_BUFFER
 	char buf[4096];
 	snprint_safe_buffer(buf, 4096, &sb);
-	ck_assert_msg(0, "\n%s", &buf);
+	ck_assert_msg(0, "\n%s", (char*)&buf);
 #else
 	unsigned char expected[] = {
 		0x23, 0x03, 0x00, 0x0a, 0x00, 0x02, 0x00, 0x02, 0xfe, 0x80, 0x00, 0x00,
