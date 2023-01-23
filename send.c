@@ -885,7 +885,7 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 	struct safe_buffer *ra_hdr = new_safe_buffer();
 	// if forwarding is disabled, send zero router lifetime
 	// the check_ip6 function is hoisted here to enable testing of add_ra_header
-	int cease_adv = iface->state_info.cease_adv || !check_ip6_forwarding();
+	int cease_adv = iface->state_info.cease_adv || check_ip6_forwarding();
 	add_ra_header(ra_hdr, &iface->ra_header_info, cease_adv);
 	// Build RA option list
 	struct safe_buffer_list *ra_opts = build_ra_options(iface, dest);
