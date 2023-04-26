@@ -19,25 +19,26 @@ fi
 # Install the right dependencies according to build host
 echo "Installing required dependencies for distribution '${1}'..."
 case $1 in
+	# watch out, the naming of libbsd vs libbsd0 is not consistent between distros!
 	alpine)
 		apk update
-		apk add alpine-sdk autoconf automake bison check-dev clang flex gettext libtool linux-headers sudo xz
+		apk add alpine-sdk autoconf automake bison check-dev clang flex gettext libtool linux-headers sudo xz libbsd libbsd-dev
 		;;
 	debian)
 		apt update
-		apt install -y autoconf automake bison build-essential check clang flex gettext libtool pkg-config sudo
+		apt install -y autoconf automake bison build-essential check clang flex gettext libtool pkg-config sudo libbsd-dev libbsd0
 		;;
 	fedora)
-		sudo dnf install -y autoconf automake bison check-devel clang flex gettext libtool make pkgconfig xz
+		sudo dnf install -y autoconf automake bison check-devel clang flex gettext libtool make pkgconfig xz libbsd-devel libbsd
 		;;
 	opensuse)
 		zypper refresh
 		zypper --non-interactive install -t pattern devel_C_C++
-		zypper --non-interactive install check-devel clang sudo
+		zypper --non-interactive install check-devel clang sudo libbsd0 libbsd-devel
 		;;
 	ubuntu)
 		sudo apt update
-		sudo apt install -y autoconf automake bison build-essential check clang flex gettext libtool pkg-config
+		sudo apt install -y autoconf automake bison build-essential check clang flex gettext libtool pkg-config libbsd-dev libbsd0
 		;;
 	*)
 		echo "Unsupported distribution, build will be tried without installing any dependencies."

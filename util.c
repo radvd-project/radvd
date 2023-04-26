@@ -30,12 +30,14 @@ struct safe_buffer *new_safe_buffer(void)
 
 void safe_buffer_free(struct safe_buffer *sb)
 {
-	if (sb->buffer) {
+	if (sb && sb->buffer) {
 		free(sb->buffer);
+		sb->buffer = NULL;
 	}
 
-	if (sb->should_free) {
+	if (sb && sb->should_free) {
 		free(sb);
+		sb = NULL;
 	}
 }
 
@@ -145,8 +147,10 @@ void safe_buffer_list_free(struct safe_buffer_list *sbl)
 {
 	struct safe_buffer_list *next;
 	for (struct safe_buffer_list *current = sbl; current; current = next) {
-		if (current->sb)
+		if (current->sb) {
 			safe_buffer_free(current->sb);
+			current->sb = NULL;
+		}
 		next = current->next;
 		free(current);
 	}

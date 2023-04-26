@@ -20,6 +20,10 @@
 
 #define YYERROR_VERBOSE 1
 
+int yylex (void);
+void yyset_in (FILE * _in_str);
+int yylex_destroy (void);
+
 #if 0 /* no longer necessary? */
 #ifndef HAVE_IN6_ADDR_S6_ADDR
 # ifdef __FreeBSD__
@@ -214,8 +218,8 @@ ifacehead	: T_INTERFACE name
 			}
 
 			iface_init_defaults(iface);
-			strncpy(iface->props.name, $2, IFNAMSIZ-1);
-			iface->props.name[IFNAMSIZ-1] = '\0';
+			memset(&iface->props.name, 0, sizeof(iface->props.name));
+			strlcpy(iface->props.name, $2, sizeof(iface->props.name));
 			iface->lineno = num_lines;
 		}
 		;
@@ -685,8 +689,8 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 #else
 			if (prefix) {
 				dlog(LOG_DEBUG, 4, "using prefixes on interface %s for prefixes on interface %s", $2, iface->props.name);
-				strncpy(prefix->if6, $2, IFNAMSIZ-1);
-				prefix->if6[IFNAMSIZ-1] = '\0';
+				memset(&prefix->if6, 0, sizeof(prefix->if6));
+				strlcpy(prefix->if6, $2, sizeof(prefix->if6));
 			}
 #endif
 		}
@@ -699,8 +703,8 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 #else
 			if (prefix) {
 				dlog(LOG_DEBUG, 4, "using interface %s for 6to4 prefixes on interface %s", $2, iface->props.name);
-				strncpy(prefix->if6to4, $2, IFNAMSIZ-1);
-				prefix->if6to4[IFNAMSIZ-1] = '\0';
+				memset(&prefix->if6to4, 0, sizeof(prefix->if6to4));
+				strlcpy(prefix->if6to4, $2, sizeof(prefix->if6to4));
 			}
 #endif
 		}
