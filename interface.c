@@ -73,35 +73,35 @@ int setup_iface(int sock, struct Interface *iface)
 
 	/* Check IFF_UP, IFF_RUNNING and IFF_MULTICAST */
 	if (check_device(sock, iface) < 0) {
-		return -1;
+		return -2;
 	}
 
 	/* Set iface->max_mtu and iface hardware address */
 	if (update_device_info(sock, iface) < 0) {
-		return -1;
+		return -3;
 	}
 
 	/* Make sure the settings in the config file for this interface are ok (this depends
 	 * on iface->max_mtu already being set). */
 	if (check_iface(iface) < 0) {
-		return -1;
+		return -4;
 	}
 
 	/* Save the first link local address seen on the specified interface to
 	 * iface->props.if_addr and keep a list off all addrs in iface->props.if_addrs */
 	if (setup_iface_addrs(iface) < 0) {
-		return -1;
+		return -5;
 	}
 
 	/* Check if we a usable RA source address */
 	if (iface->props.if_addr_rasrc == NULL) {
 		dlog(LOG_DEBUG, 5, "no configured AdvRASrcAddress present, skipping send");
-		return -1;
+		return -6;
 	}
 
 	/* join the allrouters multicast group so we get the solicitations */
 	if (setup_allrouters_membership(sock, iface) < 0) {
-		return -1;
+		return -7;
 	}
 
 	iface->state_info.ready = 1;
