@@ -57,6 +57,7 @@ int yylex_destroy (void);
 %token		T_ABRO
 %token		T_RASRCADDRESS
 %token		T_NAT64PREFIX
+%token		T_AUTOIGNOREPREFIX
 
 %token	<str>	STRING
 %token	<num>	NUMBER
@@ -143,6 +144,7 @@ int yylex_destroy (void);
 %type   <num>	number_or_infinity
 %type	<rasrcaddressinfo> rasrcaddresslist v6addrlist_rasrcaddress
 %type	<nat64pinfo> nat64prefixdef
+%type	<igpinfo> ignoreprefixlist ignoreprefixes
 
 %union {
 	unsigned int		num;
@@ -159,6 +161,7 @@ int yylex_destroy (void);
 	struct AdvAbro		*abroinfo;
 	struct AdvRASrcAddress	*rasrcaddressinfo;
 	struct NAT64Prefix	*nat64pinfo;
+	struct AutogenIgnorePrefix	*igpinfo;
 };
 
 %{
@@ -245,6 +248,7 @@ ifaceparam 	: ifaceval
 		| abrodef       { ADD_TO_LL(struct AdvAbro, AdvAbroList, $1); }
 		| rasrcaddresslist { ADD_TO_LL(struct AdvRASrcAddress, AdvRASrcAddressList, $1); }
 		| nat64prefixdef { ADD_TO_LL(struct NAT64Prefix, NAT64PrefixList, $1); }
+		| ignoreprefixlist { ADD_TO_LL(struct AutogenIgnorePrefix, IgnorePrefixList, $1); }
 		;
 
 ifaceval	: T_MinRtrAdvInterval NUMBER ';'
@@ -569,6 +573,59 @@ nat64prefixparms : T_AdvValidLifetime NUMBER ';'
 			if (nat64prefix) {
 				nat64prefix->AdvValidLifetime = $2;
 			}
+		}
+		;
+
+ignoreprefixlist	: T_AUTOIGNOREPREFIX '{' ignoreprefixes '}' ';'
+		{
+			$$ = $3;
+		}
+		;
+
+ignoreprefixes	: IPV6ADDR '/' NUMBER ';'
+		{
+			struct AutogenIgnorePrefix *new = calloc(1, sizeof(struct AutogenIgnorePrefix));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Prefix), $1, sizeof(struct in6_addr));
+
+			// Create subnet mask from CIDR notation
+			int fullOctets = $3 / 8;
+			for (int i = 0; i < fullOctets; ++i) {
+				new->Mask.s6_addr[i] = 0xff;
+			}
+
+			if (fullOctets != 16) {
+				new->Mask.s6_addr[fullOctets] = ~(1 << (8 - $3 % 8)) + 1;
+			}
+
+			$$ = new;
+		}
+		| ignoreprefixes IPV6ADDR '/' NUMBER ';'
+		{
+			struct AutogenIgnorePrefix *new = calloc(1, sizeof(struct AutogenIgnorePrefix));
+			if (new == NULL) {
+				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			memcpy(&(new->Prefix), $2, sizeof(struct in6_addr));
+
+			// Create subnet mask from CIDR notation
+			int fullOctets = $4 / 8;
+			for (int i = 0; i < fullOctets; ++i) {
+				new->Mask.s6_addr[i] = 0xff;
+			}
+
+			if (fullOctets != 16) {
+				new->Mask.s6_addr[fullOctets] = ~(1 << (8 - $4 % 8)) + 1;
+			}
+
+			new->next = $1;
+			$$ = new;
 		}
 		;
 

@@ -436,6 +436,14 @@ static void free_iface_list(struct Interface *iface)
 			dnssl = next_dnssl;
 		}
 
+		struct AutogenIgnorePrefix *ignore_prefixes = iface->IgnorePrefixList;
+		while (ignore_prefixes) {
+			struct AutogenIgnorePrefix *next_ignore_prefix = ignore_prefixes->next;
+
+			free(ignore_prefixes);
+			ignore_prefixes = next_ignore_prefix;
+		}
+
 		struct Clients *clients = iface->ClientList;
 		while (clients) {
 			struct Clients *next_client = clients->next;

@@ -410,8 +410,24 @@ static struct safe_buffer_list *add_auto_prefixes(struct safe_buffer_list *sbl, 
 		if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
 			continue;
 
+		struct in6_addr prefix6 = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
+
+		int ignore = 0;
+		for (struct AutogenIgnorePrefix *current = iface->IgnorePrefixList; current; current = current->next) {
+			struct in6_addr candidatePrefix6 = get_prefix6(&current->Prefix, &current->Mask);
+
+			if (memcmp(&prefix6, &candidatePrefix6, sizeof(struct in6_addr)) == 0 &&
+			    memcmp(&mask->sin6_addr, &current->Mask, sizeof(struct in6_addr)) == 0) {
+				ignore = 1;
+				break;
+			}
+		}
+
+		if (ignore)
+			continue;
+
 		xprefix = *prefix;
-		xprefix.Prefix = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
+		xprefix.Prefix = prefix6;
 		xprefix.PrefixLen = count_mask(mask);
 
 		char pfx_str[INET6_ADDRSTRLEN];

@@ -33,6 +33,7 @@ The file contains one or more interface definitions of the form:
 	list of DNSSL definitions
 	list of ABRO definitions
 	list of NAT64 pref64 definitions
+	list of auto-ignore prefixes
 	list of acceptable RA source addresses
 .B };
 .fi
@@ -56,8 +57,9 @@ Special prefix "::/64" is also supported on systems that implement getifaddrs()
 (on other systems, configuration activation fails and radvd exits).
 When configured, radvd
 picks all non-link-local prefix assigned to the interface and starts advertising
-it.  This may be applicable in non-6to4 scenarios where the upstream prefix might
-change.  This option is incompatible with Base6to4Interface option.
+it (unless ignored with autoignoreprefixes).  This may be applicable in non-6to4
+scenarios where the upstream prefix might change.  This option is incompatible
+with Base6to4Interface option.
 AdvRouterAddr option is always enabled when this configuration is used.
 
 All the possible prefix specific options are described below.  Each
@@ -143,6 +145,18 @@ NAT64 pref64 (the NAT64 prefix included in the router advertisements):
 The value of
 .B length
 can only be one of /32, /40, /48, /56, /64, or /96.
+
+When using the special prefix "::/64" this option forms an ignore list for
+prefixes that should not be automatically generated and advertised. Has no
+effect on any other prefix definition.
+
+The definitions are of the form:
+
+.nf
+.BR autoignoreprefixes " " {
+        list of IPv6 prefixes
+.B };
+.fi
 
 .SH INTERFACE SPECIFIC OPTIONS
 

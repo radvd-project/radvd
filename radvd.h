@@ -30,6 +30,7 @@ extern int disableigmp6check;
 
 struct AdvPrefix;
 struct NAT64Prefix;
+struct AutogenIgnorePrefix;
 struct Clients;
 
 #define HWADDR_MAX 16
@@ -107,6 +108,8 @@ struct Interface {
 
 	struct NAT64Prefix *NAT64PrefixList;
 
+	struct AutogenIgnorePrefix *IgnorePrefixList;
+
 	uint32_t AdvLinkMTU; /* XXX: sllao also has an if_maxmtu value...Why? */
 	uint32_t AdvRAMTU;   /* MTU used for RA */
 
@@ -177,6 +180,13 @@ struct NAT64Prefix {
 	uint32_t curr_validlft;
 
 	struct NAT64Prefix *next;
+};
+
+struct AutogenIgnorePrefix {
+	struct in6_addr Prefix;
+	struct in6_addr Mask;
+
+	struct AutogenIgnorePrefix *next;
 };
 
 /* More-Specific Routes extensions */

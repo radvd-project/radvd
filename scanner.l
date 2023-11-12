@@ -52,6 +52,7 @@ clients			{ return T_CLIENTS; }
 lowpanco		{ return T_LOWPANCO; }
 abro			{ return T_ABRO; }
 nat64prefix		{ return T_NAT64PREFIX; }
+autoignoreprefixes	{ return T_AUTOIGNOREPREFIX; }
 
 AdvRASrcAddress	{ return T_RASRCADDRESS; }
 
