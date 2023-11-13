@@ -766,13 +766,21 @@ static void setup_iface_foo(struct Interface *iface, void *data)
 {
 	int sock = *(int *)data;
 
-	if (setup_iface(sock, iface) < 0) {
+	int setup_iface_result = setup_iface(sock, iface);
+	if (setup_iface_result < 0) {
 		if (iface->IgnoreIfMissing) {
-			dlog(LOG_DEBUG, 4, "interface %s does not exist or is not set up properly, ignoring the interface",
-			     iface->props.name);
+			dlog(LOG_DEBUG, 4,
+					"interface %s does not exist or is not set up properly, ignoring the interface (setup_iface=%d)",
+					iface->props.name,
+					setup_iface_result
+					);
 			return;
 		} else {
-			flog(LOG_ERR, "interface %s does not exist or is not set up properly", iface->props.name);
+			flog(LOG_ERR,
+					"interface %s does not exist or is not set up properly (setup_iface=%d)",
+					iface->props.name,
+					setup_iface_result
+					);
 			exit(1);
 		}
 	}
