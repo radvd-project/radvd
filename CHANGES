@@ -1,3 +1,19 @@
+2023/11/16  Release v2.20_rc1
+		UnrestrictedUnicast option (respond to RS with configured clients)
+		Ignore clients w/ ! prefix
+		Build improvement, inc. containers for reproducible packaging
+		Captive-Portal API (RFC8910)
+		Default lifetime changes for RDNSS & DNSSL (RFC8106)
+		Prefix lifetime based on kernel lifetimes
+		Netlink fixes for simultaneous POLLERR & POLLIN
+		pwname fixes for root (Fixes #165)
+		Secure ND timestamp support for radvdump (RFC3971)
+		RemoveAdvOnExit for zero lifetime adv on exit
+		NAT64/pref64 support (RFC6052, RFC8781)
+		Case-insensitive config options
+		AutoIgnorePrefix
+		Fix net.ipv6.conf.all.forwarding cease_adv bug
+
 2020/09/23	Release v2.19
 		bug fixes
 		cleanups
