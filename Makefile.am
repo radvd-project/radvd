@@ -194,7 +194,7 @@ EXTRA_DIST = \
 	.travis.yml
 
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
-HASHES = sha1 sha256 sha512
+HASHES = sha256 sha512
 
 sign:
 	$(AM_V_GEN)for e in $(EXTENSIONS); do \
