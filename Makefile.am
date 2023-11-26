@@ -250,6 +250,7 @@ html:
 packages:
 	@if [[ "$$(git diff | wc -l)" != "0" ]] ; then printf "\n\n\tYou have local changes in the working copy...\n\n\n" && git diff && false ; fi
 	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION)^{commit})" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
+	rm -f radvd-$(VERSION).tar*
 	$(MAKE) dist-gzip
 	rm -rf radvd-$(VERSION)
 	tar zfx radvd-$(VERSION).tar.gz
