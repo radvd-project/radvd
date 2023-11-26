@@ -196,23 +196,39 @@ EXTRA_DIST = \
 EXTENSIONS = gz bz2 lz lzma xz tarZ shar zip
 HASHES = sha256 sha512
 
+# Generate clearsigned checksum files.
+# Generate detached signatures of the tarballs.
 sign:
 	$(AM_V_GEN)for e in $(EXTENSIONS); do \
 		if [ -f radvd-$(VERSION).tar.$$e ]; then \
+			gpg --armor --sign --detach-sign radvd-$(VERSION).tar.$$e; \
 			for h in $(HASHES); do \
-				$${h}sum --tag radvd-$(VERSION).tar.$$e > radvd-$(VERSION).tar.$$e.$$h; \
+				$${h}sum --tag radvd-$(VERSION).tar.$$e > radvd-$(VERSION).tar.$$e.$$h || exit 1; \
+				gpg --clear-sign radvd-$(VERSION).tar.$$e.$$h || exit 1; \
+				mv -f radvd-$(VERSION).tar.$$e.$$h.asc radvd-$(VERSION).tar.$$e.$$h || exit 1; \
 			done; \
-			gpg -sba radvd-$(VERSION).tar.$$e; \
 		fi; \
 	done
 
+# Verify clearsigned checksum files.
+# Verify detached signatures of the tarballs.
+#
+# Be careful to verify the clearsign, take ONLY the signed part, and then
+# verify the checksum contained in that (ignore checksums OUTSIDE the
+# clearsigned part).
 verify:
 	$(AM_V_GEN)for e in $(EXTENSIONS); do \
 		if [ -f radvd-$(VERSION).tar.$$e ]; then \
-			for h in $(HASHES); do \
-				$${h}sum --tag -c radvd-$(VERSION).tar.$$e.$$h; \
-			done; \
 			gpg --verify radvd-$(VERSION).tar.$$e.asc; \
+			for h in $(HASHES); do \
+				rm -f radvd-$(VERSION).tar.$$e.$$h.verified || exit 1; \
+				gpg --output radvd-$(VERSION).tar.$$e.$$h.verified --verify radvd-$(VERSION).tar.$$e.$$h || exit 1; \
+				if ! $${h}sum -c radvd-$(VERSION).tar.$$e.$$h.verified ; then \
+					rm -f radvd-$(VERSION).tar.$$e.$$h.verified; \
+					exit 1; \
+				fi; \
+				rm -f radvd-$(VERSION).tar.$$e.$$h.verified; \
+			done; \
 		fi; \
 	done
 
