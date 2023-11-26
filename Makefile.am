@@ -200,7 +200,7 @@ sign:
 	$(AM_V_GEN)for e in $(EXTENSIONS); do \
 		if [ -f radvd-$(VERSION).tar.$$e ]; then \
 			for h in $(HASHES); do \
-				$${h}sum radvd-$(VERSION).tar.$$e > radvd-$(VERSION).tar.$$e.$$h; \
+				$${h}sum --tag radvd-$(VERSION).tar.$$e > radvd-$(VERSION).tar.$$e.$$h; \
 			done; \
 			gpg -sba radvd-$(VERSION).tar.$$e; \
 		fi; \
@@ -210,7 +210,7 @@ verify:
 	$(AM_V_GEN)for e in $(EXTENSIONS); do \
 		if [ -f radvd-$(VERSION).tar.$$e ]; then \
 			for h in $(HASHES); do \
-				$${h}sum -c radvd-$(VERSION).tar.$$e.$$h; \
+				$${h}sum --tag -c radvd-$(VERSION).tar.$$e.$$h; \
 			done; \
 			gpg --verify radvd-$(VERSION).tar.$$e.asc; \
 		fi; \
