@@ -233,6 +233,7 @@ html:
 
 packages:
 	@if [[ "$$(git diff | wc -l)" != "0" ]] ; then printf "\n\n\tYou have local changes in the working copy...\n\n\n" && git diff && false ; fi
+	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION)^{commit})" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	$(MAKE) dist-gzip
 	rm -rf radvd-$(VERSION)
 	tar zfx radvd-$(VERSION).tar.gz
@@ -242,7 +243,6 @@ packages:
 	$(MAKE) sign
 	$(MAKE) verify
 	$(MAKE) html
-	@if [[ "$$(git rev-parse HEAD)" != "$$(git rev-parse v$(VERSION)^{commit})" ]] ; then printf "\n\n\tv$(VERSION) tag missing, or not checked out...\n\n\n" && false ; fi
 	@printf "\n\n\tDont forget to push the v$(VERSION) tag and this branch to origin (git push origin v$(VERSION) master)\n\n\n"
 
 
