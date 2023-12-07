@@ -1,14 +1,8 @@
 name: Buildroot
-on:
-  workflow_run:
-    workflows: [Linux]
-    types:
-    - completed
+on: [push, pull_request]
 
 jobs:
   buildroot:
-    # Only run this job if the triggering job (Linux) passed
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
