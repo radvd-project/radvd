@@ -84,7 +84,7 @@ static int open_and_lock_pid_file(char const *daemon_pid_file_ident);
 static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
 static pid_t daemonp(char const *daemon_pid_file_ident);
 static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
-static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path);
+static struct Interface* main_loop(int sock, struct Interface* ifaces, char const* conf_path, char const* username);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void check_pid_file(char const *daemon_pid_file_ident);
 static void config_interface(struct Interface *iface);
@@ -434,7 +434,7 @@ int main(int argc, char *argv[])
 	}
 
 	setup_ifaces(sock, ifaces);
-	ifaces = main_loop(sock, ifaces, conf_path);
+	ifaces = main_loop(sock, ifaces, conf_path, username);
 	stop_adverts(sock, ifaces);
 	cleanup_ifaces(sock, ifaces);
 	close(sock);
@@ -458,7 +458,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path)
+static struct Interface* main_loop(int sock, struct Interface* ifaces, char const* conf_path, char const* username)
 {
 	struct pollfd fds[2];
 	sigset_t sigmask;
@@ -573,7 +573,24 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 
 		if (sighup_received) {
 			dlog(LOG_INFO, 3, "sig hup received");
-			ifaces = reload_config(sock, ifaces, conf_path);
+
+			/*
+			 * check that 'other' cannot write the file
+			 * for non-root, also that self/own group can't either
+			 */
+			int do_reload = 1;
+			if (check_conffile_perm(username, conf_path) != 0) {
+				if (get_debuglevel() == 0) {
+					flog(LOG_ERR, "permissions on conf_file invalid, ignoring reload request");
+					do_reload = 0;
+				} else {
+					flog(LOG_WARNING, "Insecure file permissions, but continuing reload anyway");
+				}
+			}
+
+			if (do_reload) {
+				ifaces = reload_config(sock, ifaces, conf_path);
+			}
 			sighup_received = 0;
 		}
 
