@@ -84,7 +84,7 @@ static int open_and_lock_pid_file(char const *daemon_pid_file_ident);
 static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
 static pid_t daemonp(char const *daemon_pid_file_ident);
 static pid_t do_daemonize(int log_method, char const *daemon_pid_file_ident);
-static struct Interface* main_loop(int sock, struct Interface* ifaces, char const* conf_path, char const* username);
+static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path, char const *username);
 static struct Interface *reload_config(int sock, struct Interface *ifaces, char const *conf_path);
 static void check_pid_file(char const *daemon_pid_file_ident);
 static void config_interface(struct Interface *iface);
@@ -458,7 +458,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-static struct Interface* main_loop(int sock, struct Interface* ifaces, char const* conf_path, char const* username)
+static struct Interface *main_loop(int sock, struct Interface *ifaces, char const *conf_path, char const *username)
 {
 	struct pollfd fds[2];
 	sigset_t sigmask;
