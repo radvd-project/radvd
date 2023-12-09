@@ -10,7 +10,7 @@ jobs:
     container: alpine:latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
@@ -25,7 +25,7 @@ jobs:
     container: debian:stable
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
@@ -40,7 +40,7 @@ jobs:
     container: fedora:latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
@@ -54,8 +54,12 @@ jobs:
     runs-on: ubuntu-latest
     container: opensuse/leap:latest
     steps:
+      - name: Install dependencies required by the checkout action
+        run: |
+          zypper --non-interactive refresh
+          zypper --non-interactive install gzip tar
       - name: Checkout sources
-        uses: actions/checkout@v1 # Action checkout@v2 triggers an error about non existing "tar" command
+        uses: actions/checkout@v4
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
@@ -70,7 +74,7 @@ jobs:
     runs-on: ${{ matrix.ubuntu_version }}
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
