@@ -524,7 +524,9 @@ static struct Interface *main_loop(int sock, struct Interface *ifaces, char cons
 #ifdef HAVE_PPOLL
 		int rc = ppoll(fds, sizeof(fds) / sizeof(fds[0]), tsp, &sigempty);
 #else
-		int rc = poll(fds, sizeof(fds) / sizeof(fds[0]), 1000 * tsp->tv_sec);
+		// tsp could be NULL so check for this
+		int timeout_seconds = tsp != 0 ? 1000 * tsp->tv_sec : 0;
+		int rc = poll(fds, sizeof(fds) / sizeof(fds[0]), timeout_seconds);
 #endif
 
 		if (rc > 0) {
