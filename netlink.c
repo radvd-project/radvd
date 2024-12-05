@@ -207,13 +207,13 @@ out:
 	return addr_len;
 }
 
-void process_netlink_msg(int sock, struct Interface *ifaces)
+void process_netlink_msg(int netlink_sock, struct Interface *ifaces, int icmp_sock)
 {
 	char buf[4096];
 	struct iovec iov = {buf, sizeof(buf)};
 	struct sockaddr_nl sa;
 	struct msghdr msg = {.msg_name=(void *)&sa, .msg_namelen=sizeof(sa), .msg_iov=&iov, .msg_iovlen=1, .msg_control=NULL, .msg_controllen=0, .msg_flags=0};
-	int len = recvmsg(sock, &msg, 0);
+	int len = recvmsg(netlink_sock, &msg, 0);
 	if (len == -1) {
 		flog(LOG_ERR, "netlink: recvmsg failed: %s", strerror(errno));
 	}
@@ -259,7 +259,13 @@ void process_netlink_msg(int sock, struct Interface *ifaces)
 				break;
 			}
 			if (iface) {
-				touch_iface(iface);
+				if (nh->nlmsg_type == RTM_DELLINK) {
+					dlog(LOG_INFO, 4, "netlink: %s removed, cleaning up", iface->props.name);
+					cleanup_iface(icmp_sock, iface);
+				}
+				else {
+					touch_iface(iface);
+				}
 			}
 
 		} else if (nh->nlmsg_type == RTM_NEWADDR || nh->nlmsg_type == RTM_DELADDR) {
