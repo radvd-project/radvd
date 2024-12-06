@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   freebsd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
