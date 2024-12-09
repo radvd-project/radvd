@@ -912,7 +912,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 
 	struct safe_buffer_list *cur = ra_opts;
 	struct safe_buffer *sb = new_safe_buffer();
-	unsigned long int total_seen_options = 0;
 	do {
 		unsigned long int option_count = 0;
 		sb->used = 0;
@@ -925,8 +924,6 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 				cur = cur->next;
 				continue;
 			}
-			// Ok, it's more than 0 bytes in length
-			total_seen_options++;
 			// Not enough room for the next option in our buffer, just send the buffer now.
 			if (sb->used + cur->sb->used > iface->props.max_ra_option_size) {
 				// But make sure we send at least one option in each RA
