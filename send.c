@@ -571,8 +571,13 @@ static struct safe_buffer_list *add_ra_options_route(struct safe_buffer_list *sb
 		memset(&rinfo, 0, sizeof(rinfo));
 
 		rinfo.nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
-		/* XXX: the prefixes are allowed to be sent in smaller chunks as well */
-		rinfo.nd_opt_ri_len = 3;
+		if (route->PrefixLen == 0) {
+			rinfo.nd_opt_ri_len = 1;
+		} else if (route->PrefixLen > 0 && route->PrefixLen <= 64) {
+			rinfo.nd_opt_ri_len = 2;
+		} else if (route->PrefixLen > 64 && route->PrefixLen <= 128) {
+			rinfo.nd_opt_ri_len = 3;
+		}
 		rinfo.nd_opt_ri_prefix_len = route->PrefixLen;
 
 		rinfo.nd_opt_ri_flags_reserved = (route->AdvRoutePreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;
@@ -585,7 +590,7 @@ static struct safe_buffer_list *add_ra_options_route(struct safe_buffer_list *sb
 		memcpy(&rinfo.nd_opt_ri_prefix, &route->Prefix, sizeof(struct in6_addr));
 
 		sbl = safe_buffer_list_append(sbl);
-		safe_buffer_append(sbl->sb, &rinfo, sizeof(rinfo));
+		safe_buffer_append(sbl->sb, &rinfo, rinfo.nd_opt_ri_len * 8);
 
 		route = route->next;
 	}
