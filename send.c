@@ -956,8 +956,8 @@ static int send_ra(int sock, struct Interface *iface, struct in6_addr const *des
 			// should then ignore the DNSSL.
 			if (cur->sb->used > iface->props.max_ra_option_size) {
 				flog(LOG_WARNING,
-				     "send_ra: RA option (type=%hhd) too long for MTU, fragmenting anyway (violates RFC6980)",
-				     (unsigned char)(cur->sb->buffer[0]));
+				     "send_ra: RA option (type=%hhd) length %lu exceeds max RA option size %u, fragmenting anyway (violates RFC6980 section 2)",
+				     (unsigned char)(cur->sb->buffer[0]), cur->sb->used, iface->props.max_ra_option_size);
 			}
 			// Add this option to the buffer.
 			safe_buffer_append(sb, cur->sb->buffer, cur->sb->used);
