@@ -661,13 +661,21 @@ static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sb
 		serialized_domains->used = 0;
 		size_t const domain_name_bytes = serialize_domain_names(serialized_domains, dnssl);
 		size_t const bytes = sizeof(dnsslinfo) + domain_name_bytes;
-		if (bytes > (256 * 8)) {
-			flog(LOG_ERR, "DNSSL too long for RA option, must be < 2048 bytes.  Exiting.");
-			exit(1);
+		size_t const nd_opt_dnssli_len = (bytes + 7) / 8; // deliberate size_t, not uint_8
+		// dnsslinfo.nd_opt_dnssli_len is uint8 count of 8-octet groups; min 3, max 255
+		// too many long serialized domains could exceed it
+		// https://datatracker.ietf.org/doc/html/rfc8106#section-5.2
+		if(nd_opt_dnssli_len > 255) {
+            size_t const bytes_with_padding = nd_opt_dnssli_len * 8;
+			flog(LOG_ERR,
+				"DNSSL too long (%ld) for RA option, must be <= %d bytes. Skipping option.",
+				bytes_with_padding, (255*8));
+			dnssl = dnssl->next;
+			continue;
 		}
 
 		dnsslinfo.nd_opt_dnssli_type = ND_OPT_DNSSL_INFORMATION;
-		dnsslinfo.nd_opt_dnssli_len = (bytes + 7) / 8;
+		dnsslinfo.nd_opt_dnssli_len = (uint8_t) nd_opt_dnssli_len;
 		dnsslinfo.nd_opt_dnssli_reserved = 0;
 
 		if (cease_adv && dnssl->FlushDNSSLFlag) {
