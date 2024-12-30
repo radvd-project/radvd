@@ -13,7 +13,7 @@
 .\"
 .\"
 .\"
-.TH RADVD.CONF 5 "4 Jan 2011" "radvd @VERSION@" ""
+.TH RADVD.CONF 5 "30 Dec 2024" "radvd @VERSION@" ""
 .SH NAME
 radvd.conf \- configuration file of the router advertisement daemon
 .B radvd
@@ -862,6 +862,7 @@ RFC 7772, February 2016.
 .PP
 J. Jeong, S. Park, L. Beloeil, and S. Madanapalli, "IPv6 Router Advertisement Options for DNS Configuration",
 RFC 8106, March 2017.
+.PP
 L. Colitti, and J. Linkova, "Discovering PREF64 in Router Advertisements",
 RFC 8781, April 2020.
 
@@ -869,3 +870,9 @@ RFC 8781, April 2020.
 
 .BR radvd (8),
 .BR radvdump (8)
+.SH AUTHORS
+
+.nf
+See radvd.8 manpage for authors
+
+.fi
