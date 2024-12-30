@@ -126,7 +126,9 @@ By default radvd will use the first link-local address for the interface as the
 source address for route advertisements. This can be overwritten by manually
 setting the list of acceptable source addresses. If done, radvd will use the
 first address from the interface that is present in the configured source
-addresses only. This functionality will NOT spoof the source address, but may be useful in combination with VRRP or other functionality that 
+addresses only. This functionality will NOT spoof the source address, but may
+be useful in combination with VRRP or other functionality that do a
+virtual/failover MAC.
 
 .nf
 .BR AdvRASrcAddress " " {
