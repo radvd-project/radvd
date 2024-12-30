@@ -602,13 +602,22 @@ static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sb
 {
 	while (rdnss) {
 		struct nd_opt_rdnss_info_local rdnssinfo;
-
 		if (!cease_adv && !schedule_option_rdnss(dest, iface, rdnss)) {
 			rdnss = rdnss->next;
 			continue;
 		}
 
 		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
+
+		size_t const bytes = sizeof(rdnssinfo) + sizeof(struct in6_addr) * rdnss->AdvRDNSSNumber;
+		// dnsslinfo.nd_opt_rdnssi_len is uint8 count of 8-octet groups; min 3, max 255
+		// too many DNS servers could exceed it
+		// https://datatracker.ietf.org/doc/html/rfc8106#section-5.1
+		if (bytes > (255 * 8)) {
+			flog(LOG_ERR, "RDNSS too long for RA option, must be < 2032 bytes. Skipping option.");
+			rdnss = rdnss->next;
+			continue;
+		}
 
 		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
 		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
@@ -620,13 +629,13 @@ static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sb
 			rdnssinfo.nd_opt_rdnssi_lifetime = htonl(rdnss->AdvRDNSSLifetime);
 		}
 
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr1, &rdnss->AdvRDNSSAddr1, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr2, &rdnss->AdvRDNSSAddr2, sizeof(struct in6_addr));
-		memcpy(&rdnssinfo.nd_opt_rdnssi_addr3, &rdnss->AdvRDNSSAddr3, sizeof(struct in6_addr));
-
 		sbl = safe_buffer_list_append(sbl);
-		safe_buffer_append(sbl->sb, &rdnssinfo,
-				   sizeof(rdnssinfo) - (3 - rdnss->AdvRDNSSNumber) * sizeof(struct in6_addr));
+		safe_buffer_resize(sbl->sb, sbl->sb->used + bytes);
+		safe_buffer_append(sbl->sb, &rdnssinfo, sizeof(rdnssinfo));
+		for (int i = 0; i < rdnss->AdvRDNSSNumber; i++) {
+			safe_buffer_append(sbl->sb, &rdnss->AdvRDNSSAddr[i], sizeof(struct in6_addr));
+		}
+		// padding is only required for DNSSL
 
 		rdnss = rdnss->next;
 	}

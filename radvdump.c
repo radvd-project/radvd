@@ -400,28 +400,25 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 		case ND_OPT_RDNSS_INFORMATION: {
 			struct nd_opt_rdnss_info_local *rdnss_info = (struct nd_opt_rdnss_info_local *)opt_str;
 
-			printf("\n\tRDNSS");
 
-			addrtostr(&rdnss_info->nd_opt_rdnssi_addr1, prefix_str, sizeof(prefix_str));
-			printf(" %s", prefix_str);
-
-			if (rdnss_info->nd_opt_rdnssi_len >= 5) {
-				addrtostr(&rdnss_info->nd_opt_rdnssi_addr2, prefix_str, sizeof(prefix_str));
-				printf(" %s", prefix_str);
+			if (rdnss_info->nd_opt_rdnssi_len >= 3 && rdnss_info->nd_opt_rdnssi_len % 2 == 1) {
+				printf("\n\tRDNSS");
+				for (int i = 0; i < (rdnss_info->nd_opt_rdnssi_len - 1) / 2; i++) {
+					addrtostr(&rdnss_info->nd_opt_rdnssi_addr[i], prefix_str, sizeof(prefix_str));
+					printf(" %s", prefix_str);
+				}
+				printf("\n\t{\n");
+				/* as AdvRDNSSLifetime may depend on MaxRtrAdvInterval, it could change */
+				if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
+					printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");
+				else
+					printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
+				printf("\t}; # End of RDNSS definition\n\n");
+			} else {
+				flog(LOG_ERR, "Invalid RDNSS option length %d from %s", rdnss_info->nd_opt_rdnssi_len, addr_str);
+				printf("# Invalid RDNSS length %d, per RFC8106 section 5.1 ", rdnss_info->nd_opt_rdnssi_len);
 			}
-			if (rdnss_info->nd_opt_rdnssi_len >= 7) {
-				addrtostr(&rdnss_info->nd_opt_rdnssi_addr3, prefix_str, sizeof(prefix_str));
-				printf(" %s", prefix_str);
-			}
 
-			printf("\n\t{\n");
-			/* as AdvRDNSSLifetime may depend on MaxRtrAdvInterval, it could change */
-			if (ntohl(rdnss_info->nd_opt_rdnssi_lifetime) == 0xffffffff)
-				printf("\t\tAdvRDNSSLifetime infinity; # (0xffffffff)\n");
-			else
-				printf("\t\tAdvRDNSSLifetime %u;\n", ntohl(rdnss_info->nd_opt_rdnssi_lifetime));
-
-			printf("\t}; # End of RDNSS definition\n\n");
 			break;
 		}
 		case ND_OPT_DNSSL_INFORMATION: {
