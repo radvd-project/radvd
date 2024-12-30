@@ -610,17 +610,20 @@ static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sb
 		memset(&rdnssinfo, 0, sizeof(rdnssinfo));
 
 		size_t const bytes = sizeof(rdnssinfo) + sizeof(struct in6_addr) * rdnss->AdvRDNSSNumber;
+		size_t const nd_opt_dnssli_len = bytes/8; // deliberate size_t, not uint_8; padding is NOT required for RDNSS
 		// dnsslinfo.nd_opt_rdnssi_len is uint8 count of 8-octet groups; min 3, max 255
 		// too many DNS servers could exceed it
 		// https://datatracker.ietf.org/doc/html/rfc8106#section-5.1
-		if (bytes > (255 * 8)) {
-			flog(LOG_ERR, "RDNSS too long for RA option, must be < 2032 bytes. Skipping option.");
+		if(nd_opt_dnssli_len > 255) {
+			flog(LOG_ERR,
+				"Skipping option: RDNSS too long (%ld) for RA, must be <= %d bytes including header.",
+				bytes, (255*8));
 			rdnss = rdnss->next;
 			continue;
 		}
 
 		rdnssinfo.nd_opt_rdnssi_type = ND_OPT_RDNSS_INFORMATION;
-		rdnssinfo.nd_opt_rdnssi_len = 1 + 2 * rdnss->AdvRDNSSNumber;
+		rdnssinfo.nd_opt_rdnssi_len = (uint8_t) nd_opt_dnssli_len;
 		rdnssinfo.nd_opt_rdnssi_pref_flag_reserved = 0;
 
 		if (cease_adv && rdnss->FlushRDNSSFlag) {
@@ -665,10 +668,10 @@ static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sb
 		// dnsslinfo.nd_opt_dnssli_len is uint8 count of 8-octet groups; min 3, max 255
 		// too many long serialized domains could exceed it
 		// https://datatracker.ietf.org/doc/html/rfc8106#section-5.2
+		size_t const bytes_with_padding = nd_opt_dnssli_len * 8;
 		if(nd_opt_dnssli_len > 255) {
-            size_t const bytes_with_padding = nd_opt_dnssli_len * 8;
 			flog(LOG_ERR,
-				"DNSSL too long (%ld) for RA option, must be <= %d bytes. Skipping option.",
+				"Skipping option: DNSSL too long (%ld) for RA, must be <= %d bytes including header and padding.",
 				bytes_with_padding, (255*8));
 			dnssl = dnssl->next;
 			continue;
@@ -684,7 +687,7 @@ static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sb
 			dnsslinfo.nd_opt_dnssli_lifetime = htonl(dnssl->AdvDNSSLLifetime);
 		}
 
-		size_t const padding = dnsslinfo.nd_opt_dnssli_len * 8 - bytes;
+		size_t const padding = bytes_with_padding - bytes;
 
 		sbl = safe_buffer_list_append(sbl);
 		safe_buffer_resize(sbl->sb, sbl->sb->used + sizeof(dnsslinfo) + domain_name_bytes + padding);

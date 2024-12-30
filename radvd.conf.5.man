@@ -88,7 +88,9 @@ RDNSS (Recursive DNS server) definitions are of the form:
 .B };
 .fi
 
-Each RDNSS block may have a maximum of 254 IP addresses due to the length field in the RDNSS option fragment.
+Each RDNSS definition block has a maximum length of 2040 bytes including the header, this accomodates up to 127 addresses.
+
+If the length is exceeded, radvd will log a non-fatal error instead of sending the option.
 
 DNSSL (DNS Search List) definitions are of the form:
 
@@ -98,7 +100,8 @@ DNSSL (DNS Search List) definitions are of the form:
 .B };
 .fi
 
-Each DNSSL definition block has a maximum length of 2032 bytes, applied after the suffixes are encoded per RFC1035, section 3.1.
+Each DNSSL definition block has a maximum length of 2040 bytes including the header, applied after the suffixes are encoded per RFC1035, section 3.1.
+
 If the length is exceeded, radvd will log a non-fatal error instead of sending the option.
 
 By default radvd will send multicast route advertisements so that every node on the link can use them.
