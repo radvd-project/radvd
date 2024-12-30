@@ -364,7 +364,7 @@ START_TEST(test_add_ra_options_dnssl)
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -404,7 +404,7 @@ START_TEST(test_add_ra_options_dnssl1)
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -450,7 +450,7 @@ START_TEST(test_add_ra_options_dnssl2)
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -498,7 +498,7 @@ START_TEST(test_add_ra_options_dnssl3)
 
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -566,7 +566,7 @@ START_TEST(test_add_ra_options_dnssl4)
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -601,7 +601,7 @@ START_TEST(test_add_ra_options_dnssl5)
 
 	unsigned char expected[] = {}; // intentional, the DNSSL option in this config should be skipped.
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
@@ -671,7 +671,7 @@ START_TEST(test_add_ra_options_dnssl6)
 	};
 
 	ck_assert_int_eq(sizeof(expected), sb.used);
-	ck_assert_mem_eq(expected, sb.buffer, sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used)); // Newer libcheck supports: ck_assert_mem_eq(expected, sb.buffer, sb.used);
 #endif
 
 	safe_buffer_free(&sb);
