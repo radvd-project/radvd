@@ -88,7 +88,12 @@ int send_ra_forall(int sock, struct Interface *iface, struct in6_addr *dest)
 		return -1;
 	}
 
-	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS)
+	// Ignore unicast request/response - otherwise rapid unicast
+	// requests during startup can cause multicast/broadcast RAs to *NOT* be
+	// sent on the desired schedule.
+	// racount is consumed in interface.c to calculate when to send the
+	// next non-unicast RA.
+	if (iface->state_info.racount < MAX_INITIAL_RTR_ADVERTISEMENTS && dest == NULL)
 		iface->state_info.racount++;
 
 	/* If no list of clients was specified for this interface, we broadcast */
