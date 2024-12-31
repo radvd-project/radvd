@@ -164,6 +164,7 @@ EXTRA_DIST = \
 	COPYRIGHT \
 	copyright.blurb \
 	Docker.autogen \
+	.github/workflows/bsd.yaml \
 	.github/workflows/buildroot.yaml \
 	.github/workflows/linux.yaml \
 	.gitignore \
@@ -174,6 +175,7 @@ EXTRA_DIST = \
 	radvd.service.in \
 	radvdump.8.man \
 	README \
+	RELEASE-PROCESS.md \
 	redhat/systemd/radvd.service \
 	redhat/systemd/radvd.spec \
 	redhat/systemd/radvd-tmpfs.conf \
@@ -188,7 +190,14 @@ EXTRA_DIST = \
 	test/send.c \
 	test/test1.conf \
 	test/test_build.sh \
+	test/test_dnssl1.conf \
+	test/test_dnssl2.conf \
+	test/test_dnssl3.conf \
+	test/test_dnssl4.conf \
+	test/test_dnssl5.conf \
+	test/test_dnssl6.conf \
 	test/test_rdnss.conf \
+	test/test_rdnss_long.conf \
 	test/util.c \
 	TODO \
 	.travis.yml
