@@ -71,7 +71,7 @@ struct Interface {
 		int ready;   /* Info whether this interface has been initialized successfully */
 		int changed; /* Info whether this interface's settings have changed */
 		int cease_adv;
-		uint32_t racount;
+		uint32_t racount; // count of non-unicast initial router adv
 	} state_info;
 
 	struct properties {
