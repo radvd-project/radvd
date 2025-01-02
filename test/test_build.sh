@@ -49,6 +49,6 @@ esac
 ./autogen.sh
 ./configure --with-check
 make -j
-make check
-make dist-xz
-sudo make install
+make -j check
+make -j dist-xz
+sudo make -j install

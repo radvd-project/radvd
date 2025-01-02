@@ -39,4 +39,4 @@ jobs:
         run: rm -rf radvd*
       - name: Build
         working-directory: /home/runner/${{ env.BUILDROOT_DIRECTORY_NAME }}
-        run: make
+        run: make -j

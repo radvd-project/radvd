@@ -15,6 +15,6 @@ jobs:
           pkg install -y autoconf automake bison flex pkgconf
           ./autogen.sh
           ./configure
-          make
-          make dist-xz
-          make install
+          make -j
+          make -j dist-xz
+          make -j install
