@@ -10,6 +10,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   freebsd:
     runs-on: ubuntu-latest
