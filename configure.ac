@@ -13,9 +13,9 @@ dnl
 dnl
 
 dnl If adding rcX to version, be sure to separate with a '-' 
-AC_INIT(radvd, [2.20])
+AC_INIT([radvd],[2.20])
 AC_CONFIG_SRCDIR(radvd.c)
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
@@ -64,12 +64,12 @@ AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <asm/types.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-],[
+]], [[
 int
 main(int argc, char * argv[])
 {
@@ -83,7 +83,7 @@ main(int argc, char * argv[])
 
         return 0;
 }
-],[
+]])],[
 AC_DEFINE(HAVE_NETLINK, 1, [Linux netlink])
 CONDITIONAL_SOURCES=netlink.${OBJEXT}
 AC_MSG_RESULT(yes)
@@ -178,21 +178,43 @@ AC_HEADER_TIME
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_MSG_CHECKING(whether struct sockaddr_in6 has sin6_scope_id)
-AC_TRY_COMPILE([#include <stdint.h>
-#include <sys/types.h>
-#include <netinet/in.h>], [
-static struct sockaddr_in6 ac_sin6;
-uint32_t ac_size = sizeof (ac_sin6.sin6_scope_id);
-], [AC_MSG_RESULT(yes); AC_DEFINE([HAVE_SIN6_SCOPE_ID],
-1, [whether struct sockaddr_in6 has sin6_scope_id])],
-AC_MSG_RESULT(no))
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[
+		#include <stdint.h>
+		#include <sys/types.h>
+		#include <netinet/in.h>
+	]], [[
+		static struct sockaddr_in6 ac_sin6;
+		uint32_t ac_size = sizeof (ac_sin6.sin6_scope_id);
+	]])],
+	[
+		AC_MSG_RESULT(yes);
+		AC_DEFINE(
+			[HAVE_SIN6_SCOPE_ID],
+			1,
+			[whether struct sockaddr_in6 has sin6_scope_id]
+			)
+	],
+	[AC_MSG_RESULT(no)]
+)
 
 AC_MSG_CHECKING(whether struct in6_addr has u6_addrXX and defines s6_addrXX)
-AC_TRY_COMPILE([#include <stdint.h>
-#include <netinet/in.h>], [static struct in6_addr in6_u;
-uint16_t u =  in6_u.s6_addr16[0];], [AC_MSG_RESULT(yes); AC_DEFINE([HAVE_IN6_ADDR_S6_ADDR],
-1, [whether struct in6_addr has u6_addrXX and defines s6_addrXX])],
-AC_MSG_RESULT(no))
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM(
+		[[
+			#include <stdint.h>
+			#include <netinet/in.h>
+		]], [[
+			static struct in6_addr in6_u;
+			uint16_t u =  in6_u.s6_addr16[0];
+		]]
+	)],
+	[
+		AC_MSG_RESULT(yes);
+		AC_DEFINE([HAVE_IN6_ADDR_S6_ADDR], 1, [whether struct in6_addr has u6_addrXX and defines s6_addrXX])
+	],
+	[AC_MSG_RESULT(no)]
+)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt_long)
@@ -247,12 +269,12 @@ AS_IF([test "x$with_systemdsystemunitdir" != "xno"],
 AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$with_systemdsystemunitdir" != "xno"])
 
 AM_CONFIG_HEADER(config.h)
-AC_OUTPUT(
-	Makefile \
+AC_CONFIG_FILES([Makefile \
 	radvd.service \
 	redhat/systemd/radvd.spec \
 	redhat/SysV/radvd.spec \
-)
+])
+AC_OUTPUT
 
 cat << EOF
 
