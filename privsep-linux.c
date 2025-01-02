@@ -180,30 +180,44 @@ static int set_interface_var(const char *iface, const char *var, const char *nam
 	int retval = -1;
 	FILE *fp = 0;
 	char *spath = strdupf(var, iface);
+	int fd = -1 ;
 
 	/* No path traversal */
+	// TODO: if interface names contain '/' in future, this may break.
 	if (!iface[0] || !strcmp(iface, ".") || !strcmp(iface, "..") || strchr(iface, '/'))
-		goto cleanup;
+		goto errmsg;
 
-	if (access(spath, F_OK) != 0)
-		goto cleanup;
-
-	fp = fopen(spath, "w");
-	if (!fp) {
-		if (name)
-			flog(LOG_ERR, "failed to set %s (%u) for %s: %s", name, val, iface, strerror(errno));
-		goto cleanup;
+	// Open the file for writing, ONLY if it already exists.
+	// explicitly ensure that O_CREAT is *NOT* set.
+	fd = open(spath, O_WRONLY & (~O_CREAT), 0);
+	if (fd == -1) {
+		// If the file does NOT exist, this is non-fatal; as we fallback to a
+		// different filename at a higher level.
+		// ensure we cleanup and return -1 to the higher level
+		if (errno == ENOENT)
+			goto cleanup;
+		// If we got some other error, e.g. ENOACCESS
+		goto errmsg;
 	}
 
-	if (0 > fprintf(fp, "%u", val)) {
-		goto cleanup;
+	// We know the file exists now, write to it.
+	fp = fdopen(fd, "w");
+	if (!fp)
+		goto errmsg;
+
+	if (fprintf(fp, "%u", val) > 0) {
+		retval = 0;
 	}
 
-	retval = 0;
-
+errmsg:
+	if (name && retval != 0)
+		flog(LOG_ERR, "failed to set %s (%u) for %s: %s", name, val, iface, strerror(errno));
 cleanup:
+
 	if (fp)
 		fclose(fp);
+	if (fd != -1)
+		close(fd);
 
 	free(spath);
 
