@@ -20,7 +20,8 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Build
-      uses: vmactions/freebsd-vm@v1
+      # CodeQL security: uses should use an immutable tag or hash for untrusted actions, "@v1" may mutate
+      uses: vmactions/freebsd-vm@v1.1.7
       with:
         # BSD make -j has a mandatory argument
         # Linux make -j means infinite jobs
