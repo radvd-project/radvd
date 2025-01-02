@@ -19,11 +19,13 @@ jobs:
     - name: Build
       uses: vmactions/freebsd-vm@v1
       with:
+        # BSD make -j has a mandatory argument
+        # Linux make -j means infinite jobs
         run: |
           pkg update
           pkg install -y autoconf automake bison flex pkgconf
           ./autogen.sh
           ./configure
-          make -j
-          make -j dist-xz
-          make -j install
+          make -j $(nproc)
+          make -j $(nproc) dist-xz
+          make -j $(nproc) install
