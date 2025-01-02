@@ -1,5 +1,14 @@
 name: BSD
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   freebsd:
@@ -10,11 +19,13 @@ jobs:
     - name: Build
       uses: vmactions/freebsd-vm@v1
       with:
+        # BSD make -j has a mandatory argument
+        # Linux make -j means infinite jobs
         run: |
           pkg update
           pkg install -y autoconf automake bison flex pkgconf
           ./autogen.sh
           ./configure
-          make
-          make dist-xz
-          make install
+          make -j $(nproc)
+          make -j $(nproc) dist-xz
+          make -j $(nproc) install
