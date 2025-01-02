@@ -87,7 +87,8 @@ jobs:
         DEBIAN_FRONTEND=noninteractive sudo apt-get -qy install autoconf automake bison build-essential check clang flex gettext libtool pkg-config libbsd-dev libbsd0 systemd || exit 1
         ./autogen.sh || exit 1
         ./configure --with-check || exit 1
-        make -j all check_all || exit 1
+        make -j all || exit 1 # If both all & check_all are together, triggers race condition w/ scanner.l & gram.y
+        make -j check_all || exit 1
         make check || exit 1
 
     - name: Perform CodeQL Analysis
