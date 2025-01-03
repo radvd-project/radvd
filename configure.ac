@@ -55,10 +55,21 @@ AC_ARG_WITH([stack-protector], AS_HELP_STRING([--without-stack-protector], [Buil
 AM_CONDITIONAL(HAVE_STACK_PROTECTOR, test x"$with_stack_protector" = xyes)
 
 AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=no])
+# AC_ARG_WITH provides HAVE_CHECK*; but that does not say if the library is present
+check_version=0.9.4
 AS_IF([test "x$with_check" = "xyes"], [
-	PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+	# only check_all gets linked; NOT radvd / radvdump
+	# PKG_CHECK_MODULES's default behavior does not export any variable that
+	# says if the module is present or not.  $pkg_cv_CHECK_{CFLAGS,LIBS} are
+	# also taken from either env or package, but the package can have them
+	# empty, so we must define the true/false.
+	# See https://autotools.info/pkgconfig/pkg_check_modules.html
+	PKG_CHECK_MODULES([CHECK], [check >= ${check_version}], [found_yes=yes], [found_check=no])
 ])
 AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
+if test "x$found_check" = xno && test "x$with_check" = xyes; then
+	AC_MSG_ERROR("check >= ${check_version} required but not found")
+fi
 
 dnl Determine of netlink is available
 AC_MSG_CHECKING(netlink)
