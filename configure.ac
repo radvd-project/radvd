@@ -93,8 +93,23 @@ AC_MSG_RESULT(no)
 
 dnl clock_gettime is in librt for glibc <2.17
 AC_SEARCH_LIBS(clock_gettime, rt)
-dnl strlcpy is in libbsd
-AC_SEARCH_LIBS(strlcpy, bsd)
+
+AC_CHECK_FUNC(strlcpy, found_strlcpy=yes, found_strlcpy=no)
+if test "x$found_strlcpy" = xno; then
+	dnl check libbsd for strlcpy
+	PKG_CHECK_MODULES([BSD], [libbsd >= 0])
+	AC_SEARCH_LIBS(strlcpy, bsd,
+					[
+						found_bsd_strlcpy=yes
+						CFLAGS="$BSD_CFLAGS $CFLAGS"
+						LIBS="$BSD_LIBS $LIBS"
+					],
+					found_bsd_strlcpy=no)
+fi
+
+if test "x$found_strlcpy" = xno && test "x$found_bsd_strlcpy" = xno; then
+	AC_MSG_ERROR(cannot find strlcpy - upgrade your libc or install libbsd)
+fi
 
 dnl Needed for normal compile
 AC_PROG_INSTALL
