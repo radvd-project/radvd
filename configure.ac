@@ -56,9 +56,7 @@ AM_CONDITIONAL(HAVE_STACK_PROTECTOR, test x"$with_stack_protector" = xyes)
 
 AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=no])
 AS_IF([test "x$with_check" = "xyes"], [
-    AS_IF([test "x$arch" = "xlinux"], [
-        PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
-    ])
+	PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 ])
 AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
 
