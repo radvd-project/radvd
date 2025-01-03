@@ -334,3 +334,4 @@ if HAVE_SYSTEMD
 systemdsystemunit_DATA = radvd.service
 endif
 
+BUILT_SOURCES = gram.h scanner.c gram.c
