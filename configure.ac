@@ -57,7 +57,12 @@ AM_CONDITIONAL(HAVE_STACK_PROTECTOR, test x"$with_stack_protector" = xyes)
 AC_ARG_WITH([check], AS_HELP_STRING([--without-check], [Build without check unit testing framework]),[],[with_check=no])
 AS_IF([test "x$with_check" = "xyes"], [
     AS_IF([test "x$arch" = "xlinux"], [
-        PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+		check_version=0.9.4
+		# only check_all gets linked; NOT radvd / radvdump
+        PKG_CHECK_MODULES([CHECK], [check >= ${check_version}], [found_yes=yes],[found_check=no])
+		if test "x$found_check" = xno; then
+			AC_MSG_ERROR("check >= ${check_version} required but not found")
+		fi
     ])
 ])
 AM_CONDITIONAL(HAVE_CHECK, test x"$with_check" = xyes)
