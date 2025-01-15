@@ -2,6 +2,10 @@
 Installation:
 =============
 
+Run the autoconf process in a Docker container, as follows:
+
+./autogen-container.sh
+
 Run configure, e.g.
 
 ./configure --prefix=/usr/local --sysconfdir=/etc --mandir=/usr/share/man
