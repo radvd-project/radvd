@@ -47,7 +47,11 @@ stamp-h1
 test-driver
 ylwrap
 
+# quilt, tool for patches
+.pc/
+
 # Editor droppings
+.vscode/
 *~
 *.swp
 *.rej
