@@ -2,11 +2,29 @@
 Installation:
 =============
 
+Autoconf
+--------
+
+Run the autoconf process in a Docker container, as follows:
+
+    ./autogen-container.sh
+
+Alternatively (e.g., if Docker is unavailable), install autoconf, automake,
+gettext, libtool, gawk and make, and then:
+
+    ./autogen.sh
+
+Configure
+---------
+
 Run configure, e.g.
 
-./configure --prefix=/usr/local --sysconfdir=/etc --mandir=/usr/share/man
+    ./configure --prefix=/usr/local --sysconfdir=/etc --mandir=/usr/share/man
 
 See configure --help for additional command line arguments.
+
+Make
+----
 
 Run 'make' and 'make install'.  On BSD, you may need to use 'gmake'.
 
