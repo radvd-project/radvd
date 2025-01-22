@@ -10,22 +10,31 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   freebsd:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
     - name: Build
-      uses: vmactions/freebsd-vm@v1
+      # CodeQL security: uses should use an immutable tag or hash for untrusted actions, "@v1" may mutate
+      uses: vmactions/freebsd-vm@v1.1.7
       with:
         # BSD make -j has a mandatory argument
         # Linux make -j means infinite jobs
+        prepare: |
+          pkg install -y autoconf automake bison flex pkgconf devel/check check
         run: |
-          pkg update
-          pkg install -y autoconf automake bison flex pkgconf
+          set -e # exit on any failure below
+          set -x # show each step
           ./autogen.sh
-          ./configure
-          make -j $(nproc)
-          make -j $(nproc) dist-xz
-          make -j $(nproc) install
+          ./configure --with-check || exit 1
+          make -j $(nproc) all || exit 1
+          make -j $(nproc) check || exit 1
+          make -j $(nproc) dist-xz || exit 1
+          make -j $(nproc) install || exit 1
