@@ -103,7 +103,7 @@ AC_MSG_RESULT(no)
 dnl clock_gettime is in librt for glibc <2.17
 AC_SEARCH_LIBS(clock_gettime, rt)
 
-AC_CHECK_FUNC(strlcpy, found_strlcpy=yes, found_strlcpy=no)
+AC_CHECK_FUNCS(strlcpy, found_strlcpy=yes, found_strlcpy=no)
 if test "x$found_strlcpy" = xno; then
 	dnl check libbsd for strlcpy
 	PKG_CHECK_MODULES([BSD], [libbsd >= 0])

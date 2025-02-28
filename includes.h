@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __FreeBSD__
+#ifndef HAVE_STRLCPY
 #include <bsd/string.h> // strlcpy
 #endif
 #include <syslog.h>
