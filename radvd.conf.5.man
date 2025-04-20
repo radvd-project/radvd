@@ -243,7 +243,7 @@ Default: on
 The maximum time allowed between sending unsolicited multicast
 router advertisements from the interface, in seconds.
 
-Must be no less than 4 seconds and no greater than 1800 seconds.
+Must be no less than 4 seconds and no greater than 65535 seconds.
 
 Minimum when using Mobile IPv6 extensions: 0.07.
 
@@ -355,7 +355,7 @@ information contained in other message fields or options.  Options
 that need time limits for their information include their own
 lifetime fields.
 
-Must be either zero or between MaxRtrAdvInterval and 9000 seconds.
+Must be either zero or between MaxRtrAdvInterval and 65535 seconds.
 
 Default: 3 * MaxRtrAdvInterval (Minimum 1 second).
 

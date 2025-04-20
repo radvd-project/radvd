@@ -128,16 +128,16 @@
 #define MIN_RANDOM_FACTOR (1.0 / 2.0)
 #define MAX_RANDOM_FACTOR (3.0 / 2.0)
 
-/* MAX and MIN (RFC4861), Mobile IPv6 extensions will override if in use */
+/* MAX and MIN (RFC4861 and RFC8316), Mobile IPv6 extensions will override if in use */
 
 #define MIN_MaxRtrAdvInterval 4
-#define MAX_MaxRtrAdvInterval 1800
+#define MAX_MaxRtrAdvInterval 65535 /* respecting RFC8316 Section 4 */
 
 #define MIN_MinRtrAdvInterval 3
 #define MAX_MinRtrAdvInterval(iface) (0.75 * (iface)->MaxRtrAdvInterval)
 
 #define MIN_AdvDefaultLifetime(iface) (MAX2(1, (iface)->MaxRtrAdvInterval))
-#define MAX_AdvDefaultLifetime 9000
+#define MAX_AdvDefaultLifetime 65535 /* respecting RFC8316 Section 4 */
 
 #define MIN_AdvLinkMTU RFC2460_MIN_MTU
 #define MAX_AdvLinkMTU 131072
