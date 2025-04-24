@@ -63,6 +63,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+      - name: Install build dependency
+        run: |
+          dnf install --assumeyes awk
       - name: Build
         env:
           CC: ${{ matrix.compiler }}
