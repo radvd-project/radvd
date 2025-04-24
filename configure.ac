@@ -133,7 +133,7 @@ fi
 dnl Not needed
 AC_PATH_PROG(LN, ln)
 AC_PROG_YACC
-AM_PROG_LEX # add (noyywrap) after ubuntu 20.04 is no longer supported
+AM_PROG_LEX(noyywrap)
 AC_PATH_PROG(TAR, tar)
 AC_PATH_PROG(GZIP, gzip)
 
