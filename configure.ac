@@ -107,13 +107,16 @@ AC_CHECK_FUNCS(strlcpy, found_strlcpy=yes, found_strlcpy=no)
 if test "x$found_strlcpy" = xno; then
 	dnl check libbsd for strlcpy
 	PKG_CHECK_MODULES([BSD], [libbsd >= 0])
-	AC_SEARCH_LIBS(strlcpy, bsd,
-					[
-						found_bsd_strlcpy=yes
-						CFLAGS="$BSD_CFLAGS $CFLAGS"
-						LIBS="$BSD_LIBS $LIBS"
-					],
-					found_bsd_strlcpy=no)
+	save_CFLAGS="$CFLAGS"; CFLAGS="$BSD_CFLAGS $CFLAGS"
+	save_LIBS="$LIBS"; LIBS="$BSD_LIBS $LIBS"
+	AC_SEARCH_LIBS(strlcpy, bsd, [
+		found_bsd_strlcpy=yes,
+	],
+	[
+		found_bsd_strlcpy=no
+		CFLAGS="$save_CFLAGS"
+		LIBS="$save_LIBS"
+	])
 fi
 
 if test "x$found_strlcpy" = xno && test "x$found_bsd_strlcpy" = xno; then
