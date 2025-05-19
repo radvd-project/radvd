@@ -89,6 +89,7 @@ struct Interface {
 		int AdvOtherConfigFlag;
 		uint8_t AdvCurHopLimit;
 		int AdvHomeAgentFlag;
+		int AdvSNACRouterFlag;
 		int32_t AdvDefaultLifetime; /* XXX: really uint16_t but we need to use -1 */
 		int AdvDefaultPreference;
 		uint32_t AdvReachableTime;

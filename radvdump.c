@@ -177,6 +177,9 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 	if (!edefs || DFLT_AdvHomeAgentFlag != (ND_RA_FLAG_HOME_AGENT == (radvert->nd_ra_flags_reserved & ND_RA_FLAG_HOME_AGENT)))
 		printf("\tAdvHomeAgentFlag %s;\n", (radvert->nd_ra_flags_reserved & ND_RA_FLAG_HOME_AGENT) ? "on" : "off");
 
+	if (!edefs || DFLT_AdvHomeAgentFlag != (ND_RA_FLAG_SNAC_ROUTER == (radvert->nd_ra_flags_reserved & ND_RA_FLAG_SNAC_ROUTER)))
+		printf("\tAdvSNACRouterFlag %s;\n", (radvert->nd_ra_flags_reserved & ND_RA_FLAG_SNAC_ROUTER) ? "on" : "off");
+
 	/* Route Preferences and more specific routes */
 	/* XXX two middlemost bits from 8 bit field */
 	if (!edefs || (((radvert->nd_ra_flags_reserved & 0x18) >> 3) & 0xff) != DFLT_AdvDefaultPreference) {

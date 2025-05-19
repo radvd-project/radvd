@@ -1,3 +1,5 @@
+2025/05/19 Add AdvSNACRouterFlag <Kimmo Kulovesi>
+
 2024/12/31  Release v2.20
 	build: annotated/signed tags need a tweak to verify correctly
 	build: need awk for newer autoconf

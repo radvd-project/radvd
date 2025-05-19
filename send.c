@@ -221,6 +221,7 @@ static void add_ra_header(struct safe_buffer *sb, struct ra_header_info const *r
 	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvOtherConfigFlag) ? ND_RA_FLAG_OTHER : 0;
 	/* Mobile IPv6 ext */
 	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvHomeAgentFlag) ? ND_RA_FLAG_HOME_AGENT : 0;
+	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvSNACRouterFlag) ? ND_RA_FLAG_SNAC_ROUTER : 0;
 
 	radvert.nd_ra_router_lifetime = cease_adv ? 0 : htons(ra_header_info->AdvDefaultLifetime);
 	radvert.nd_ra_flags_reserved |= (ra_header_info->AdvDefaultPreference << ND_OPT_RI_PRF_SHIFT) & ND_OPT_RI_PRF_MASK;

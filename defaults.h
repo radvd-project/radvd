@@ -168,6 +168,8 @@
 #define DFLT_AdvIntervalOpt 0
 #define DFLT_AdvHomeAgentInfo 0
 
+#define DFLT_AdvSNACRouterFlag 0
+
 /* Option types (defined also at least in glibc 2.2's netinet/icmp6.h) */
 
 #ifndef ND_OPT_RTR_ADV_INTERVAL
@@ -241,6 +243,9 @@ struct nd_opt_dnssl_info_local {
 #else
 #define ND_OPT_RDNSSI_FLAG_S 0x0008
 #endif
+#endif
+#ifndef ND_RA_FLAG_SNAC_ROUTER
+#define ND_RA_FLAG_SNAC_ROUTER 0x02
 #endif
 
 /* Captive Portal RFC 8910 */
