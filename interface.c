@@ -42,6 +42,7 @@ void iface_init_defaults(struct Interface *iface)
 	iface->ra_header_info.AdvRetransTimer = DFLT_AdvRetransTimer;
 	iface->ra_header_info.AdvCurHopLimit = DFLT_AdvCurHopLimit;
 	iface->ra_header_info.AdvHomeAgentFlag = DFLT_AdvHomeAgentFlag;
+	iface->ra_header_info.AdvSNACRouterFlag = DFLT_AdvSNACRouterFlag;
 
 	iface->mipv6.AdvIntervalOpt = DFLT_AdvIntervalOpt;
 	iface->mipv6.AdvHomeAgentInfo = DFLT_AdvHomeAgentInfo;

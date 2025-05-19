@@ -87,6 +87,7 @@ UnicastOnly		{ return T_UnicastOnly; }
 UnrestrictedUnicast	{ return T_UnrestrictedUnicast; }
 AdvRASolicitedUnicast	{ return T_AdvRASolicitedUnicast; }
 AdvCaptivePortalAPI	{ return T_AdvCaptivePortalAPI; }
+AdvSNACRouterFlag	{ return T_AdvSNACRouterFlag; }
 
 Base6Interface		{ return T_Base6Interface; }
 Base6to4Interface	{ return T_Base6to4Interface; }

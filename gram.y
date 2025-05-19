@@ -96,6 +96,7 @@ int yylex_destroy (void);
 %token		T_AdvHomeAgentFlag
 %token		T_AdvIntervalOpt
 %token		T_AdvHomeAgentInfo
+%token          T_AdvSNACRouterFlag
 
 %token		T_Base6Interface
 %token		T_Base6to4Interface
@@ -348,6 +349,10 @@ ifaceval	: T_MinRtrAdvInterval NUMBER ';'
 		| T_HomeAgentLifetime NUMBER ';'
 		{
 			iface->mipv6.HomeAgentLifetime = $2;
+		}
+		| T_AdvSNACRouterFlag SWITCH ';'
+		{
+			iface->ra_header_info.AdvSNACRouterFlag = $2;
 		}
 		| T_UnicastOnly SWITCH ';'
 		{

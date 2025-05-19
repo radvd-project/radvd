@@ -529,6 +529,14 @@ Note: RFC4861's suggested default value is significantly longer: 7 days.
 Default: 14400 seconds (4 hours)
 
 .TP
+.BR AdvSNACRouterFlag " " on | off
+
+When set, indicates the router is a SNAC router (stub network auto
+configuration, e.g., for IPv6-only stub networks).
+
+Default: off
+
+.TP
 .BR DeprecatePrefix " " on | off
 
 Upon shutdown, this option will cause radvd to deprecate the prefix by announcing it in the radvd shutdown RA with a zero preferred lifetime and a valid lifetime slightly greater than 2 hours. This will encourage end-nodes using this prefix to deprecate any associated addresses immediately. Note that this option should only be used when only one router is announcing the prefix onto the link, otherwise end-nodes will deprecate associated addresses despite the prefix still being valid for preferred use.
