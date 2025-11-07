@@ -61,6 +61,7 @@
 #define DFLT_AdvOnLinkFlag 1
 #define DFLT_AdvPreferredLifetime 14400 /* seconds */
 #define DFLT_AdvAutonomousFlag 1
+#define DFLT_AdvDHCPv6PDPreferredFlag 0
 #define DFLT_DeprecatePrefixFlag 0
 #define DFLT_DecrementLifetimesFlag 0
 
@@ -234,6 +235,9 @@ struct nd_opt_dnssl_info_local {
 #endif
 #ifndef ND_OPT_PI_FLAG_RADDR
 #define ND_OPT_PI_FLAG_RADDR 0x20
+#endif
+#ifndef ND_OPT_PI_FLAG_DHCPv6_PD_PREF
+#define ND_OPT_PI_FLAG_DHCPv6_PD_PREF 0x10
 #endif
 #ifndef ND_OPT_RDNSSI_FLAG_S
 #if BYTE_ORDER == BIG_ENDIAN

@@ -124,6 +124,7 @@ void prefix_init_defaults(struct AdvPrefix *prefix)
 	prefix->AdvOnLinkFlag = DFLT_AdvOnLinkFlag;
 	prefix->AdvAutonomousFlag = DFLT_AdvAutonomousFlag;
 	prefix->AdvRouterAddr = DFLT_AdvRouterAddr;
+	prefix->AdvDHCPv6PDPreferredFlag = DFLT_AdvDHCPv6PDPreferredFlag;
 	prefix->AdvValidLifetime = DFLT_AdvValidLifetime;
 	prefix->AdvPreferredLifetime = DFLT_AdvPreferredLifetime;
 	prefix->DeprecatePrefixFlag = DFLT_DeprecatePrefixFlag;

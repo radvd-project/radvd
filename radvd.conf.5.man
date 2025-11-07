@@ -496,6 +496,17 @@ MaxRtrAdvInterval.
 Default: off
 
 .TP
+.BR AdvDHCPv6PDPreferred " " on | off
+
+When set, indicates that the network prefers that clients use
+prefix delegation instead of acquiring individual addresses
+via SLAAC or DHCPv6 aaddress assignment.
+
+See RFC 9762, "Using Router Advertisements to Signal the Availability of DHCPv6 Prefix Delegation to Clients"
+
+Default: off
+
+.TP
 .BR "AdvValidLifetime " seconds "" | infinity
 
 The length of time in seconds (relative to the time the packet is
