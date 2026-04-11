@@ -52,6 +52,7 @@ int yylex_destroy (void);
 %token		T_ROUTE
 %token		T_RDNSS
 %token		T_DNSSL
+%token		T_DNR
 %token		T_CLIENTS
 %token		T_LOWPANCO
 %token		T_ABRO
@@ -120,6 +121,14 @@ int yylex_destroy (void);
 %token		T_AdvDNSSLLifetime
 %token		T_FlushDNSSL
 
+%token		T_AdvDNRPriority
+%token		T_AdvDNRLifetime
+%token		T_AdvDNRAddr
+%token		T_AdvDNRSvcAlpn
+%token		T_AdvDNRSvcPort
+%token		T_AdvDNRSvcDohpath
+%token		T_FlushDNR
+
 %token		T_AdvMobRtrSupportFlag
 
 %token		T_AdvContextLength
@@ -140,6 +149,7 @@ int yylex_destroy (void);
 %type	<rinfo>	routedef
 %type	<rdnssinfo> rdnssdef
 %type	<dnsslinfo> dnssldef
+%type	<dnrinfo> dnrdef
 %type   <lowpancoinfo> lowpancodef
 %type   <abroinfo> abrodef
 %type   <num>	number_or_infinity
@@ -157,6 +167,7 @@ int yylex_destroy (void);
 	struct AdvRoute		*rinfo;
 	struct AdvRDNSS		*rdnssinfo;
 	struct AdvDNSSL		*dnsslinfo;
+	struct AdvDNR           *dnrinfo;
 	struct Clients		*ainfo;
 	struct AdvLowpanCo	*lowpancoinfo;
 	struct AdvAbro		*abroinfo;
@@ -174,6 +185,7 @@ static struct AdvPrefix *prefix;
 static struct AdvRoute *route;
 static struct AdvRDNSS *rdnss;
 static struct AdvDNSSL *dnssl;
+static struct AdvDNR *dnr;
 static struct AdvLowpanCo *lowpanco;
 static struct AdvAbro  *abro;
 static struct NAT64Prefix *nat64prefix;
@@ -245,6 +257,7 @@ ifaceparam 	: ifaceval
 		| routedef 	{ ADD_TO_LL(struct AdvRoute, AdvRouteList, $1); }
 		| rdnssdef 	{ ADD_TO_LL(struct AdvRDNSS, AdvRDNSSList, $1); }
 		| dnssldef 	{ ADD_TO_LL(struct AdvDNSSL, AdvDNSSLList, $1); }
+		| dnrdef 	{ ADD_TO_LL(struct AdvDNR, AdvDNRList, $1); }
 		| lowpancodef   { ADD_TO_LL(struct AdvLowpanCo, AdvLowpanCoList, $1); }
 		| abrodef       { ADD_TO_LL(struct AdvAbro, AdvAbroList, $1); }
 		| rasrcaddresslist { ADD_TO_LL(struct AdvRASrcAddress, AdvRASrcAddressList, $1); }
@@ -988,6 +1001,265 @@ dnsslparms	: T_AdvDNSSLLifetime number_or_infinity ';'
 		}
 		;
 
+dnrdef		: dnrhead '{' optional_dnrplist '}' ';'
+		{
+			/* RFC 9463 §6.1: Addr Length, ipv6-address(es), and SvcParams
+			 * fields are not present in ADN-only mode. */
+			if (dnr->AdvDNRNumber == 0 &&
+			    (dnr->AdvDNRSvcAlpn || dnr->AdvDNRSvcPort || dnr->AdvDNRSvcDohpath)) {
+				flog(LOG_ERR, "DNR entry for '%s' at %s, line %d has Svc options "
+					"but no AdvDNRAddr; Svc options are disallowed in ADN-only mode",
+					dnr->AdvDNRADN, filename, num_lines);
+				ABORT;
+			}
+
+			$$ = dnr;
+			dnr = NULL;
+		}
+		;
+
+dnrhead		: T_DNR STRING
+	 	{
+			const char *source = $2;
+			size_t len = strlen(source);
+			int label_len = 0;
+
+			dnr = malloc(sizeof(struct AdvDNR));
+
+			if (dnr == NULL) {
+				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+
+			dnr_init_defaults(dnr, iface);
+
+			/* Strip surrounding quotes if the ADN was given as a quoted string */
+			if ((len > 0) && (source[0] == '"')) {
+				source++;
+				len--;
+			}
+			if ((len > 0) && (source[len-1] == '"')) {
+				len--;
+			}
+
+			if (len <= 0) {
+				flog(LOG_ERR, "DNR ADN is empty "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+			if (source[len-1] == '.') {
+				flog(LOG_ERR, "DNR ADN has a trailing dot "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+
+			/* Domain name validation from RFC 1035, Section 3.1 */
+			if (len > 255) {
+				flog(LOG_ERR, "DNR ADN total length is greater than 255 bytes "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+
+			for (int i = 0; i < (int)len; i++) {
+				if (source[i] == '.') {
+					if (label_len == 0) {
+						flog(LOG_ERR, "DNR ADN has an empty label "
+							"at %s, line %d", filename, num_lines);
+						ABORT;
+					}
+					label_len = 0;
+				} else {
+					if (label_len == 63) {
+						flog(LOG_ERR, "DNR ADN has a label with > 63 bytes "
+							"at %s, line %d", filename, num_lines);
+						ABORT;
+					}
+					label_len++;
+				}
+			}
+
+			dnr->AdvDNRADN = strndup(source, len);
+
+			if (dnr->AdvDNRADN == NULL) {
+				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+		}
+		;
+
+optional_dnrplist: /* empty */
+		| dnrplist
+		;
+
+dnrplist	: dnrplist dnrparms
+	 	| dnrparms
+		;
+
+dnrparms	: T_AdvDNRPriority NUMBER ';'
+	 	{
+			if ($2 > UINT16_MAX) {
+				flog(LOG_ERR, "AdvDNRPriority must be a 16-bit number, "
+					"got %u at %s, line %d", $2, filename, num_lines);
+				ABORT;
+			}
+			dnr->AdvDNRPriority = $2;
+		}
+		| T_AdvDNRLifetime number_or_infinity ';'
+		{
+			dnr->AdvDNRLifetime = $2;
+		}
+		| T_FlushDNR SWITCH ';'
+		{
+			dnr->FlushDNRFlag = $2;
+		}
+		| T_AdvDNRAddr IPV6ADDR ';'
+		{
+			dnr->AdvDNRNumber++;
+			if (dnr->AdvDNRNumber > (int)(UINT16_MAX / sizeof(struct in6_addr))) {
+				flog(LOG_CRIT, "Too many DNR addresses specified - "
+					"upper limit is %"PRIu16" based on Addr Length field being uint16, "
+					"RFC9463, section 6.1", (uint16_t)(UINT16_MAX / sizeof(struct in6_addr)));
+				ABORT;
+			}
+			dnr->AdvDNRAddrs =
+				realloc(dnr->AdvDNRAddrs,
+					dnr->AdvDNRNumber * sizeof(struct in6_addr));
+			if (dnr->AdvDNRAddrs == NULL) {
+				flog(LOG_CRIT, "realloc failed: %s", strerror(errno));
+				ABORT;
+			}
+			/* RFC 9463 §6.2: hosts MUST silently discard multicast and loopback addresses */
+			if (IN6_IS_ADDR_MULTICAST($2) || IN6_IS_ADDR_LOOPBACK($2)) {
+				flog(LOG_WARNING, "DNR address at %s, line %d is multicast or loopback; "
+					"hosts will discard it per RFC 9463 §6.2",
+					filename, num_lines);
+			}
+			memcpy(&dnr->AdvDNRAddrs[dnr->AdvDNRNumber - 1], $2, sizeof(struct in6_addr));
+		}
+		| T_AdvDNRSvcPort NUMBER ';'
+		{
+			if ($2 > UINT16_MAX) {
+				flog(LOG_ERR, "AdvDNRSvcPort must be a 16-bit number, "
+					"got %u at %s, line %d", $2, filename, num_lines);
+				ABORT;
+			}
+			dnr->AdvDNRSvcPort = $2;
+		}
+		| T_AdvDNRSvcAlpn STRING ';'
+		{
+			const char *source = $2;
+			size_t len = strlen(source);
+			int comma = 0;
+
+			if (dnr->AdvDNRSvcAlpn != NULL) {
+				flog(LOG_WARNING, "warning: AdvDNRSvcAlpn specified twice for DNR "
+					"at %s, line %d", filename, num_lines);
+				free(dnr->AdvDNRSvcAlpn);
+				dnr->AdvDNRSvcAlpn = NULL;
+			}
+
+			if ((len > 0) && (source[0] == '"')) {
+				source++;
+				len--;
+			}
+			if ((len > 0) && (source[len-1] == '"')) {
+				len--;
+			}
+
+			if (len <= 0) {
+				flog(LOG_ERR, "AdvDNRSvcAlpn empty ALPN specified for DNR "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+			if (source[0] == ',') {
+				flog(LOG_ERR, "AdvDNRSvcAlpn has a leading comma "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+			if (source[len-1] == ',') {
+				flog(LOG_ERR, "AdvDNRSvcAlpn has a trailing comma "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+			int token_len = 0;
+			for (int i = 0; i < (int)len; i++) {
+				if (source[i] == '\\') {
+					flog(LOG_ERR, "AdvDNRSvcAlpn contains '\\' "
+						"at %s, line %d", filename, num_lines);
+					ABORT;
+				}
+				if (source[i] == ',') {
+					if (comma) {
+						flog(LOG_ERR, "AdvDNRSvcAlpn has an empty item (contains \",,\") "
+							"at %s, line %d", filename, num_lines);
+						ABORT;
+					}
+					comma = 1;
+					token_len = 0;
+				} else {
+					comma = 0;
+					/* RFC 9460 §7.1: each ALPN identifier is wire-encoded
+					 * with a 1-byte length prefix, so it must be <= 255 bytes */
+					if (++token_len > 255) {
+						flog(LOG_ERR, "AdvDNRSvcAlpn item exceeds 255 bytes "
+							"at %s, line %d", filename, num_lines);
+						ABORT;
+					}
+				}
+			}
+
+			dnr->AdvDNRSvcAlpn = strndup(source, len);
+
+			if (dnr->AdvDNRSvcAlpn == NULL) {
+				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+		}
+		| T_AdvDNRSvcDohpath STRING ';'
+		{
+			const char *source = $2;
+			size_t len = strlen(source);
+
+			if (dnr->AdvDNRSvcDohpath) {
+				flog(LOG_WARNING, "warning: AdvDNRSvcDohpath specified twice for DNR "
+					"at %s, line %d", filename, num_lines);
+				free(dnr->AdvDNRSvcDohpath);
+				dnr->AdvDNRSvcDohpath = NULL;
+			}
+
+			if ((len > 0) && (source[0] == '"')) {
+				source++;
+				len--;
+			}
+			if ((len > 0) && (source[len-1] == '"')) {
+				len--;
+			}
+			if (len <= 0) {
+				flog(LOG_ERR, "AdvDNRSvcDohpath empty URL specified for DNR "
+					"at %s, line %d", filename, num_lines);
+				ABORT;
+			}
+
+			if (strstr(source, "dns}") == NULL) {
+				flog(LOG_WARNING,
+					"warning: AdvDNRSvcDohpath specified without 'dns' "
+					"template variable as required by RFC 9461, Section 5");
+			}
+
+			if (source[0] != '/') {
+				flog(LOG_WARNING, "warning: AdvDNRSvcDohpath is not a URI Template "
+					"in relative form as required by RFC 9461, Section 5");
+			}
+
+			dnr->AdvDNRSvcDohpath = strndup(source, len);
+
+			if (dnr->AdvDNRSvcDohpath == NULL) {
+				flog(LOG_CRIT, "malloc failed: %s", strerror(errno));
+				ABORT;
+			}
+		}
+		;
+
 lowpancodef 	: lowpancohead  '{' optional_lowpancoplist '}' ';'
 		{
 			$$ = lowpanco;
@@ -1141,6 +1413,15 @@ static void cleanup(void)
 		free(dnssl->AdvDNSSLSuffixes);
 		free(dnssl);
 		dnssl = 0;
+	}
+
+	if (dnr) {
+		free(dnr->AdvDNRAddrs);
+		free(dnr->AdvDNRADN);
+		free(dnr->AdvDNRSvcAlpn);
+		free(dnr->AdvDNRSvcDohpath);
+		free(dnr);
+		dnr = NULL;
 	}
 
 	if (lowpanco) {

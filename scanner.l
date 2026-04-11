@@ -48,6 +48,7 @@ prefix			{ return T_PREFIX; }
 route			{ return T_ROUTE; }
 RDNSS			{ return T_RDNSS; }
 DNSSL			{ return T_DNSSL; }
+DNR			{ return T_DNR; }
 clients			{ return T_CLIENTS; }
 lowpanco		{ return T_LOWPANCO; }
 abro			{ return T_ABRO; }
@@ -106,6 +107,14 @@ FlushRDNSS		{ return T_FlushRDNSS; }
 
 AdvDNSSLLifetime	{ return T_AdvDNSSLLifetime; }
 FlushDNSSL		{ return T_FlushDNSSL; }
+
+AdvDNRPriority		{ return T_AdvDNRPriority; }
+AdvDNRLifetime		{ return T_AdvDNRLifetime; }
+AdvDNRAddr		{ return T_AdvDNRAddr; }
+AdvDNRSvcAlpn		{ return T_AdvDNRSvcAlpn; }
+AdvDNRSvcPort		{ return T_AdvDNRSvcPort; }
+AdvDNRSvcDohpath	{ return T_AdvDNRSvcDohpath; }
+FlushDNR		{ return T_FlushDNR; }
 
 MinDelayBetweenRAs      { return T_MinDelayBetweenRAs; }
 
@@ -171,6 +180,12 @@ high		{ yylval.snum = 1; return SIGNEDNUMBER; }
 
 {string}	{
 			static char string[256];
+
+			if (yyleng >= (int)sizeof(string)) {
+				flog(LOG_ERR, "string constant exceeds %zu bytes at line %d",
+					sizeof(string) - 1, num_lines);
+				return T_BAD_TOKEN;
+			}
 
 			strncpy(string, yytext, sizeof(string));
 			string[sizeof(string)-1] = '\0';
