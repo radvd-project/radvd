@@ -103,6 +103,7 @@ struct Interface {
 	struct AdvRoute *AdvRouteList;
 	struct AdvRDNSS *AdvRDNSSList;
 	struct AdvDNSSL *AdvDNSSLList;
+	struct AdvDNR *AdvDNRList;
 
 	struct NAT64Prefix *NAT64PrefixList;
 
@@ -222,6 +223,20 @@ struct AdvDNSSL {
 	struct AdvDNSSL *next;
 };
 
+struct AdvDNR {
+	uint16_t AdvDNRPriority;
+	uint16_t AdvDNRSvcPort;
+	uint32_t AdvDNRLifetime;
+	int FlushDNRFlag;
+	int AdvDNRNumber;
+	char *AdvDNRADN;
+	struct in6_addr *AdvDNRAddrs;
+	char *AdvDNRSvcAlpn;
+	char *AdvDNRSvcDohpath;
+
+	struct AdvDNR *next;
+};
+
 /* Options for 6lopan configuration */
 
 struct AdvLowpanCo {
@@ -337,6 +352,7 @@ int cleanup_iface(int sock, struct Interface *iface);
 struct Interface *find_iface_by_index(struct Interface *iface, int index);
 struct Interface *find_iface_by_name(struct Interface *iface, const char *name);
 struct Interface *find_iface_by_time(struct Interface *iface_list);
+void dnr_init_defaults(struct AdvDNR *, struct Interface *);
 void dnssl_init_defaults(struct AdvDNSSL *, struct Interface *);
 void for_each_iface(struct Interface *ifaces, void (*foo)(struct Interface *iface, void *), void *data);
 void free_ifaces(struct Interface *ifaces);
