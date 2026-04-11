@@ -813,6 +813,161 @@ START_TEST(test_add_ra_option_abro)
 }
 END_TEST
 
+START_TEST(test_add_ra_options_dnr_adn_only)
+{
+	struct Interface *iface = readin_config("test/test_dnr_adn_only.conf");
+	ck_assert_ptr_ne(0, iface);
+
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+
+	add_ra_options_dnr(sbl, iface, iface->AdvDNRList, iface->state_info.cease_adv, NULL);
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
+	free_ifaces(iface);
+
+#ifdef PRINT_SAFE_BUFFER
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", (char *)&buf);
+#else
+	unsigned char expected[] = {
+	    // type=144, len=4
+	    0x90, 0x04,
+	    // priority=100
+	    0x00, 0x64,
+	    // lifetime=1800 (0x708)
+	    0x00, 0x00, 0x07, 0x08,
+	    // ADN Length=18 (0x12)
+	    0x00, 0x12,
+	    // doh1.example.com in DNS wire format
+	    0x04, 0x64, 0x6f, 0x68, 0x31, // \x04 d o h 1
+	    0x07, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, // \x07 e x a m p l e
+	    0x03, 0x63, 0x6f, 0x6d, // \x03 c o m
+	    0x00, // root label
+	    // padding: 4 bytes
+	    0x00, 0x00, 0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used));
+#endif
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+START_TEST(test_add_ra_options_dnr_addrs)
+{
+	struct Interface *iface = readin_config("test/test_dnr_addrs.conf");
+	ck_assert_ptr_ne(0, iface);
+
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+
+	add_ra_options_dnr(sbl, iface, iface->AdvDNRList, iface->state_info.cease_adv, NULL);
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
+	free_ifaces(iface);
+
+#ifdef PRINT_SAFE_BUFFER
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", (char *)&buf);
+#else
+	unsigned char expected[] = {
+	    // type=144, len=6
+	    0x90, 0x06,
+	    // priority=100
+	    0x00, 0x64,
+	    // lifetime=1800
+	    0x00, 0x00, 0x07, 0x08,
+	    // ADN Length=18
+	    0x00, 0x12,
+	    // doh1.example.com
+	    0x04, 0x64, 0x6f, 0x68, 0x31,
+            0x07, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65,
+            0x03, 0x63, 0x6f, 0x6d,
+            0x00,
+	    // Addr Length=16
+	    0x00, 0x10,
+	    // 2001:db8::1
+	    0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+	    // SvcParams Length=0
+	    0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used));
+#endif
+	safe_buffer_free(&sb);
+}
+END_TEST
+
+START_TEST(test_add_ra_options_dnr_svcparams)
+{
+	struct Interface *iface = readin_config("test/test_dnr_svcparams.conf");
+	ck_assert_ptr_ne(0, iface);
+
+	struct safe_buffer_list *sbl = new_safe_buffer_list();
+	struct safe_buffer sb = SAFE_BUFFER_INIT;
+
+	add_ra_options_dnr(sbl, iface, iface->AdvDNRList, iface->state_info.cease_adv, NULL);
+	safe_buffer_list_to_safe_buffer(sbl, &sb);
+	safe_buffer_list_free(sbl);
+	free_ifaces(iface);
+
+#ifdef PRINT_SAFE_BUFFER
+	char buf[4096];
+	snprint_safe_buffer(buf, 4096, &sb);
+	ck_assert_msg(0, "\n%s", (char *)&buf);
+#else
+	unsigned char expected[] = {
+	    // type=144, len=11
+	    0x90, 0x0b,
+	    // priority=100
+	    0x00, 0x64,
+	    // lifetime=1800
+	    0x00, 0x00, 0x07, 0x08,
+	    // ADN Length=18
+	    0x00, 0x12,
+	    // doh1.example.com
+	    0x04, 0x64, 0x6f, 0x68, 0x31,
+	    0x07, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65,
+	    0x03, 0x63, 0x6f, 0x6d,
+	    0x00,
+	    // Addr Length=16
+	    0x00, 0x10,
+	    // 2001:db8::1
+	    0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
+	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+	    // SvcParams Length=36 (0x24)
+	    0x00, 0x24,
+	    // ALPN: key=1, vlen=6, \x02h2\x02h3
+	    0x00, 0x01,
+	    0x00, 0x06,
+	    0x02, 0x68, 0x32, // \x02 h 2
+	    0x02, 0x68, 0x33, // \x02 h 3
+	    // Port: key=3, vlen=2, 443=0x01bb
+	    0x00, 0x03,
+	    0x00, 0x02,
+	    0x01, 0xbb,
+	    // Dohpath: key=7, vlen=16, "/dns-query{?dns}"
+	    0x00, 0x07,
+	    0x00, 0x10,
+	    0x2f, 0x64, 0x6e, 0x73, 0x2d, 0x71, 0x75, 0x65, // /dns-que
+	    0x72, 0x79, 0x7b, 0x3f, 0x64, 0x6e, 0x73, 0x7d, // ry{?dns}
+	    // padding: 4 bytes
+	    0x00, 0x00, 0x00, 0x00,
+	};
+
+	ck_assert_int_eq(sizeof(expected), sb.used);
+	ck_assert_int_eq(0, memcmp(expected, sb.buffer, sb.used));
+#endif
+	safe_buffer_free(&sb);
+}
+END_TEST
+
 Suite *send_suite(void)
 {
 	TCase *tc_update = tcase_create("update");
@@ -834,6 +989,9 @@ Suite *send_suite(void)
 	tcase_add_test(tc_build, test_add_ra_options_dnssl4);
 	tcase_add_test(tc_build, test_add_ra_options_dnssl5);
 	tcase_add_test(tc_build, test_add_ra_options_dnssl6);
+	tcase_add_test(tc_build, test_add_ra_options_dnr_adn_only);
+	tcase_add_test(tc_build, test_add_ra_options_dnr_addrs);
+	tcase_add_test(tc_build, test_add_ra_options_dnr_svcparams);
 	tcase_add_test(tc_build, test_add_ra_option_mtu);
 	tcase_add_test(tc_build, test_add_ra_option_sllao48);
 	tcase_add_test(tc_build, test_add_ra_option_sllao64);
