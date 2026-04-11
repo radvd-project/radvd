@@ -27,7 +27,10 @@ static void decrement_lifetime(const time_t secs, uint32_t *lifetime);
 static void update_iface_times(struct Interface *iface);
 
 // Option helpers
+static size_t serialize_domain_name(struct safe_buffer *sb, char const *name);
 static size_t serialize_domain_names(struct safe_buffer *safe_buffer, struct AdvDNSSL const *dnssl);
+static size_t alpn_wire_len(char const *alpn);
+static void alpn_wire_append(struct safe_buffer *sb, char const *alpn);
 static int get_prefix_lifetimes(struct AdvPrefix const *prefix, unsigned int *valid_lft, unsigned int *preferred_lft);
 static void limit_prefix_lifetimes(struct AdvPrefix *prefix);
 
@@ -53,6 +56,8 @@ static struct safe_buffer_list *add_ra_options_rdnss(struct safe_buffer_list *sb
 						     struct AdvRDNSS const *rdnss, int cease_adv, struct in6_addr const *dest);
 static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sbl, struct Interface const *iface,
 						     struct AdvDNSSL const *dnssl, int cease_adv, struct in6_addr const *dest);
+static struct safe_buffer_list *add_ra_options_dnr(struct safe_buffer_list *sbl, struct Interface const *iface,
+						   struct AdvDNR const *dnr, int cease_adv, struct in6_addr const *dest);
 
 // Scheduling of options per RFC7772
 static int schedule_helper(struct in6_addr const *dest, struct Interface const *iface, int option_lifetime);
@@ -60,6 +65,7 @@ static int schedule_option_prefix(struct in6_addr const *dest, struct Interface 
 static int schedule_option_route(struct in6_addr const *dest, struct Interface const *iface, struct AdvRoute const *route);
 static int schedule_option_rdnss(struct in6_addr const *dest, struct Interface const *iface, struct AdvRDNSS const *rdnss);
 static int schedule_option_dnssl(struct in6_addr const *dest, struct Interface const *iface, struct AdvDNSSL const *dnssl);
+static int schedule_option_dnr(struct in6_addr const *dest, struct Interface const *iface, struct AdvDNR const *dnr);
 static int schedule_option_mtu(struct in6_addr const *dest, struct Interface const *iface);
 static int schedule_option_sllao(struct in6_addr const *dest, struct Interface const *iface);
 static int schedule_option_mipv6_rtr_adv_interval(struct in6_addr const *dest, struct Interface const *iface);
@@ -528,39 +534,96 @@ static struct safe_buffer_list *add_ra_options_prefix(struct safe_buffer_list *s
  *   MUST be padded with zeros.
  */
 /* clang-format on */
+static size_t serialize_domain_name(struct safe_buffer *sb, char const *name)
+{
+	size_t len = 0;
+	size_t initial_used = sb->used;
+	char const *label = name;
+
+	while (label[0] != '\0') {
+		size_t raw_len;
+
+		if (strchr(label, '.') == NULL)
+			raw_len = strlen(label);
+		else
+			raw_len = (size_t)(strchr(label, '.') - label);
+
+		// RFC 1035 §3.1: labels must be 63 octets or less
+		if (raw_len > 63) {
+			flog(LOG_ERR, "DNS label exceeds 63 octets (RFC 1035 §3.1): %.*s", (int)raw_len, label);
+			sb->used = initial_used;
+			return 0;
+		}
+
+		unsigned char label_len = (unsigned char)raw_len;
+
+		// +8 is for null & padding, only allocate once.
+		safe_buffer_resize(sb, sb->used + sizeof(label_len) + label_len + 8);
+		len += safe_buffer_append(sb, &label_len, sizeof(label_len));
+		len += safe_buffer_append(sb, label, label_len);
+
+		label += label_len;
+
+		if (label[0] == '.') {
+			label++;
+		}
+
+		if (label[0] == '\0') {
+			char zero = 0;
+			len += safe_buffer_append(sb, &zero, sizeof(zero));
+		}
+	}
+	return len;
+}
+
 static size_t serialize_domain_names(struct safe_buffer *safe_buffer, struct AdvDNSSL const *dnssl)
 {
 	size_t len = 0;
 
 	for (int i = 0; i < dnssl->AdvDNSSLNumber; i++) {
-		char *label = dnssl->AdvDNSSLSuffixes[i];
-
-		while (label[0] != '\0') {
-			unsigned char label_len;
-
-			if (strchr(label, '.') == NULL)
-				label_len = (unsigned char)strlen(label);
-			else
-				label_len = (unsigned char)(strchr(label, '.') - label);
-
-			// +8 is for null & padding, only allocate once.
-			safe_buffer_resize(safe_buffer, safe_buffer->used + sizeof(label_len) + label_len + 8);
-			len += safe_buffer_append(safe_buffer, &label_len, sizeof(label_len));
-			len += safe_buffer_append(safe_buffer, label, label_len);
-
-			label += label_len;
-
-			if (label[0] == '.') {
-				label++;
-			}
-
-			if (label[0] == '\0') {
-				char zero = 0;
-				len += safe_buffer_append(safe_buffer, &zero, sizeof(zero));
-			}
-		}
+		len += serialize_domain_name(safe_buffer, dnssl->AdvDNSSLSuffixes[i]);
 	}
 	return len;
+}
+
+static size_t alpn_wire_len(char const *alpn)
+{
+	size_t total = 0;
+	char const *p = alpn;
+
+	while (*p) {
+		char const *comma = strchr(p, ',');
+		size_t tok = comma ? comma - p : strlen(p);
+		if (tok > 255) {
+			flog(LOG_ERR, "ALPN protocol identifier exceeds 255 bytes");
+			return 0;
+		}
+		total += 1 + tok;
+		p += tok;
+		if (*p == ',')
+			p++;
+	}
+	return total;
+}
+
+static void alpn_wire_append(struct safe_buffer *sb, char const *alpn)
+{
+	char const *p = alpn;
+
+	while (*p) {
+		char const *comma = strchr(p, ',');
+		size_t tok = comma ? comma - p : strlen(p);
+		if (tok > 255) {
+			flog(LOG_ERR, "ALPN protocol identifier exceeds 255 bytes");
+			return;
+		}
+		uint8_t len8 = (uint8_t)tok;
+		safe_buffer_append(sb, &len8, 1);
+		safe_buffer_append(sb, p, tok);
+		p += tok;
+		if (*p == ',')
+			p++;
+	}
 }
 
 static struct safe_buffer_list *add_ra_options_route(struct safe_buffer_list *sbl, struct Interface const *iface,
@@ -705,6 +768,145 @@ static struct safe_buffer_list *add_ra_options_dnssl(struct safe_buffer_list *sb
 		dnssl = dnssl->next;
 	}
 	safe_buffer_free(serialized_domains);
+	return sbl;
+}
+
+static struct safe_buffer_list *add_ra_options_dnr(struct safe_buffer_list *sbl, struct Interface const *iface,
+						   struct AdvDNR const *dnr, int cease_adv, struct in6_addr const *dest)
+{
+	struct safe_buffer *serialized_adn = new_safe_buffer();
+
+	while (dnr) {
+		if (!cease_adv && !schedule_option_dnr(dest, iface, dnr)) {
+			dnr = dnr->next;
+			continue;
+		}
+
+		if (!dnr->AdvDNRADN) {
+			flog(LOG_ERR, "DNR entry has NULL ADN; skipping");
+			dnr = dnr->next;
+			continue;
+		}
+		serialized_adn->used = 0;
+		size_t const adn_wire_bytes = serialize_domain_name(serialized_adn, dnr->AdvDNRADN);
+		if (adn_wire_bytes == 0) {
+			flog(LOG_ERR, "DNR ADN serialization failed for '%s'; skipping", dnr->AdvDNRADN);
+			dnr = dnr->next;
+			continue;
+		}
+		// RFC 1035 §3.1: total encoded name must be <= 255 bytes
+		if (adn_wire_bytes > 255) {
+			flog(LOG_ERR, "DNR ADN '%s' encodes to %zu bytes, exceeding RFC 1035 limit of 255; skipping",
+			     dnr->AdvDNRADN, adn_wire_bytes);
+			dnr = dnr->next;
+			continue;
+		}
+
+		// Computed once and reused below for both the size accounting and the
+		// SvcParamValue itself, so a rejected (oversized) item can't cause the two to disagree.
+		size_t const alpn_bytes = dnr->AdvDNRSvcAlpn ? alpn_wire_len(dnr->AdvDNRSvcAlpn) : 0;
+		int const include_alpn = dnr->AdvDNRSvcAlpn && alpn_bytes > 0;
+
+		size_t svcparams_bytes = 0;
+		if (include_alpn)
+			svcparams_bytes += 4 + alpn_bytes;
+		if (dnr->AdvDNRSvcPort)
+			svcparams_bytes += 4 + 2;
+		if (dnr->AdvDNRSvcDohpath)
+			svcparams_bytes += 4 + strlen(dnr->AdvDNRSvcDohpath);
+
+		int const adn_only = (dnr->AdvDNRNumber == 0);
+
+		if (!adn_only && !include_alpn)
+			flog(LOG_WARNING,
+			     "DNR option for '%s' has no ALPN SvcParam; "
+			     "RFC 9463 §6.1 recommends including 'alpn'",
+			     dnr->AdvDNRADN);
+		size_t bytes = sizeof(struct nd_opt_dnr_info_local) + sizeof(uint16_t) + adn_wire_bytes;
+		if (!adn_only)
+			bytes += sizeof(uint16_t)
+				 + (size_t)dnr->AdvDNRNumber * sizeof(struct in6_addr)
+				 + sizeof(uint16_t) + svcparams_bytes;
+
+		// RFC 9463 §6.1, RFC 4861 §4.6: pad to multiple of 8 octets
+		size_t const nd_opt_dnri_len = (bytes + 7) / 8;
+		size_t const bytes_with_padding = nd_opt_dnri_len * 8;
+
+		if (nd_opt_dnri_len > 255) {
+			flog(LOG_ERR,
+			     "Skipping option: DNR too long (%zu) for RA, must be <= %d bytes including header and padding",
+			     bytes_with_padding, 255 * 8);
+			dnr = dnr->next;
+			continue;
+		}
+
+		struct nd_opt_dnr_info_local dnrinfo;
+		memset(&dnrinfo, 0, sizeof(dnrinfo));
+		dnrinfo.nd_opt_dnri_type = ND_OPT_DNR_INFORMATION;
+		dnrinfo.nd_opt_dnri_len = (uint8_t)nd_opt_dnri_len;
+		dnrinfo.nd_opt_dnri_priority = htons(dnr->AdvDNRPriority);
+
+		if (cease_adv && dnr->FlushDNRFlag) {
+			dnrinfo.nd_opt_dnri_lifetime = 0;
+		} else {
+			dnrinfo.nd_opt_dnri_lifetime = htonl(dnr->AdvDNRLifetime);
+		}
+
+		sbl = safe_buffer_list_append(sbl);
+		safe_buffer_resize(sbl->sb, sbl->sb->used + bytes_with_padding);
+
+		safe_buffer_append(sbl->sb, &dnrinfo, sizeof(dnrinfo));
+
+		uint16_t const adn_len_net = htons((uint16_t)adn_wire_bytes);
+		safe_buffer_append(sbl->sb, &adn_len_net, sizeof(uint16_t));
+		safe_buffer_append(sbl->sb, serialized_adn->buffer, adn_wire_bytes);
+
+		if (!adn_only) {
+			uint16_t const addr_len_net = htons((uint16_t)(dnr->AdvDNRNumber * sizeof(struct in6_addr)));
+			safe_buffer_append(sbl->sb, &addr_len_net, sizeof(uint16_t));
+			for (int i = 0; i < dnr->AdvDNRNumber; i++) {
+				safe_buffer_append(sbl->sb, &dnr->AdvDNRAddrs[i], sizeof(struct in6_addr));
+			}
+
+			uint16_t const svcparams_len_net = htons((uint16_t)svcparams_bytes);
+			safe_buffer_append(sbl->sb, &svcparams_len_net, sizeof(uint16_t));
+
+			// RFC 9460 §7.1
+			if (include_alpn) {
+				uint16_t const key = htons(DNR_SVCPARAM_KEY_ALPN);
+				uint16_t const vlen = htons((uint16_t)alpn_bytes);
+				safe_buffer_append(sbl->sb, &key, sizeof(uint16_t));
+				safe_buffer_append(sbl->sb, &vlen, sizeof(uint16_t));
+				alpn_wire_append(sbl->sb, dnr->AdvDNRSvcAlpn);
+			}
+
+			// RFC 9460 §7.2
+			if (dnr->AdvDNRSvcPort) {
+				uint16_t const key = htons(DNR_SVCPARAM_KEY_PORT);
+				uint16_t const vlen = htons(sizeof(uint16_t));
+				uint16_t const val = htons(dnr->AdvDNRSvcPort);
+				safe_buffer_append(sbl->sb, &key, sizeof(uint16_t));
+				safe_buffer_append(sbl->sb, &vlen, sizeof(uint16_t));
+				safe_buffer_append(sbl->sb, &val, sizeof(uint16_t));
+			}
+
+			// RFC 9461 §5.1
+			if (dnr->AdvDNRSvcDohpath) {
+				size_t const dlen = strlen(dnr->AdvDNRSvcDohpath);
+				uint16_t const key = htons(DNR_SVCPARAM_KEY_DOHPATH);
+				uint16_t const vlen = htons((uint16_t)dlen);
+				safe_buffer_append(sbl->sb, &key, sizeof(uint16_t));
+				safe_buffer_append(sbl->sb, &vlen, sizeof(uint16_t));
+				safe_buffer_append(sbl->sb, dnr->AdvDNRSvcDohpath, dlen);
+			}
+		}
+
+		safe_buffer_pad(sbl->sb, bytes_with_padding - bytes);
+
+		dnr = dnr->next;
+	}
+
+	safe_buffer_free(serialized_adn);
 	return sbl;
 }
 
@@ -858,6 +1060,10 @@ static struct safe_buffer_list *build_ra_options(struct Interface const *iface, 
 
 	if (iface->AdvDNSSLList) {
 		cur = add_ra_options_dnssl(cur, iface, iface->AdvDNSSLList, iface->state_info.cease_adv, dest);
+	}
+
+	if (iface->AdvDNRList) {
+		cur = add_ra_options_dnr(cur, iface, iface->AdvDNRList, iface->state_info.cease_adv, dest);
 	}
 
 	if (iface->AdvLinkMTU != 0 && schedule_option_mtu(dest, iface)) {
@@ -1070,6 +1276,11 @@ static int schedule_option_rdnss(struct in6_addr const *dest, struct Interface c
 static int schedule_option_dnssl(struct in6_addr const *dest, struct Interface const *iface, struct AdvDNSSL const *dnssl)
 {
 	return schedule_helper(dest, iface, dnssl->AdvDNSSLLifetime);
+}
+
+static int schedule_option_dnr(struct in6_addr const *dest, struct Interface const *iface, struct AdvDNR const *dnr)
+{
+	return schedule_helper(dest, iface, dnr->AdvDNRLifetime);
 }
 
 static int schedule_option_mtu(struct in6_addr const *dest, struct Interface const *iface)
