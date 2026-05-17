@@ -20,7 +20,7 @@
 #include "includes.h"
 #include "log.h"
 
-#define CONTACT_EMAIL "Reuben Hawkins <reubenhwk@gmail.com>"
+#define CONTACT_EMAIL "https://github.com/radvd-project/radvd/issues"
 
 extern int sock;
 
