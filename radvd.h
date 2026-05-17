@@ -152,6 +152,7 @@ struct AdvPrefix {
 
 	int AdvOnLinkFlag;
 	int AdvAutonomousFlag;
+	int AdvDHCPv6PDPreferredFlag;
 	uint32_t AdvValidLifetime;
 	uint32_t AdvPreferredLifetime;
 	int DeprecatePrefixFlag;

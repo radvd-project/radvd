@@ -74,6 +74,7 @@ RemoveAdvOnExit		{ return T_RemoveAdvOnExit; }
 
 AdvOnLink		{ return T_AdvOnLink; }
 AdvAutonomous		{ return T_AdvAutonomous; }
+AdvDHCPv6PDPreferred	{ return T_AdvDHCPv6PDPreferred; }
 AdvValidLifetime	{ return T_AdvValidLifetime; }
 AdvPreferredLifetime	{ return T_AdvPreferredLifetime; }
 DeprecatePrefix		{ return T_DeprecatePrefix; }

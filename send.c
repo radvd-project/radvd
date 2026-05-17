@@ -245,6 +245,7 @@ static void add_ra_option_prefix(struct safe_buffer *sb, struct AdvPrefix const 
 	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvAutonomousFlag) ? ND_OPT_PI_FLAG_AUTO : 0;
 	/* Mobile IPv6 ext */
 	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvRouterAddr) ? ND_OPT_PI_FLAG_RADDR : 0;
+	pinfo.nd_opt_pi_flags_reserved |= (prefix->AdvDHCPv6PDPreferredFlag) ? ND_OPT_PI_FLAG_DHCPv6_PD_PREF : 0;
 
 	if (cease_adv && prefix->DeprecatePrefixFlag) {
 		/* RFC4862, 5.5.3, step e) */

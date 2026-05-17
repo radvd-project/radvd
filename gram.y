@@ -87,6 +87,7 @@ int yylex_destroy (void);
 
 %token		T_AdvOnLink
 %token		T_AdvAutonomous
+%token		T_AdvDHCPv6PDPreferred
 %token		T_AdvValidLifetime
 %token		T_AdvPreferredLifetime
 %token		T_DeprecatePrefix
@@ -710,6 +711,12 @@ prefixparms	: T_AdvOnLink SWITCH ';'
 		{
 			if (prefix) {
 				prefix->AdvRouterAddr = $2;
+			}
+		}
+		| T_AdvDHCPv6PDPreferred SWITCH ';'
+		{
+			if (prefix) {
+				prefix->AdvDHCPv6PDPreferredFlag = $2;
 			}
 		}
 		| T_AdvValidLifetime number_or_infinity ';'

@@ -364,6 +364,12 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 				(ND_OPT_PI_FLAG_RADDR == (pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_RADDR)))
 				printf("\t\tAdvRouterAddr %s;\n",
 				       (pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_RADDR) ? "on" : "off");
+			
+			if (!edefs ||
+			    DFLT_AdvDHCPv6PDPreferredFlag !=
+				(ND_OPT_PI_FLAG_DHCPv6_PD_PREF == (pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_DHCPv6_PD_PREF)))
+				printf("\t\tAdvDHCPv6PDPreferred %s;\n",
+				       (pinfo->nd_opt_pi_flags_reserved & ND_OPT_PI_FLAG_DHCPv6_PD_PREF) ? "on" : "off");
 
 			printf("\t}; # End of prefix definition\n\n");
 			break;
