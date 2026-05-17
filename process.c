@@ -392,6 +392,7 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			break;
 		}
 		case ND_OPT_PREF64:
+		case ND_OPT_CAPTIVE_PORTAL:
 			/* not checked */
 			break;
 		default:
