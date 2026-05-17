@@ -287,3 +287,34 @@ struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *
 
 	return prefix;
 }
+
+int drop_root_privileges(const char *username)
+{
+	struct passwd *pw = getpwnam(username);
+	if (pw) {
+		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
+			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d", username, pw->pw_uid, pw->pw_gid);
+			return -1;
+		}
+		// If the target 0 was zero; then the later checks would return false
+		// positives. This can take place if explicitly running as '-u root'.
+		if(pw->pw_uid == 0) {
+			return 0;
+		}
+		// Validate that we cannot get root again
+		if (setuid(0) != -1) {
+			flog(LOG_ERR, "Drop root privileged unsuccessful, setuid regained root");
+			return -1;
+		}
+
+		if (seteuid(0) != -1) {
+			flog(LOG_ERR, "Drop root privileged unsuccessful, seteuid regained root");
+			return -1;
+		}
+
+	} else {
+		flog(LOG_ERR, "Couldn't find user '%.32s'", username);
+		return -1;
+	}
+	return 0;
+}

@@ -79,7 +79,6 @@ static volatile int sigterm_received = 0;
 static volatile int sigusr1_received = 0;
 
 static int check_conffile_perm(const char *, const char *);
-static int drop_root_privileges(const char *);
 static int open_and_lock_pid_file(char const *daemon_pid_file_ident);
 static int write_pid_file(char const *daemon_pid_file_ident, pid_t pid);
 static pid_t daemonp(char const *daemon_pid_file_ident);
@@ -861,21 +860,6 @@ static void reset_prefix_lifetimes_foo(struct Interface *iface, void *data)
 }
 
 static void reset_prefix_lifetimes(struct Interface *ifaces) { for_each_iface(ifaces, reset_prefix_lifetimes_foo, 0); }
-
-static int drop_root_privileges(const char *username)
-{
-	struct passwd *pw = getpwnam(username);
-	if (pw) {
-		if (initgroups(username, pw->pw_gid) != 0 || setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
-			flog(LOG_ERR, "Couldn't change to '%.32s' uid=%d gid=%d", username, pw->pw_uid, pw->pw_gid);
-			return -1;
-		}
-	} else {
-		flog(LOG_ERR, "Couldn't find user '%.32s'", username);
-		return -1;
-	}
-	return 0;
-}
 
 static int check_conffile_perm(const char *username, const char *conf_file)
 {
