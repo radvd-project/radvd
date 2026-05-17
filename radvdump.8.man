@@ -20,6 +20,7 @@ radvdump \- dump router advertisements
 .B radvdump
 .B "[ \-vhfe ]"
 .BI "[ \-d " debuglevel " ]"
+.BI "[ \-u " username " ]"
 
 .SH DESCRIPTION
 .B radvdump
@@ -61,6 +62,15 @@ an integer in the range from 1 to 4, from quiet to very verbose. A
 debugging level of 0 completely turns off debugging.
 
 The default debugging level is 0.
+
+.TP
+.BR "\-u " username, " \-\-username " username
+If specified, drops root privileges and changes user ID to
+.I username
+and group ID to the primary group of
+.IR username .
+This is recommended for security reasons.
+Defaults to "nobody", pass "" or "root" to not drop privileges by default.
 
 .SH FILES
 

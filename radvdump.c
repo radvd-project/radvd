@@ -26,8 +26,15 @@
 static char usage_str[] = "[-vhfe] [-d level]";
 
 #ifdef HAVE_GETOPT_LONG
-struct option prog_opt[] = {{"debug", 1, 0, 'd'},   {"file-format", 0, 0, 'f'}, {"exclude-defaults", 0, 0, 'e'},
-			    {"version", 0, 0, 'v'}, {"help", 0, 0, 'h'},	{NULL, 0, 0, 0}};
+struct option prog_opt[] = {
+	{"debug", 1, 0, 'd'},
+	{"username", 1, 0, 'u'},
+	{"file-format", 0, 0, 'f'},
+	{"exclude-defaults", 0, 0, 'e'},
+	{"version", 0, 0, 'v'},
+	{"help", 0, 0, 'h'},
+	{NULL, 0, 0, 0}
+};
 #endif
 
 int sock = -1;
@@ -45,12 +52,14 @@ int main(int argc, char *argv[])
 	int opt_idx;
 #endif
 	char const *pname = ((pname = strrchr(argv[0], '/')) != NULL) ? pname + 1 : argv[0];
+	char username[256];
+	strncpy(username, "nobody", 255);
 
 /* parse args */
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt_long(argc, argv, "d:fehv", prog_opt, &opt_idx)) > 0)
+	while ((c = getopt_long(argc, argv, "d:fehvu:", prog_opt, &opt_idx)) > 0)
 #else
-	while ((c = getopt(argc, argv, "d:fehv")) > 0)
+	while ((c = getopt(argc, argv, "d:fehvu:")) > 0)
 #endif
 	{
 		switch (c) {
@@ -64,6 +73,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'v':
 			version();
+			break;
+		case 'u':
+			strncpy(username, optarg, 255);
 			break;
 		case 'h':
 			usage(pname);
@@ -89,12 +101,29 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if(strncmp(username, "", 255) == 0 || strncmp(username, "-", 255) == 0) {
+		// Must opt out of security
+	} else {
+		if (drop_root_privileges(username) < 0) {
+			perror("drop_root_privileges");
+			flog(LOG_ERR, "unable to drop root privileges");
+			exit(1);
+		}
+		dlog(LOG_DEBUG, 5, "running as user: %s/%d", username, geteuid());
+	}
+
+#define _MSG_SIZE MSG_SIZE_RECV
+#define _CHDR_SIZE CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int))
 	for (;;) {
-		unsigned char msg[MSG_SIZE_RECV];
+		unsigned char msg[_MSG_SIZE];
 		int hoplimit = 0;
 		struct in6_pktinfo *pkt_info = NULL;
 		struct sockaddr_in6 rcv_addr;
-		unsigned char chdr[CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int))];
+		unsigned char chdr[_CHDR_SIZE];
+		// safety; completely zero buffers for each receive
+		memset(&msg, 0, _MSG_SIZE);
+		memset(&chdr, 0, _CHDR_SIZE);
+
 		int len = recv_rs_ra(sock, msg, &rcv_addr, &pkt_info, &hoplimit, chdr);
 		if (len > 0) {
 			struct icmp6_hdr *icmph;
@@ -126,7 +155,7 @@ int main(int argc, char *argv[])
 			} else if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 				print_ff(msg, len, &rcv_addr, hoplimit, (unsigned int)pkt_info->ipi6_ifindex, edefs);
 		} else if (len == 0) {
-			flog(LOG_ERR, "received zero lenght packet");
+			flog(LOG_ERR, "received zero length packet");
 			exit(1);
 		} else {
 			flog(LOG_ERR, "recv_rs_ra: %s", strerror(errno));
@@ -208,7 +237,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			flog(LOG_ERR, "option length greater than total"
 				      " length in RA (type %d, optlen %d, len %d)",
 			     (int)*opt_str, optlen, len);
-			break;
+			// Do not process anything further in this RA.
+			goto end_of_interface;
 		}
 
 		switch (*opt_str) {
@@ -320,7 +350,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			flog(LOG_ERR, "option length greater than total"
 				      " length in RA (type %d, optlen %d, len %d)",
 			     (int)*opt_str, optlen, orig_len);
-			break;
+			// Do not process anything further in this RA.
+			goto end_of_interface;
 		}
 
 		switch (*opt_str) {
@@ -382,6 +413,32 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 			} else {
 				struct in6_addr addr;
 				memset(&addr, 0, sizeof(addr));
+				/* RFC4191 section 2.3 (reformatted)
+				   Length      8-bit unsigned integer.
+
+				   The length of the option (including the Type and Length
+				   fields) in units of 8 octets.
+
+				   The Length field is 1, 2, or 3 depending on the Prefix
+				   Length.
+
+				   If Prefix Length is greater than 64, then Length must be 3.
+
+				   If Prefix Length is greater than 0, then Length must be 2 or
+				   3.
+
+				   If Prefix Length is zero, then Length must be 1, 2, or 3.
+				*/
+				if (
+					(rinfo->nd_opt_ri_len > 3)
+					|| (rinfo->nd_opt_ri_len == 0)
+					|| (rinfo->nd_opt_ri_prefix_len > 64 && rinfo->nd_opt_ri_len < 3)
+					|| (rinfo->nd_opt_ri_prefix_len > 0  && rinfo->nd_opt_ri_len < 1)
+					) {
+					flog(LOG_ERR, "Invalid Route Information option length %d from %s", rinfo->nd_opt_ri_len, addr_str);
+					printf("# Invalid Route Information option length %d, per RFC4191 section 2.3 ", rinfo->nd_opt_ri_len);
+					break;
+				}
 				if (rinfo->nd_opt_ri_len > 1)
 					memcpy(&addr, &rinfo->nd_opt_ri_prefix, (rinfo->nd_opt_ri_len - 1) * 8);
 				addrtostr(&addr, prefix_str, sizeof(prefix_str));
@@ -525,6 +582,7 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 		opt_str += optlen;
 	}
 
+end_of_interface:
 	printf("}; # End of interface definition\n");
 
 	fflush(stdout);
