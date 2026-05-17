@@ -38,6 +38,7 @@ uint32_t get_interface_linkmtu(const char *);
 int update_device_info(int sock, struct Interface *iface)
 {
 	struct ifreq ifr;
+	int ra_option_size_step = 0;
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, iface->props.name, sizeof(ifr.ifr_name));
 
@@ -60,10 +61,14 @@ int update_device_info(int sock, struct Interface *iface)
 	 *   - link-layer MTU
 	 *   - per-protocol MTU
 	 */
+
 	iface->props.max_ra_option_size = iface->AdvRAMTU;
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
 	iface->props.max_ra_option_size = MIN(iface->props.max_ra_option_size, MAX(iface->sllao.if_maxmtu, RFC2460_MIN_MTU));
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
 	iface->props.max_ra_option_size =
 	    MIN(iface->props.max_ra_option_size, MAX(get_interface_linkmtu(iface->props.name), RFC2460_MIN_MTU));
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
 		flog(LOG_ERR, "ioctl(SIOCGIFHWADDR) failed on %s: %s", iface->props.name, strerror(errno));
@@ -127,6 +132,7 @@ int update_device_info(int sock, struct Interface *iface)
 		iface->props.max_ra_option_size -= 0;
 		break;
 	}
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
 
 	dlog(LOG_DEBUG, 3, "%s link layer token length: %d", iface->props.name, iface->sllao.if_hwaddr_len);
 
@@ -158,7 +164,11 @@ int update_device_info(int sock, struct Interface *iface)
 
 	// Regardless of link-layer, every RA message will have an IPV6 header & RA header
 	iface->props.max_ra_option_size -= sizeof(struct ip6_hdr);
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
 	iface->props.max_ra_option_size -= sizeof(struct nd_router_advert);
+	dlog(LOG_DEBUG, 5, "%s max ra option size (step %d): %d",iface->props.name, ra_option_size_step++, iface->props.max_ra_option_size);
+
+	dlog(LOG_DEBUG, 3, "%s max ra option size (final): %d", iface->props.name, iface->props.max_ra_option_size);
 
 	return 0;
 }
