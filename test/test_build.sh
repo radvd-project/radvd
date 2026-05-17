@@ -34,7 +34,7 @@ case $1 in
 	opensuse)
 		zypper refresh
 		zypper --non-interactive install -t pattern devel_C_C++
-		zypper --non-interactive install check-devel clang sudo libbsd0 libbsd-devel autoconf automake make
+		zypper --non-interactive install check-devel clang sudo libbsd0 libbsd-devel autoconf automake make bison flex
 		;;
 	ubuntu)
 		sudo apt update
