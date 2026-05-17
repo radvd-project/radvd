@@ -20,8 +20,7 @@
 #include "radvd.h"
 
 /* maximum message size for incoming and outgoing RSs and RAs */
-#define MSG_SIZE_RECV 1500
-#define MSG_SIZE_SEND 1452
+#define MSG_SIZE_RECV ((64 * 1024)-1) // Largest possible IPv6 packet size without Jumbograms
 #define RFC2460_MIN_MTU 1280 /* RFC2460 5. Packet Size Issues: lowest valid MTU supported by IPv6 */
 
 #define MAX2(X, Y) (((X) >= (Y)) ? (X) : (Y))
