@@ -104,7 +104,7 @@ jobs:
   ubuntu:
     strategy:
       matrix:
-        ubuntu_version: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04]
+        ubuntu_version: [ubuntu-22.04, ubuntu-24.04] # ubuntu-26.04 not working as of 2026/05/17
         compiler: [clang, gcc]
     runs-on: ${{ matrix.ubuntu_version }}
     steps:
