@@ -1,14 +1,15 @@
 #
 #
 #   Authors:
-#    Lars Fenneberg		<lf@elemental.net>	 
+#    Lars Fenneberg		<lf@elemental.net>
+#    Robin H. Johnson	<robbat2@gentoo.org>
 #
-#   This software is Copyright 1996,1997 by the above mentioned author(s), 
+#   This software is Copyright 1996-2026 by the above mentioned author(s)
 #   All Rights Reserved.
 #
 #   The license which is distributed with this software in the file COPYRIGHT
 #   applies to this software. If your distribution is missing this file, you
-#   may request it from <reubenhwk@gmail.com>.
+#   may request it from https://github.com/radvd-project/radvd/issues
 #
 
 
@@ -141,6 +142,9 @@ SUFFIXES = .man
 		-e 's,@''PATH_RADVD_PID''@,$(PATH_RADVD_PID),g' \
 		-e 's,@''PATH_RADVD_LOG''@,$(PATH_RADVD_LOG),g' \
 		-e 's,@''LOG_FACILITY''@,$(LOG_FACILITY),g' \
+		-e 's,@''CONTACT_EMAIL''@,$(CONTACT_EMAIL),g' \
+		-e '/^@AUTHORS@$$/r AUTHORS' \
+		-e '/^@AUTHORS@$$/d' \
 		$< > $@
 
 man_MANS = \
@@ -162,7 +166,6 @@ EXTRA_DIST = \
 	contrib/95-radvd-gen \
 	contrib/unset_addrs.sh \
 	COPYRIGHT \
-	copyright.blurb \
 	Docker.autogen \
 	.github/workflows/bsd.yaml \
 	.github/workflows/buildroot.yaml \

@@ -9,7 +9,7 @@
 .\"
 .\"   The license which is distributed with this software in the file COPYRIGHT
 .\"   applies to this software. If your distribution is missing this file, you
-.\"   may request it from <reubenhwk@gmail.com>.
+.\"   may request it from https://github.com/radvd-project/radvd/issues
 .\"
 .\"
 .\"
@@ -70,7 +70,7 @@ The default debugging level is 0.
 .SH BUGS
 
 There certainly are some bugs. If you find them or have other
-suggestions please contact Reuben Hawkins <reubenhwk@gmail.com>.
+suggestions please send to https://github.com/radvd-project/radvd/issues
 
 .SH "SEE ALSO"
 

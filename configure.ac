@@ -1,14 +1,15 @@
 dnl
 dnl
 dnl   Authors:
-dnl    Lars Fenneberg		<lf@elemental.net>	 
+dnl    Lars Fenneberg		<lf@elemental.net>
+dnl    Robin H. Johnson		<robbat2@gentoo.org>
 dnl
-dnl   This software is Copyright 1996-2000 by the above mentioned author(s), 
+dnl   This software is Copyright 1996-2026 by the above mentioned author(s)
 dnl   All Rights Reserved.
 dnl
 dnl   The license which is distributed with this software in the file COPYRIGHT
 dnl   applies to this software. If your distribution is missing this file, you
-dnl   may request it from <reubenhwk@gmail.com>.
+dnl   may request it from https://github.com/radvd-project/radvd/issues
 dnl
 dnl
 
@@ -250,6 +251,7 @@ if test x${arch} = xlinux ; then
 	CONDITIONAL_SOURCES="privsep-${arch}.${OBJEXT} ${CONDITIONAL_SOURCES}"
 	AC_DEFINE(USE_PRIVSEP, 1, [Use privsep])
 fi
+AC_DEFINE([CONTACT_EMAIL],["https://github.com/radvd-project/radvd/issues"],[Where to report problems, features etc.])
 AC_SUBST(CONDITIONAL_SOURCES)
 
 AC_SUBST(VERSION)

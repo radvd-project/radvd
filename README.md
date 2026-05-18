@@ -1,22 +1,34 @@
+# radvd
 
-Installation:
-=============
+radvd is the router advertisement daemon for IPv6. It listens to router
+solicitations and sends router advertisements as described in
+"Neighbor Discovery for IP Version 6 (IPv6)" (RFC 4861).
 
-Run configure, e.g.
+With these advertisements hosts can automatically configure their
+addresses and some other parameters. They also can choose a default router
+based on these advertisements.
 
+It also implements "Neighbor Discovery Optimization for IPv6 over Low-Power
+Wireless Personal Area Networks (6LoWPANs)" (RFC6775) & many other related IPv6
+RFCs. Please check the source for details.
+
+# Installation:
+
+Run `configure`, e.g.
+
+```shell
 ./configure --prefix=/usr/local --sysconfdir=/etc --mandir=/usr/share/man
+```
 
 See configure --help for additional command line arguments.
 
 Run 'make' and 'make install'.  On BSD, you may need to use 'gmake'.
 
-Configuration:
-==============
+# Configuration:
 
-See INTRO.html, radvd.conf(8) and radvd.conf.example.
+See `INTRO.html`, `radvd.conf(8)` and `radvd.conf.example`.
 
-Frequently Asked Questions:
-===========================
+# Frequently Asked Questions:
 
 Setting up radvd is very simple, so the most frequently asked
 questions have been about what radvd _doesn't_ do...
