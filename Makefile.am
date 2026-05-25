@@ -177,7 +177,8 @@ EXTRA_DIST = \
 	radvd.conf.example \
 	radvd.service.in \
 	radvdump.8.man \
-	README \
+	README.md \
+	SECURITY.md \
 	RELEASE-PROCESS.md \
 	redhat/systemd/radvd.service \
 	redhat/systemd/radvd.spec \
