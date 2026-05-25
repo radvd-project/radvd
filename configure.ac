@@ -14,7 +14,7 @@ dnl
 dnl
 
 dnl If adding rcX to version, be sure to separate with a '-' 
-AC_INIT([radvd],[2.20])
+AC_INIT([radvd],[2.21])
 AC_CONFIG_SRCDIR(radvd.c)
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
