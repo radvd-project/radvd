@@ -245,16 +245,17 @@ verify:
 		fi; \
 	done
 
+URL_PREFIX = https://github.com/radvd-project/radvd/releases/tag/$(VERSION)/
 html:
 	$(AM_V_GEN)echo "<ul>"; \
 	for e in $(EXTENSIONS); do \
 		if [ -f radvd-$(VERSION).tar.$$e ]; then \
 			echo "<li>"; \
-			echo "<a href=\"dist/radvd-$(VERSION).tar.$$e\">radvd-$(VERSION).tar.$$e</a>"; \
+			echo "<a href=\"$(URL_PREFIX)/radvd-$(VERSION).tar.$$e\">radvd-$(VERSION).tar.$$e</a>"; \
 			for h in $(HASHES); do \
-				echo "<a href=\"dist/radvd-$(VERSION).tar.$$e.$$h\">[$$h]</a>"; \
+				echo "<a href=\"$(URL_PREFIX)/radvd-$(VERSION).tar.$$e.$$h\">[$$h]</a>"; \
 			done; \
-			echo "<a href=\"dist/radvd-$(VERSION).tar.$$e.asc\">[GPG]</a>"; \
+			echo "<a href=\"$(URL_PREFIX)/radvd-$(VERSION).tar.$$e.asc\">[GPG]</a>"; \
 			echo "</li>"; \
 		fi; \
 	done; \
