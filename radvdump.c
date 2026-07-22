@@ -166,6 +166,45 @@ int main(int argc, char *argv[])
 	exit(0);
 }
 
+/* Read big-endian fields byte-wise, independent of buffer alignment. */
+static uint16_t get_be16(uint8_t const *p)
+{
+	return (uint16_t)((p[0] << 8) | p[1]);
+}
+
+static uint32_t get_be32(uint8_t const *p)
+{
+	return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
+}
+
+/*
+ * Join a run of 1-byte-length-prefixed items into `sep`-separated text.
+ * Used for both DNS labels (sep '.') and ALPN tokens (sep ','). Stops at a
+ * zero-length item (the DNS root label) or the end of the buffer. Returns 0
+ * if an item runs past `len` or overflows `out`.
+ */
+static int join_prefixed(uint8_t const *buf, int len, char sep, char *out, size_t outsz)
+{
+	out[0] = '\0';
+	for (int i = 0; i < len;) {
+		int n = buf[i++];
+
+		if (n == 0)
+			break;
+		if (i + n > len || strlen(out) + n + 2 > outsz)
+			return 0;
+
+		if (out[0] != '\0') {
+			size_t end = strlen(out);
+			out[end] = sep;
+			out[end + 1] = '\0';
+		}
+		strncat(out, (char const *)&buf[i], n);
+		i += n;
+	}
+	return 1;
+}
+
 static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int hoplimit, unsigned int if_index, int edefs)
 {
 	/* XXX: hoplimit not being used for anything here.. */
@@ -314,6 +353,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 		case ND_OPT_RDNSS_INFORMATION:
 			break;
 		case ND_OPT_DNSSL_INFORMATION:
+			break;
+		case ND_OPT_DNR_INFORMATION:
 			break;
 		case ND_OPT_PREF64:
 			break;
@@ -526,6 +567,90 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 				printf("\t\tAdvDNSSLLifetime %u;\n", ntohl(dnssl_info->nd_opt_dnssli_lifetime));
 
 			printf("\t}; # End of DNSSL definition\n\n");
+			break;
+		}
+		case ND_OPT_DNR_INFORMATION: {
+			char adn[256];
+
+			/* RFC 9463 §6.1: 8-byte header, 2-byte ADN Length, then the ADN */
+			if (optlen < 10 || 10 + (int)get_be16(opt_str + 8) > optlen) {
+				flog(LOG_ERR, "Invalid DNR option from %s", addr_str);
+				printf("# Invalid DNR option ");
+				break;
+			}
+
+			int adn_len = get_be16(opt_str + 8);
+			if (!join_prefixed(opt_str + 10, adn_len, '.', adn, sizeof(adn)) || adn[0] == '\0') {
+				flog(LOG_ERR, "Invalid DNR ADN from %s", addr_str);
+				printf("# Invalid DNR ADN ");
+				break;
+			}
+
+			uint32_t lifetime = get_be32(opt_str + 4);
+
+			printf("\n\tDNR %s\n\t{\n", adn);
+			printf("\t\tAdvDNRPriority %hu;\n", get_be16(opt_str + 2));
+			/* as AdvDNRLifetime may depend on MaxRtrAdvInterval, it could change */
+			if (lifetime == 0xffffffff)
+				printf("\t\tAdvDNRLifetime infinity; # (0xffffffff)\n");
+			else
+				printf("\t\tAdvDNRLifetime %u;\n", lifetime);
+
+			int off = 10 + adn_len;
+
+			/* Addr Length + addresses. Absent in ADN-only mode, where the
+			 * trailing zero padding reads as a zero Addr Length below. */
+			if (off + 2 <= optlen) {
+				int addr_len = get_be16(opt_str + off);
+				off += 2;
+				if (addr_len % (int)sizeof(struct in6_addr) == 0 && off + addr_len <= optlen) {
+					struct in6_addr addr;
+					for (int a = 0; a < addr_len; a += (int)sizeof(struct in6_addr)) {
+						memcpy(&addr, opt_str + off + a, sizeof(addr));
+						addrtostr(&addr, prefix_str, sizeof(prefix_str));
+						printf("\t\tAdvDNRAddr %s;\n", prefix_str);
+					}
+				}
+				off += addr_len;
+			}
+
+			/* SvcParams: a run of key(2) len(2) value entries (RFC 9460 §2.2) */
+			if (off + 2 <= optlen) {
+				int end = off + 2 + get_be16(opt_str + off);
+				if (end > optlen)
+					end = optlen;
+				off += 2;
+
+				while (off + 4 <= end) {
+					int key = get_be16(opt_str + off);
+					int vlen = get_be16(opt_str + off + 2);
+					uint8_t const *val = opt_str + off + 4;
+					off += 4 + vlen;
+					if (off > end)
+						break;
+
+					switch (key) {
+					case DNR_SVCPARAM_KEY_ALPN: { /* RFC 9460 §7.1 */
+						char alpn[256];
+						if (join_prefixed(val, vlen, ',', alpn, sizeof(alpn)) && alpn[0])
+							printf("\t\tAdvDNRSvcAlpn \"%s\";\n", alpn);
+						break;
+					}
+					case DNR_SVCPARAM_KEY_PORT: /* RFC 9460 §7.2 */
+						if (vlen == 2)
+							printf("\t\tAdvDNRSvcPort %hu;\n", get_be16(val));
+						break;
+					case DNR_SVCPARAM_KEY_DOHPATH: /* RFC 9461 §5.1 */
+						printf("\t\tAdvDNRSvcDohpath \"%.*s\";\n", vlen, (const char *)val);
+						break;
+					default:
+						printf("\t\t# Unsupported SvcParamKey %d (%d bytes)\n", key, vlen);
+						break;
+					}
+				}
+			}
+
+			printf("\t}; # End of DNR definition\n\n");
 			break;
 		}
 		case ND_OPT_PREF64: {
