@@ -85,7 +85,8 @@ Implementation Legend:
  - UNKNOWN: Implementation status unknown.
 
 ## RFCs with RA options or modifying RA behaviors
-^ RFC ^ Status ^ Title ^ Note Summary ^
+| RFC | Status | Title | Note Summary |
+| --- | --- | --- | --- |
 | RFC2461 | OBSOLETE | Neighbor Discovery for IP Version 6 (IPv6) | Obsoleted by RFC 4861 |
 | RFC3775 | OBSOLETE | Mobility Support in IPv6 | Obsoleted by RFC 6275 |
 | RFC3971 | NONE | SEcure Neighbor Discovery (SEND) | |
@@ -122,7 +123,8 @@ Implementation Legend:
 | RFC9099 | | Operational Security Considerations for IPv6 Networks | |
 
 ## Other RFCs
-^ RFC ^ Status ^ Title ^ Note Summary ^
+| RFC | Status | Title | Note Summary |
+| --- | --- | --- | --- |
 | RFC6273 | UNKNOWN | The Secure Neighbor Discovery (SEND) Hash Threat Analysis | |
 | RFC4286 | WONTFIX | Multicast Router Discovery | Unrelated protocol |
 
