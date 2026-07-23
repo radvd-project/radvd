@@ -23,7 +23,7 @@
 #define bswap64(y) (y)
 #endif
 
-static char usage_str[] = "[-vhfe] [-d level]";
+static char usage_str[] = "[-vhfe] [-d level] [-u username]";
 
 #ifdef HAVE_GETOPT_LONG
 struct option prog_opt[] = {
