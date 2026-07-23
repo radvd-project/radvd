@@ -17,6 +17,8 @@
 #include "config.h"
 #include "includes.h"
 
+#include <ctype.h>
+
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define bswap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y>>32))
 #else
@@ -43,6 +45,7 @@ static void version(void);
 static void usage(char const *pname);
 static void print_ff(unsigned char *, int, struct sockaddr_in6 *, int, unsigned int, int);
 static void print_preferences(int);
+static void print_sanitized(const char *, size_t);
 
 int main(int argc, char *argv[])
 {
@@ -282,11 +285,12 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 		}
 		case ND_OPT_CAPTIVE_PORTAL: {
 			char *opt_captive_portal = (char *)opt_str+2;
-			char *captive_portal = strndup(opt_captive_portal, optlen-2);
+			size_t captive_portal_len = strnlen(opt_captive_portal, optlen-2);
 
-			printf("\tAdvCaptivePortalAPI \"%s\";\n", captive_portal);
+			printf("\tAdvCaptivePortalAPI \"");
+			print_sanitized(opt_captive_portal, captive_portal_len);
+			printf("\";\n");
 
-			free(captive_portal);
 			break;
 		}
 		case ND_OPT_TIMESTAMP: {
@@ -501,7 +505,8 @@ static void print_ff(unsigned char *msg, int len, struct sockaddr_in6 *addr, int
 					if (suffix[0] == '\0')
 						continue;
 
-					printf(" %s", suffix);
+					printf(" ");
+					print_sanitized(suffix, strlen(suffix));
 
 					suffix[0] = '\0';
 					continue;
@@ -586,6 +591,28 @@ end_of_interface:
 	printf("}; # End of interface definition\n");
 
 	fflush(stdout);
+}
+
+/*
+ * String data embedded in RA options comes straight off the wire and is
+ * neither NUL-terminated nor guaranteed to be printable.
+ * Escape anything outside printable ASCII (and '"'/'\\') so a hostile
+ * RA can't smuggle terminal control sequences through radvdump.
+ */
+static void print_sanitized(const char *src, size_t len)
+{
+	for (size_t i = 0; i < len; i++) {
+		unsigned char c = (unsigned char)src[i];
+
+		if (c == '\\' || c == '"') {
+			putchar('\\');
+			putchar(c);
+		} else if (isprint(c)) {
+			putchar(c);
+		} else {
+			printf("\\x%02x", c);
+		}
+	}
 }
 
 static void print_preferences(int p)
