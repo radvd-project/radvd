@@ -169,6 +169,15 @@ void dnssl_init_defaults(struct AdvDNSSL *dnssl, struct Interface *iface)
 	dnssl->FlushDNSSLFlag = DFLT_FlushDNSSLFlag;
 }
 
+void dnr_init_defaults(struct AdvDNR *dnr, struct Interface *iface)
+{
+	memset(dnr, 0, sizeof(struct AdvDNR));
+
+	dnr->AdvDNRPriority = DFLT_AdvDNRPriority;
+	dnr->AdvDNRLifetime = DFLT_AdvDNRLifetime(iface);
+	dnr->FlushDNRFlag = DFLT_FlushDNRFlag;
+}
+
 int check_iface(struct Interface *iface)
 {
 	int res = 0;
@@ -436,6 +445,19 @@ static void free_iface_list(struct Interface *iface)
 			free(dnssl);
 
 			dnssl = next_dnssl;
+		}
+
+		struct AdvDNR *dnr = iface->AdvDNRList;
+		while (dnr) {
+			struct AdvDNR *next_dnr = dnr->next;
+
+			free(dnr->AdvDNRAddrs);
+			free(dnr->AdvDNRADN);
+			free(dnr->AdvDNRSvcAlpn);
+			free(dnr->AdvDNRSvcDohpath);
+			free(dnr);
+
+			dnr = next_dnr;
 		}
 
 		struct AutogenIgnorePrefix *ignore_prefixes = iface->IgnorePrefixList;

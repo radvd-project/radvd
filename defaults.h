@@ -99,6 +99,14 @@
 #define DFLT_AdvDNSSLLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
 #define DFLT_FlushDNSSLFlag 1
 
+/* DNR
+ * https://www.rfc-editor.org/rfc/rfc9463#section-6.1
+ * "The value of Lifetime SHOULD by default be at least 3 * MaxRtrAdvInterval"
+ */
+#define DFLT_AdvDNRLifetime(iface) (3 * (iface)->MaxRtrAdvInterval)
+#define DFLT_AdvDNRPriority 1
+#define DFLT_FlushDNRFlag 1
+
 /* Protocol (RFC4861) constants: */
 
 /* Router constants: */
@@ -225,6 +233,22 @@ struct nd_opt_dnssl_info_local {
 	uint16_t nd_opt_dnssli_reserved;
 	uint32_t nd_opt_dnssli_lifetime;
 	unsigned char nd_opt_dnssli_suffixes[];
+};
+
+#undef ND_OPT_DNR_INFORMATION
+#define ND_OPT_DNR_INFORMATION 144
+
+/* SvcParamKeys carried in the DNR option */
+#define DNR_SVCPARAM_KEY_ALPN    1 /* RFC 9460 section 7.1 */
+#define DNR_SVCPARAM_KEY_PORT    3 /* RFC 9460 section 7.2 */
+#define DNR_SVCPARAM_KEY_DOHPATH 7 /* RFC 9461 section 5.1 */
+
+struct nd_opt_dnr_info_local {
+	uint8_t nd_opt_dnri_type;
+	uint8_t nd_opt_dnri_len;
+	uint16_t nd_opt_dnri_priority;
+	uint32_t nd_opt_dnri_lifetime;
+	uint8_t nd_opt_dnri_data[];
 };
 
 /* Flags */

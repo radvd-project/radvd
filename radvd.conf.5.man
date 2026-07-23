@@ -31,6 +31,7 @@ The file contains one or more interface definitions of the form:
 	list of route definitions
 	list of RDNSS definitions
 	list of DNSSL definitions
+	list of DNR definitions
 	list of ABRO definitions
 	list of NAT64 pref64 definitions
 	list of auto-ignore prefixes
@@ -135,6 +136,16 @@ virtual/failover MAC.
         list of IPv6 addresses
 .B };
 .fi
+
+DNR (Discovery of Network-designated Resolvers) definitions are of the form:
+
+.nf
+.BR "DNR " "authentication-domain-name " {
+	list of DNR specific options
+.B };
+.fi
+
+This option can be specified multiple times.
 
 ABRO (Authoritative Border Router Option) definitions are of the form:
 
@@ -661,6 +672,53 @@ Default: 3*MaxRtrAdvInterval
 .BR FlushDNSSL " " on | off
 
 Upon shutdown, announce the DNSSL entries with a zero second lifetime. This should cause the DNSSL entries to be immediately removed from the end-nodes' DNS search list.
+
+Default: on
+
+.SH DNR SPECIFIC OPTIONS
+
+.TP
+.BR "AdvDNRAddr " IPv6-address;
+Advertise the resolver's IPv6 address.
+This option can be specified multiple times.
+If this option is not specified, the DNR advertisement will be considered
+to be using ADN-Only mode, and Svc options will be disallowed.
+
+.TP
+.BR "AdvDNRPriority " number;
+The priority of the encrypted DNS instance relative to others.
+
+Default: 1
+
+.TP
+.BR "AdvDNRSvcPort " number;
+Indicates the target port number for encrypted DNS.
+If not specified, clients will use the default port for the protocol.
+
+.TP
+.BR "AdvDNRSvcAlpn " string;
+The supported protocols, formatted as an ALPN string.
+For example, a DNS-over-HTTPS resolver may specify "http/1.1,h2,h3"
+for HTTP/1.1, HTTP/2, and HTTP/3 (QUIC) support,
+while a DNS-over-TLS resolver may specify "dot" for DNS-over-TLS.
+This option should be specified.
+
+.TP
+.BR "AdvDNRSvcDohpath " string;
+The DNS-over-HTTPS URI Template that clients should use for the resolver.
+
+.TP
+.BR "AdvDNRLifetime " seconds | infinity;
+The maximum duration how long the DNR entries are used for name resolution.
+A value of 0 means the nameserver should no longer be used.
+
+Default: 3*MaxRtrAdvInterval
+
+.TP
+.BR FlushDNR " " on | off
+
+Upon shutdown, announce the DNR entries with a zero second lifetime.
+This should cause the DNR entries to be immediately removed from the end-nodes' nameserver list.
 
 Default: on
 
