@@ -122,6 +122,7 @@ Implementation Legend:
 | RFC9099 | | Operational Security Considerations for IPv6 Networks | |
 | RFC9463 | NONE | DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers (DNR) | |
 | RFC9762 | COMPLETE | Using Router Advertisements to Signal the Availability of DHCPv6 Prefix Delegation to Clients | |
+| draft-ietf-6man-snac-router-ra-flag | COMPLETE | SNAC Router Flag in ICMPv6 Router Advertisement Messages | |
 
 ## Other RFCs
 ^ RFC ^ Status ^ Title ^ Note Summary ^
