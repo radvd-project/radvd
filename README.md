@@ -120,6 +120,8 @@ Implementation Legend:
 | RFC8910 | PARTIAL | Captive-Portal Identification in DHCP and Router Advertisements | |
 | RFC8981 | | Privacy Extensions for Stateless Address Autoconfiguration in IPv6 | |
 | RFC9099 | | Operational Security Considerations for IPv6 Networks | |
+| RFC9463 | NONE | DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers (DNR) | |
+| RFC9762 | COMPLETE | Using Router Advertisements to Signal the Availability of DHCPv6 Prefix Delegation to Clients | |
 
 ## Other RFCs
 ^ RFC ^ Status ^ Title ^ Note Summary ^
