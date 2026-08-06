@@ -200,6 +200,9 @@ EXTRA_DIST = \
 	test/test_dnssl4.conf \
 	test/test_dnssl5.conf \
 	test/test_dnssl6.conf \
+	test/test_dnr_adn_only.conf \
+	test/test_dnr_addrs.conf \
+	test/test_dnr_svcparams.conf \
 	test/test_rdnss.conf \
 	test/test_rdnss_long.conf \
 	test/util.c \
