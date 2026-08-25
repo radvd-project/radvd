@@ -125,6 +125,8 @@ int get_iface_addrs(char const *name, struct in6_addr *if_addr, struct in6_addr 
 				continue;
 
 			*if_addrs = realloc(*if_addrs, (i + 1) * sizeof(struct in6_addr));
+			if (*if_addrs == NULL)
+				return -1;
 			(*if_addrs)[i++] = a6->sin6_addr;
 
 			/* Skip if it is not a linklocal address or link locak address already found*/
@@ -144,6 +146,8 @@ int get_iface_addrs(char const *name, struct in6_addr *if_addr, struct in6_addr 
 
 	/* last item in the list is all zero (unspecified) address */
 	*if_addrs = realloc(*if_addrs, (i + 1) * sizeof(struct in6_addr));
+	if (*if_addrs == NULL)
+		return -1;
 	memset(&(*if_addrs)[i], 0, sizeof(struct in6_addr));
 
 	/* Sort the addresses so the output is predictable. */
