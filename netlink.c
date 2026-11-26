@@ -50,7 +50,7 @@ int prefix_match(struct AdvPrefix const *prefix, struct in6_addr *addr) {
 	} else {
 		int i;
 		for (i = 0; i < prefix->PrefixLen; i++) {
-			char mask = 1 << (8 - (i % 8));
+			unsigned char mask = 1 << (7 - (i % 8));
 			int index = i / 8;
 			if ((prefix->Prefix.s6_addr[index] & mask) !=
 			    (addr->s6_addr[index] & mask))
