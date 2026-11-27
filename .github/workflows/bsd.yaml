@@ -23,7 +23,7 @@ jobs:
         fetch-depth: 1
     - name: Build
       # CodeQL security: uses should use an immutable tag or hash for untrusted actions, "@v1" may mutate
-      uses: vmactions/freebsd-vm@v1.1.7
+      uses: vmactions/freebsd-vm@v1.6.0
       with:
         # BSD make -j has a mandatory argument
         # Linux make -j means infinite jobs
