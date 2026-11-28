@@ -603,6 +603,12 @@ ignoreprefixlist	: T_AUTOIGNOREPREFIX '{' ignoreprefixes '}' ';'
 
 ignoreprefixes	: IPV6ADDR '/' NUMBER ';'
 		{
+			if ($3 > MAX_PrefixLen)
+			{
+				flog(LOG_ERR, "invalid prefix length in %s, line %d", filename, num_lines);
+				ABORT;
+			}
+
 			struct AutogenIgnorePrefix *new = calloc(1, sizeof(struct AutogenIgnorePrefix));
 			if (new == NULL) {
 				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
@@ -617,14 +623,20 @@ ignoreprefixes	: IPV6ADDR '/' NUMBER ';'
 				new->Mask.s6_addr[i] = 0xff;
 			}
 
-			if (fullOctets != 16) {
-				new->Mask.s6_addr[fullOctets] = ~(1 << (8 - $3 % 8)) + 1;
+			if ($3 % 8 != 0) {
+				new->Mask.s6_addr[fullOctets] = 0xff << (8 - $3 % 8);
 			}
 
 			$$ = new;
 		}
 		| ignoreprefixes IPV6ADDR '/' NUMBER ';'
 		{
+			if ($4 > MAX_PrefixLen)
+			{
+				flog(LOG_ERR, "invalid prefix length in %s, line %d", filename, num_lines);
+				ABORT;
+			}
+
 			struct AutogenIgnorePrefix *new = calloc(1, sizeof(struct AutogenIgnorePrefix));
 			if (new == NULL) {
 				flog(LOG_CRIT, "calloc failed: %s", strerror(errno));
@@ -639,8 +651,8 @@ ignoreprefixes	: IPV6ADDR '/' NUMBER ';'
 				new->Mask.s6_addr[i] = 0xff;
 			}
 
-			if (fullOctets != 16) {
-				new->Mask.s6_addr[fullOctets] = ~(1 << (8 - $4 % 8)) + 1;
+			if ($4 % 8 != 0) {
+				new->Mask.s6_addr[fullOctets] = 0xff << (8 - $4 % 8);
 			}
 
 			new->next = $1;

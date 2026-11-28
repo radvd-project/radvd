@@ -348,8 +348,8 @@ static void process_ra(struct Interface *iface, unsigned char *msg, int len, str
 			if (len < sizeof(*dnsslinfo))
 				return;
 
+			char suffix[256] = {""};
 			for (int offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len - 1) * 8;) {
-				char suffix[256] = {""};
 				if (&dnsslinfo->nd_opt_dnssli_suffixes[offset] - opt_str >= len)
 					return;
 				int label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];
